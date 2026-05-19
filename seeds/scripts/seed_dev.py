@@ -3,7 +3,7 @@
 Idempotent: deletes seed rows by slug/email before re-inserting.
 
 Inventory:
-- 2 clinics (Scranton, Wilkes-Barre — Western PA cardiology)
+- 2 clinics (Pittsburgh metro — Western PA cardiology)
 - 6 users (3 per clinic: admin / reviewer / readonly)
 - 6 clinic_memberships (one default per user)
 - 20 patients (10 per clinic, age 45-80, varied insurance)
@@ -39,8 +39,8 @@ from seeds.scripts._npi import generate_npi
 # ─── Fixture data ──────────────────────────────────────────────────────
 
 CLINICS = [
-    ("scranton-cardiology", "Scranton Cardiology Associates"),
-    ("wilkes-barre-heart", "Wilkes-Barre Heart Center"),
+    ("steel-city-cardiology", "Steel City Cardiology Associates"),
+    ("allegheny-valley-heart", "Allegheny Valley Heart & Vascular"),
 ]
 
 # Email scheme: {role}@{slug}.example.com (`.example.com` is RFC-2606
@@ -129,7 +129,17 @@ async def seed() -> None:
                             phone=fake.phone_number()[:32],
                             email=fake.safe_email(),
                             address_line1=fake.street_address(),
-                            city=rng.choice(["Scranton", "Wilkes-Barre", "Pittston"]),
+                            city=rng.choice(
+                                [
+                                    "Pittsburgh",
+                                    "Monroeville",
+                                    "Cranberry",
+                                    "Greensburg",
+                                    "Washington",
+                                    "Butler",
+                                    "Beaver",
+                                ]
+                            ),
                             state="PA",
                             zip_code=fake.postcode_in_state("PA"),
                             mrn=f"MRN-{fake.unique.bothify(text='######').upper()}",

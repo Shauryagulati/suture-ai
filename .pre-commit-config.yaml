@@ -1,0 +1,48 @@
+# Opt-in pre-commit hooks. Install with:
+#   pip install pre-commit && pre-commit install
+# Or `make precommit-install`.
+#
+# Husky's commit-msg hook (commitlint) runs separately via pnpm prepare.
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.0
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        files: ^apps/api/
+      - id: ruff-format
+        files: ^apps/api/
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy (apps/api)
+        entry: bash -c 'cd apps/api && uv run mypy app'
+        language: system
+        files: ^apps/api/.*\.py$
+        pass_filenames: false
+
+      - id: biome
+        name: biome (apps/web)
+        entry: bash -c 'cd apps/web && pnpm exec biome check --write .'
+        language: system
+        files: ^apps/web/.*\.(ts|tsx|js|jsx|json)$
+        pass_filenames: false
+
+      - id: tsc
+        name: tsc (apps/web)
+        entry: bash -c 'cd apps/web && pnpm exec tsc --noEmit'
+        language: system
+        files: ^apps/web/.*\.(ts|tsx)$
+        pass_filenames: false

@@ -1,0 +1,143 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (FastAPI)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: suture
+          POSTGRES_USER: suture
+          POSTGRES_PASSWORD: suture_dev_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U suture -d suture"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "0.11.x"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        working-directory: apps/api
+        run: uv sync --frozen --all-extras --dev
+
+      - name: Enable Postgres extensions
+        env:
+          PGPASSWORD: suture_dev_password
+        run: |
+          psql -h localhost -U suture -d suture -c "CREATE EXTENSION IF NOT EXISTS vector;"
+          psql -h localhost -U suture -d suture -c "CREATE EXTENSION IF NOT EXISTS pgcrypto;"
+          psql -h localhost -U suture -d suture -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+          psql -h localhost -U suture -d suture -c "CREATE EXTENSION IF NOT EXISTS citext;"
+
+      - name: Lint (ruff)
+        working-directory: apps/api
+        run: uv run ruff check app tests
+
+      - name: Format check (ruff)
+        working-directory: apps/api
+        run: uv run ruff format --check app tests
+
+      - name: Type check (mypy)
+        working-directory: apps/api
+        run: uv run mypy app
+
+      - name: Test (pytest)
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql+asyncpg://suture:suture_dev_password@localhost:5432/suture
+          REDIS_URL: redis://localhost:6379/0
+          JWT_SECRET: ci_jwt_secret_for_test_runs_only_abcdef0123
+          PHI_ENCRYPTION_KEY: VbDtA5sCxOf8b9pYwT-jXNVKfNF7HMu0_rDFZIO_eIM=
+          OTEL_DISABLED: "1"
+        run: uv run pytest -v --cov=app --cov-report=term-missing
+
+  frontend:
+    name: Frontend (Next.js)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install workspace deps
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (biome)
+        working-directory: apps/web
+        run: pnpm exec biome check .
+
+      - name: Type check (tsc)
+        working-directory: apps/web
+        run: pnpm exec tsc --noEmit
+
+      - name: Build
+        working-directory: apps/web
+        run: pnpm exec next build
+
+  commitlint:
+    name: Commitlint (PR commits)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Lint commit messages
+        run: pnpm exec commitlint --from="$BASE_SHA" --to="$HEAD_SHA"

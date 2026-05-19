@@ -1,0 +1,58 @@
+"""Application configuration via pydantic-settings.
+
+Reads from environment + .env. Validates types at startup so we fail fast on
+misconfiguration rather than at first request.
+"""
+
+from __future__ import annotations
+
+from functools import lru_cache
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    """Suture API runtime settings."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    # Service identity
+    service_name: str = "suture-api"
+    version: str = "0.1.0"
+
+    # Database
+    database_url: str = "postgresql+asyncpg://suture:suture_dev_password@localhost:5432/suture"
+
+    # Redis
+    redis_url: str = "redis://localhost:6379/0"
+
+    # Auth — empty by default; Gate B2 populates this from .env
+    jwt_secret: str = ""
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_ttl_seconds: int = 3600
+    jwt_refresh_token_ttl_seconds: int = 2_592_000  # 30 days
+
+    # PHI encryption — empty by default; Gate B1 enforces presence in tests
+    phi_encryption_key: str = ""
+
+    # Observability
+    otel_disabled: bool = Field(default=True)
+    otel_exporter_otlp_endpoint: str = "http://localhost:4317"
+    otel_service_name: str = "suture-api"
+
+    # Anthropic (Module 2+)
+    anthropic_api_key: str = ""
+
+    # Logging
+    log_level: str = "INFO"
+
+
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Return cached settings. Singleton for the process lifetime."""
+    return Settings()

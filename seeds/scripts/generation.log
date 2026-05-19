@@ -1,0 +1,4 @@
+2026-05-19T20:37:43+00:00  generator=generate_patients  items=20  api_calls=0  input_tokens=0  output_tokens=0  usd_cost=0.0000  elapsed_sec=0.02
+2026-05-19T20:37:43+00:00  generator=generate_practices  items=10  api_calls=0  input_tokens=0  output_tokens=0  usd_cost=0.0000  elapsed_sec=0.02
+2026-05-19T20:38:03+00:00  generator=generate_patients  items=20  api_calls=0  input_tokens=0  output_tokens=0  usd_cost=0.0000  elapsed_sec=0.02
+2026-05-19T20:38:03+00:00  generator=generate_practices  items=10  api_calls=0  input_tokens=0  output_tokens=0  usd_cost=0.0000  elapsed_sec=0.02

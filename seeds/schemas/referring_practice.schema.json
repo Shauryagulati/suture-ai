@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://suture.local/schemas/referring_practice.schema.json",
+  "title": "Synthetic referring-practice corpus",
+  "description": "Validates seeds/data/referring_practices.json — 10 synthetic Western-PA referring practices, split 6 clean + 4 messy. Mirrors the Provider model (provider_type='referring').",
+  "type": "array",
+  "minItems": 10,
+  "maxItems": 10,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "external_id",
+      "first_name",
+      "last_name",
+      "npi",
+      "practice_name",
+      "practice_phone",
+      "practice_fax",
+      "practice_address",
+      "provider_type",
+      "specialty",
+      "data_quality_tier"
+    ],
+    "properties": {
+      "external_id": {"type": "string", "pattern": "^PRAC-[0-9]{3}$"},
+      "first_name": {"type": "string", "minLength": 1, "maxLength": 120},
+      "last_name": {"type": "string", "minLength": 1, "maxLength": 120},
+      "npi": {"type": "string", "pattern": "^[0-9]{10}$"},
+      "practice_name": {"type": "string", "minLength": 1, "maxLength": 255},
+      "practice_phone": {"type": ["string", "null"]},
+      "practice_fax": {"type": ["string", "null"]},
+      "practice_address": {"type": ["string", "null"]},
+      "provider_type": {"type": "string", "const": "referring"},
+      "specialty": {
+        "oneOf": [
+          {"type": "null"},
+          {
+            "type": "string",
+            "enum": [
+              "Internal Medicine",
+              "Family Medicine",
+              "Hospital Medicine"
+            ]
+          }
+        ]
+      },
+      "data_quality_tier": {"type": "string", "enum": ["clean", "messy"]}
+    }
+  }
+}

@@ -53,6 +53,8 @@ seeds/scripts/llm_fixtures/in_flight/
 # Logs
 *.log
 logs/
+# Exception: generation.log is a committed artifact documenting the synthetic-data generation run.
+!seeds/scripts/generation.log
 
 # Docker volumes (compose puts these in named volumes already, just in case)
 infra/data/

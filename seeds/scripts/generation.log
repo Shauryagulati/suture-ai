@@ -9,3 +9,7 @@
 2026-05-19T20:45:11+00:00  generator=generate_referrals  items=30  api_calls=0  input_tokens=8882  output_tokens=10304  usd_cost=0.0000  elapsed_sec=1.47
 2026-05-19T20:48:35+00:00  generator=generate_discharges  items=20  api_calls=20  input_tokens=5458  output_tokens=8794  usd_cost=0.0494  elapsed_sec=108.95
 2026-05-19T20:48:44+00:00  generator=generate_discharges  items=20  api_calls=0  input_tokens=5458  output_tokens=8794  usd_cost=0.0000  elapsed_sec=1.04
+2026-05-19T20:54:56+00:00  generator=generate_patients  items=20  api_calls=0  input_tokens=0  output_tokens=0  usd_cost=0.0000  elapsed_sec=0.02
+2026-05-19T20:54:56+00:00  generator=generate_practices  items=10  api_calls=0  input_tokens=0  output_tokens=0  usd_cost=0.0000  elapsed_sec=0.02
+2026-05-19T20:54:58+00:00  generator=generate_referrals  items=30  api_calls=0  input_tokens=8882  output_tokens=10304  usd_cost=0.0000  elapsed_sec=1.48
+2026-05-19T20:54:59+00:00  generator=generate_discharges  items=20  api_calls=0  input_tokens=5458  output_tokens=8794  usd_cost=0.0000  elapsed_sec=1.04

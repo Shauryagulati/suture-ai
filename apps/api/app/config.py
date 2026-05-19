@@ -7,16 +7,21 @@ misconfiguration rather than at first request.
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# apps/api/.env, resolved relative to this file so it works regardless of cwd
+# (seed script runs from repo root, uvicorn from apps/api, tests from anywhere).
+_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
 
 
 class Settings(BaseSettings):
     """Suture API runtime settings."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_ENV_FILE),
         env_file_encoding="utf-8",
         extra="ignore",
     )

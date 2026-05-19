@@ -73,7 +73,7 @@ migrate-down:
 	cd apps/api && uv run alembic downgrade base
 
 seed:
-	cd apps/api && uv run python -m seeds.scripts.seed_dev
+	PYTHONPATH=apps/api uv --project apps/api run python -m seeds.scripts.seed_dev
 
 # ─── Dev servers ───────────────────────────────────────────────────────
 

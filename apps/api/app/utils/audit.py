@@ -42,11 +42,33 @@ def register_audited_models() -> None:
     """
     # Local imports prevent circular imports at module load.
     from app.models import (
+        Appointment,
+        Call,
+        CallTranscript,
+        DischargeSummary,
+        Document,
+        DocumentExtraction,
+        InsurancePolicy,
+        OutreachAttempt,
         Patient,
+        Referral,
     )
 
     AUDITED_MODELS.clear()
-    AUDITED_MODELS.extend([Patient])
+    AUDITED_MODELS.extend(
+        [
+            Patient,
+            Document,
+            DocumentExtraction,
+            Referral,
+            DischargeSummary,
+            Appointment,
+            OutreachAttempt,
+            Call,
+            CallTranscript,
+            InsurancePolicy,
+        ]
+    )
 
     for model in AUDITED_MODELS:
         if not event.contains(model, "after_insert", _audit_after_insert):

@@ -13,9 +13,17 @@ imported, so settings pick them up.
 from __future__ import annotations
 
 import os
+import sys
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
+
+# Make `seeds.scripts.seed_dev` importable for test_seed.py.
+# Layout: <root>/apps/api/tests/conftest.py and <root>/seeds/
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 # ── Test environment — set BEFORE any app imports ──
 os.environ.setdefault("PHI_ENCRYPTION_KEY", "VbDtA5sCxOf8b9pYwT-jXNVKfNF7HMu0_rDFZIO_eIM=")
@@ -26,9 +34,10 @@ os.environ.setdefault(
 os.environ.setdefault("JWT_SECRET", "test_jwt_secret_abc")
 os.environ.setdefault("OTEL_DISABLED", "1")
 
-import pytest
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+# Late imports — env vars above must be set BEFORE app/* loads settings.
+import pytest  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine  # noqa: E402
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
@@ -81,6 +90,7 @@ async def _create_test_database() -> AsyncIterator[None]:
         await conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS citext")
         await conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS pgcrypto")
         await conn.exec_driver_sql('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"')
+        await conn.exec_driver_sql("CREATE EXTENSION IF NOT EXISTS vector")
         await conn.run_sync(Base.metadata.create_all)
     await test_engine.dispose()
 

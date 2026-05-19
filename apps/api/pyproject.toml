@@ -28,6 +28,7 @@ dependencies = [
     "opentelemetry-instrumentation-sqlalchemy>=0.48b0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.27.0",
     "email-validator>=2.3.0",
+    "pgvector>=0.4.2",
 ]
 
 [dependency-groups]

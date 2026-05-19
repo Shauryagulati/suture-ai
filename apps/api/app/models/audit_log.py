@@ -34,6 +34,15 @@ class AuditLog(ClinicScopedBase):
     # Audit rows are themselves audit-exempt — don't audit the audit log.
     _audit_exempt: bool = True
 
+    # Override base clinic_id: audit_logs allows NULL for system-level events
+    # (admin acting across clinics, background jobs, etc.).
+    clinic_id: Mapped[UUID | None] = mapped_column(  # type: ignore[assignment]
+        PG_UUID(as_uuid=True),
+        ForeignKey("clinics.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+
     user_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),

@@ -1,0 +1,88 @@
+{
+  "payer": "Highmark BCBS PA",
+  "effective_date": "2026-01-01",
+  "source_note": "Patterns in public Highmark commercial PPO medical-policy bulletins as of 2025; SIMULATED — not authoritative.",
+  "procedures": [
+    {
+      "cpt_code": "93015",
+      "description": "Cardiovascular stress test, treadmill, physician-supervised",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10",
+        "Brief functional-capacity rationale"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "missing functional-capacity rationale",
+        "duplicate study within 60 days",
+        "billed with 93017 — requires PA when combined"
+      ],
+      "notes": "Bare treadmill code only. Combined billing with 93017 (nuclear imaging) flips this to PA-required."
+    },
+    {
+      "cpt_code": "93306",
+      "description": "Transthoracic echocardiogram with spectral and color flow Doppler",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10",
+        "Indication / question to be answered"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "repeat study within 90 days without interval clinical change",
+        "indication does not match policy criteria"
+      ],
+      "notes": "Document EF measurement intent for HF management cases."
+    },
+    {
+      "cpt_code": "93458",
+      "description": "Catheter placement in coronary arteries with contrast injection(s) — left heart catheterization",
+      "prior_auth_required": true,
+      "required_documents": [
+        "Prior non-invasive study (stress, CTA, MPI) OR medical-necessity bypass rationale",
+        "Anginal symptom characterization (CCS class helpful)",
+        "Risk-stratification rationale",
+        "Recent ECG"
+      ],
+      "typical_turnaround_business_days": [3, 5],
+      "common_denial_reasons": [
+        "no prior non-invasive testing documented",
+        "stable symptoms without high-risk features",
+        "missing CCS class or symptom characterization"
+      ],
+      "notes": "PA required. Highmark queue typically responds in 3-5 business days."
+    },
+    {
+      "cpt_code": "93620",
+      "description": "Comprehensive electrophysiologic evaluation with right atrial pacing and recording",
+      "prior_auth_required": true,
+      "required_documents": [
+        "Arrhythmia documentation (Holter, event monitor, telemetry, or ECG)",
+        "Prior pharmacologic trial result",
+        "Functional-status / symptom-impact statement"
+      ],
+      "typical_turnaround_business_days": [5, 7],
+      "common_denial_reasons": [
+        "no documented arrhythmia",
+        "no prior medical management trial",
+        "asymptomatic patient"
+      ],
+      "notes": "Plan tracks the documented arrhythmia type carefully; non-specific palpitations are not enough."
+    },
+    {
+      "cpt_code": "93224",
+      "description": "48-hour external electrocardiographic recording (Holter)",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10",
+        "Symptom-correlation rationale"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "site-of-service mismatch (hospital outpatient vs. office)",
+        "missing duration / symptom-correlation documentation"
+      ],
+      "notes": "No PA for office billing; hospital-outpatient billing may face site-of-service review."
+    }
+  ]
+}

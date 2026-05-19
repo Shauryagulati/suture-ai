@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(make *)",
+      "Bash(pnpm *)",
+      "Bash(uv *)",
+      "Bash(npx *)",
+      "Bash(docker compose *)",
+      "Bash(docker ps)",
+      "Bash(docker logs *)",
+      "Bash(git status)",
+      "Bash(git status:*)",
+      "Bash(git diff)",
+      "Bash(git diff:*)",
+      "Bash(git log)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git branch)",
+      "Bash(git branch:*)",
+      "Bash(pytest *)",
+      "Bash(alembic *)",
+      "Bash(ruff *)",
+      "Bash(mypy *)",
+      "Bash(biome *)",
+      "Bash(tsc *)",
+      "Bash(curl -fs http://localhost:*)",
+      "Bash(pg_isready *)",
+      "Bash(jq *)",
+      "Bash(psql *)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf /)",
+      "Bash(rm -rf ~)",
+      "Bash(rm -rf *)"
+    ]
+  },
+  "env": {
+    "OTEL_DISABLED": "1"
+  }
+}

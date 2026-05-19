@@ -15,7 +15,7 @@ from fastapi import FastAPI
 
 from app import __version__
 from app.config import get_settings
-from app.routers import health
+from app.routers import auth, health
 from app.utils.logging import configure_logging, get_logger
 
 
@@ -43,3 +43,4 @@ app = FastAPI(
 )
 
 app.include_router(health.router)
+app.include_router(auth.router)

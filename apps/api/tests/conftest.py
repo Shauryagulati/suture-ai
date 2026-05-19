@@ -144,7 +144,7 @@ async def test_user(db_session: AsyncSession) -> UUID:
     """
     user = User(
         id=uuid4(),
-        email=f"test-{uuid4().hex[:8]}@suture.local",
+        email=f"test-{uuid4().hex[:8]}@suture-test.example.com",
         hashed_password="$2b$12$test_only_not_a_real_hash_value_here_xyz",
         full_name="Test User",
     )

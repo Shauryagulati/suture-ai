@@ -1,7 +1,7 @@
 """Alembic environment — async-aware.
 
-Reads DATABASE_URL from app settings so dev/test/prod share one source of truth.
-Models will be imported here as they land (Gate B1 + Gate C).
+Reads DATABASE_URL from app settings so dev/test/prod share one source of
+truth. Imports all models so autogenerate sees them.
 """
 
 from __future__ import annotations
@@ -16,6 +16,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.config import get_settings
 
+# Importing the models package registers every ORM class with Base.metadata.
+from app.models import Base  # noqa: F401 — side-effect import
+
 config = context.config
 
 if config.config_file_name is not None:
@@ -24,9 +27,7 @@ if config.config_file_name is not None:
 # Override sqlalchemy.url from settings (env-driven)
 config.set_main_option("sqlalchemy.url", get_settings().database_url)
 
-# target_metadata will be populated in Gate B1 once models exist.
-# Until then, autogenerate is a no-op.
-target_metadata = None
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:

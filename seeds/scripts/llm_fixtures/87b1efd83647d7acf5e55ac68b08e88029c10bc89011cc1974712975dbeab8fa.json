@@ -1,0 +1,9 @@
+{
+  "content": "Mr. [Patient Name] is a 63-year-old gentleman with significant cardiac history including established CAD s/p prior intervention, HTN, and hyperlipidemia who presents with abnormal noninvasive cardiac testing. He reports occasional exertional chest discomfort over the past several weeks, described as substernal pressure radiating to the left arm, occurring with moderate exertion and resolving with rest. He denies orthopnea, PND, or lower extremity edema. Current medications include aspirin, lisinopril, metoprolol, and atorvastatin with reported good compliance.\n\nOn examination today, vital signs are stable with BP 138/82 and HR 72. Cardiac auscultation reveals regular rate and rhythm without murmurs, rubs, or gallops. Lungs are clear to auscultation bilaterally. No peripheral edema noted. Recent stress testing demonstrated inducible ischemia in the LAD distribution with moderate ST-segment depression at moderate workload, concerning for significant stenosis. Troponin and BNP are within normal limits.\n\nGiven his established CAD, recurrent anginal symptoms, and objective evidence of inducible ischemia on noninvasive testing, I believe he warrants urgent cardiac catheterization to delineate his coronary anatomy and determine candidacy for revascularization. I would appreciate your evaluation and recommendations regarding intervention versus medical optimization. Please advise on timing and any additional preoperative workup needed.",
+  "input_tokens": 300,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 333,
+  "temperature": 0.2,
+  "usd_cost": 0.001965
+}

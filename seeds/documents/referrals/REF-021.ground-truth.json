@@ -1,0 +1,49 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 60-year-old gentleman with known CAD presents with abnormal noninvasive cardiac testing warranting invasive evaluation. He has significant cardiac risk factors including HTN, hyperlipidemia, and ",
+  "diagnosis_codes": [
+    "I25.110",
+    "I20.9"
+  ],
+  "document_external_id": "REF-021",
+  "follow_up_window_days": 14,
+  "insurance": {
+    "primary": {
+      "group_number": null,
+      "member_id": "LBC104332181",
+      "payer": "Highmark BCBS PA"
+    },
+    "secondary": null
+  },
+  "is_degraded": true,
+  "missing_fields": [
+    "patient.mrn",
+    "patient.phone"
+  ],
+  "patient": {
+    "address_line1": "33890 Jennifer Squares",
+    "city": "Pittsburgh",
+    "dob": "1966-03-13",
+    "external_id": "PAT-001",
+    "first_name": "Amy",
+    "last_name": "Robinson",
+    "mrn": null,
+    "phone": null,
+    "state": "PA",
+    "zip_code": "15222"
+  },
+  "procedure_codes": [
+    "93458"
+  ],
+  "referral_type": "cath",
+  "referring_provider": {
+    "external_id": "PRAC-005",
+    "first_name": "Shawn",
+    "last_name": "Flowers",
+    "npi": "2423884966",
+    "practice_fax": "878-555-7517",
+    "practice_name": "Greater Pittsburgh Primary Care Associates",
+    "practice_phone": "878-555-6543"
+  },
+  "urgency": "urgent"
+}

@@ -1,0 +1,9 @@
+{
+  "content": "This 48-year-old male with a significant cardiac risk profile presents for pre-operative clearance prior to elective surgery. He has a longstanding history of hypertension managed with lisinopril and amlodipine, though compliance has been inconsistent. He denies prior myocardial infarction or known coronary artery disease. Family history is notable for early CAD in a first-degree relative. The patient reports occasional chest discomfort with exertion over the past several months, which he attributes to musculoskeletal pain, though the character and reproducibility remain somewhat unclear. He has not sought prior cardiac evaluation for these symptoms.\n\nOn examination today, vital signs reveal BP 158/94 mmHg with HR 88 bpm. Cardiac auscultation is regular without murmurs, rubs, or gallops. Lungs are clear bilaterally. There are no peripheral edema or signs of heart failure. EKG performed in clinic shows normal sinus rhythm with nonspecific ST-T changes, which are new compared to a prior tracing from three years ago.\n\nGiven his age, multiple cardiac risk factors including uncontrolled hypertension, atypical chest discomfort, and EKG changes, I believe stress testing is warranted to risk-stratify him prior to surgery. I would appreciate your evaluation and recommendations regarding his perioperative cardiac risk and whether further intervention or optimization is needed before proceeding with his elective procedure.",
+  "input_tokens": 293,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 324,
+  "temperature": 0.2,
+  "usd_cost": 0.001913
+}

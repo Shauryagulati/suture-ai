@@ -1,0 +1,49 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "Mr. [Patient Name] is a 65-year-old gentleman with a significant cardiac history including hypertension, type 2 diabetes, and known mild aortic stenosis initially detected approximately two years ago ",
+  "diagnosis_codes": [
+    "I42.9"
+  ],
+  "document_external_id": "REF-017",
+  "follow_up_window_days": 10,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-5185",
+      "member_id": "IBQ931491905",
+      "payer": "Highmark BCBS PA"
+    },
+    "secondary": {
+      "group_number": "GRP-6284",
+      "member_id": "U06716572",
+      "payer": "UPMC Health Plan"
+    }
+  },
+  "is_degraded": true,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "6945 Mariah Corners Suite 737",
+    "city": "Pittsburgh",
+    "dob": "1961-05-03",
+    "external_id": "PAT-017",
+    "first_name": "Ashley",
+    "last_name": "Barnett",
+    "mrn": "MRN-354549",
+    "phone": "412-555-2103",
+    "state": "PA",
+    "zip_code": "15237"
+  },
+  "procedure_codes": [
+    "93306"
+  ],
+  "referral_type": "echo",
+  "referring_provider": {
+    "external_id": "PRAC-003",
+    "first_name": "Matthew",
+    "last_name": "Davis",
+    "npi": "4752553410",
+    "practice_fax": "412-555-3814",
+    "practice_name": "Mon Valley Internal Medicine",
+    "practice_phone": "878-555-2803"
+  },
+  "urgency": "routine"
+}

@@ -1,0 +1,9 @@
+{
+  "content": "This 62-year-old gentleman with a history of mild aortic stenosis presents for routine cardiology evaluation and echocardiographic assessment. He was initially diagnosed with AS approximately three years ago during workup for a systolic murmur noted on routine physical examination. Since that time, he has remained largely asymptomatic without exertional chest pain, dyspnea on exertion, or syncope. He denies palpitations or orthopnea. His past medical history is significant for well-controlled hypertension managed with lisinopril and amlodipine, and he maintains good functional capacity with no limitations on activity. He is a former smoker, quit approximately ten years ago, and denies significant alcohol use.\n\nOn examination today, vital signs are stable with BP 138/82 and HR 76 regular. Cardiac auscultation reveals a grade 2/6 systolic ejection murmur best heard at the right upper sternal border with radiation to the carotids, consistent with his known aortic stenosis. No diastolic murmurs appreciated. Lungs are clear to auscultation bilaterally, and there is no peripheral edema or JVD noted.\n\nGiven the interval since his last echocardiogram and the need to assess for any progression of his aortic stenosis, I am referring him for transthoracic echocardiography. I would appreciate your assessment of aortic valve area, mean and peak gradients, and left ventricular function. Please advise regarding need for endocarditis prophylaxis and any activity restrictions or follow-up recommendations.",
+  "input_tokens": 298,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 362,
+  "temperature": 0.2,
+  "usd_cost": 0.002108
+}

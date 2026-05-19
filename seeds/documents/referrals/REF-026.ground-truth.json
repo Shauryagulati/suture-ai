@@ -1,0 +1,50 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 57-year-old female with a significant history of paroxysmal supraventricular tachycardia presents for urgent electrophysiology evaluation and consideration for catheter ablation. She has experien",
+  "diagnosis_codes": [
+    "I48.91",
+    "R55"
+  ],
+  "document_external_id": "REF-026",
+  "follow_up_window_days": 14,
+  "insurance": {
+    "primary": {
+      "group_number": null,
+      "member_id": "IIU105183473",
+      "payer": "Highmark BCBS PA"
+    },
+    "secondary": {
+      "group_number": null,
+      "member_id": "W997376311",
+      "payer": "Aetna"
+    }
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "6670 Bruce Stream Suite 133",
+    "city": "Beaver",
+    "dob": "1968-12-26",
+    "external_id": "PAT-006",
+    "first_name": "James",
+    "last_name": "West",
+    "mrn": "MRN-178108",
+    "phone": "412-555-6227",
+    "state": "PA",
+    "zip_code": "15009"
+  },
+  "procedure_codes": [
+    "93620"
+  ],
+  "referral_type": "ep_study",
+  "referring_provider": {
+    "external_id": "PRAC-010",
+    "first_name": "Sherri",
+    "last_name": "Frazier",
+    "npi": "7871331501",
+    "practice_fax": "724-555-6118",
+    "practice_name": "North Hills Medical Group",
+    "practice_phone": "878-555-9075"
+  },
+  "urgency": "urgent"
+}

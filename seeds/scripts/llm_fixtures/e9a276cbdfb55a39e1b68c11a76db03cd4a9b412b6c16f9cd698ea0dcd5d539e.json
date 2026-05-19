@@ -1,0 +1,9 @@
+{
+  "content": "Mr. [Patient Name] is a 65-year-old gentleman with a significant cardiac history including hypertension, type 2 diabetes, and known mild aortic stenosis initially detected approximately two years ago on prior echocardiography. He presents today for routine follow-up evaluation of his valvular disease. The patient reports stable exercise tolerance without new dyspnea on exertion, chest pain, or syncope. He denies orthopnea, paroxysmal nocturnal dyspnea, or lower extremity edema. His current medications include lisinopril, metoprolol, and atorvastatin, which he takes as prescribed with good compliance.\n\nOn physical examination today, vital signs are stable with blood pressure 138/82 mmHg and heart rate 68 bpm. Cardiac auscultation reveals a systolic ejection murmur at the right upper sternal border consistent with aortic stenosis, unchanged from prior documentation. No peripheral edema is noted, and lung fields are clear to auscultation bilaterally. Given the interval since his last echocardiographic assessment and the need to assess for any progression of his aortic stenosis, I am referring him for transthoracic echocardiography.\n\nI would appreciate your evaluation of aortic valve morphology, severity of stenosis, left ventricular function, and any interval changes from his prior study. Please advise regarding the need for follow-up imaging intervals and any activity restrictions or medical optimization that may be warranted at this time.",
+  "input_tokens": 298,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 345,
+  "temperature": 0.2,
+  "usd_cost": 0.002023
+}

@@ -1,0 +1,9 @@
+{
+  "content": "This 58-year-old female presents with a concerning history of unexplained syncope occurring over the past two months. She reports two syncopal episodes without clear prodrome, with rapid return to baseline mental status post-event. She denies chest pain, dyspnea, or palpitations preceding the events. Her past medical history is significant for hypertension managed with lisinopril and atorvastatin for dyslipidemia. She denies prior cardiac history, diabetes, or significant family history of sudden cardiac death.\n\nPhysical examination reveals a well-appearing woman in normal sinus rhythm with BP 138/82 and HR 72. Cardiac auscultation is regular without murmurs, rubs, or gallops. Lungs are clear bilaterally. Recent 24-hour Holter monitoring revealed multiple runs of non-sustained ventricular tachycardia, with the longest run lasting approximately 8 seconds at rates up to 160 bpm. Transthoracic echocardiography showed normal left ventricular ejection fraction (55%) with no structural abnormalities. Baseline ECG demonstrates normal sinus rhythm with no acute ST changes or prolonged QT interval.\n\nGiven the combination of unexplained syncope and documented NSVT on monitoring, I am concerned for an underlying arrhythmogenic substrate that warrants further electrophysiologic evaluation. I would appreciate your assessment and consideration for electrophysiology study to risk-stratify this patient and determine whether ICD therapy or other interventions are indicated. Please see her urgently given the syncopal episodes and arrhythmia burden.",
+  "input_tokens": 297,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 363,
+  "temperature": 0.2,
+  "usd_cost": 0.002112
+}

@@ -1,0 +1,9 @@
+{
+  "content": "This 75-year-old female presents for cardiology evaluation regarding her known mild aortic stenosis. She was initially diagnosed approximately three years ago during a routine echocardiogram performed for dyspnea workup. Since that time, she has remained largely asymptomatic with preserved functional capacity. She denies current chest pain, syncope, or presyncope. She reports mild exertional dyspnea with strenuous activity, which she attributes to deconditioning rather than cardiac limitation. Her past medical history is significant for hypertension managed with lisinopril and amlodipine, type 2 diabetes on metformin, and hyperlipidemia on atorvastatin. She lives independently and remains active with daily walking.\n\nOn physical examination today, vital signs are stable with blood pressure 138/82 mmHg and heart rate 68 bpm. Cardiac auscultation reveals a soft systolic ejection murmur at the right upper sternal border consistent with aortic stenosis. No diastolic murmur appreciated. Lungs are clear to auscultation bilaterally. Peripheral pulses are intact and symmetric. There is no peripheral edema or jugular venous distension.\n\nGiven the interval of three years since her last echocardiographic assessment and the need to monitor the progression of her aortic stenosis, I am referring her for a transthoracic echocardiogram. I would appreciate your evaluation of aortic valve area, mean and peak gradients, left ventricular function, and any interval change in severity. Please advise regarding activity restrictions and need for endocarditis prophylaxis.",
+  "input_tokens": 298,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 371,
+  "temperature": 0.2,
+  "usd_cost": 0.002153
+}

@@ -1,0 +1,9 @@
+{
+  "content": "This 49-year-old male presents with a two-week history of palpitations and mild exertional chest discomfort. He reports episodes occurring primarily with moderate activity, such as climbing stairs or brisk walking, which resolve with rest. He denies associated dyspnea, diaphoresis, or syncope. His symptom pattern is somewhat atypical but warrants further evaluation given his age and the exertional component. He has no prior cardiac history but carries significant risk factors including hypertension managed on lisinopril and a 20-pack-year smoking history, though he quit five years ago. Family history is notable for early CAD in his father, who had an MI at age 58.\n\nOn examination today, vital signs are stable with BP 138/86 and HR 82 regular. Cardiac auscultation reveals normal S1 and S2 without murmurs, rubs, or gallops. Lungs are clear to auscultation bilaterally. No peripheral edema or JVD noted. A 12-lead EKG performed in clinic shows normal sinus rhythm with no acute ST changes, though there is mild nonspecific T-wave flattening in the lateral leads.\n\nGiven his risk profile, exertional symptoms, and EKG findings, I believe stress testing is indicated to assess for inducible ischemia and further risk stratify. Please evaluate and recommend appropriate testing. I would also appreciate your assessment regarding need for additional preventive measures or medication optimization. Thank you for your prompt attention to this patient.",
+  "input_tokens": 288,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 343,
+  "temperature": 0.2,
+  "usd_cost": 0.002003
+}

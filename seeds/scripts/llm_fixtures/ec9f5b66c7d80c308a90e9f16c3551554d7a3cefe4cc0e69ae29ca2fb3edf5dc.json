@@ -1,0 +1,9 @@
+{
+  "content": "This 60-year-old gentleman with known CAD presents with abnormal noninvasive cardiac testing warranting invasive evaluation. He has significant cardiac risk factors including HTN, hyperlipidemia, and prior smoking history. His CAD was previously documented, though details of prior interventions are limited in available records. He reports occasional exertional chest discomfort over the past several weeks, described as substernal pressure radiating to the left arm, occurring with moderate exertion and resolving with rest. Associated dyspnea on exertion has also been noted. Current medications include aspirin, a beta-blocker, and a statin, though compliance requires clarification.\n\nRecent stress testing revealed inducible ischemia in the anterior and apical distributions, with moderate reversibility on imaging. EKG changes during testing were consistent with demand ischemia. Transthoracic echocardiography demonstrated preserved overall systolic function with mild regional wall motion abnormality in the LAD territory. Given the objective evidence of significant inducible ischemia and recurrent symptoms, he warrants coronary angiography to define the extent and severity of CAD and determine candidacy for revascularization.\n\nI would appreciate your evaluation with left heart catheterization to assess coronary anatomy, quantify stenosis severity, and recommend appropriate revascularization strategy—whether PCI, CABG, or medical optimization. Please advise on risk stratification and optimal management. Given the clinical presentation and test results, I believe urgent catheterization is indicated. Thank you for your prompt attention to this patient.",
+  "input_tokens": 300,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 346,
+  "temperature": 0.2,
+  "usd_cost": 0.00203
+}

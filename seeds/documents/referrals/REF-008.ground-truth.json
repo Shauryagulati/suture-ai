@@ -1,0 +1,51 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 80-year-old female presents for preoperative cardiac clearance prior to elective surgery. She has a significant cardiac history including prior MI with known CAD. She reports that she remains lar",
+  "diagnosis_codes": [
+    "I25.10"
+  ],
+  "document_external_id": "REF-008",
+  "follow_up_window_days": 25,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-5346",
+      "member_id": "9HUQ-09N-1699",
+      "payer": "Medicare"
+    },
+    "secondary": {
+      "group_number": null,
+      "member_id": "2475107991",
+      "payer": "UnitedHealthcare"
+    }
+  },
+  "is_degraded": false,
+  "missing_fields": [
+    "patient.address_line1"
+  ],
+  "patient": {
+    "address_line1": null,
+    "city": "Butler",
+    "dob": "1946-05-06",
+    "external_id": "PAT-008",
+    "first_name": "Natasha",
+    "last_name": "Wood",
+    "mrn": "MRN-980841",
+    "phone": "878-555-5313",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93015"
+  ],
+  "referral_type": "stress_test",
+  "referring_provider": {
+    "external_id": "PRAC-006",
+    "first_name": "Frank",
+    "last_name": "Gray",
+    "npi": "1226916694",
+    "practice_fax": "412-555-0771",
+    "practice_name": "Wexford Family Practice",
+    "practice_phone": "724-555-8669"
+  },
+  "urgency": "routine"
+}

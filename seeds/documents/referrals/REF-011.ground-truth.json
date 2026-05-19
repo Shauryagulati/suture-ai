@@ -1,0 +1,49 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 60-year-old female presents with progressive bilateral lower extremity edema over the past two months, accompanied by mild dyspnea on exertion and orthopnea. She reports sleeping on three pillows",
+  "diagnosis_codes": [
+    "I42.9"
+  ],
+  "document_external_id": "REF-011",
+  "follow_up_window_days": 17,
+  "insurance": {
+    "primary": {
+      "group_number": null,
+      "member_id": "U337543303",
+      "payer": "Cigna"
+    },
+    "secondary": {
+      "group_number": "GRP-0142",
+      "member_id": "6541458685",
+      "payer": "UnitedHealthcare"
+    }
+  },
+  "is_degraded": true,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "19655 Obrien Pass Apt. 693",
+    "city": "Monroeville",
+    "dob": "1965-10-15",
+    "external_id": "PAT-011",
+    "first_name": "Jonathan",
+    "last_name": "Fletcher",
+    "mrn": "MRN-356159",
+    "phone": "878-555-8085",
+    "state": "PA",
+    "zip_code": "15146"
+  },
+  "procedure_codes": [
+    "93306"
+  ],
+  "referral_type": "echo",
+  "referring_provider": {
+    "external_id": "PRAC-005",
+    "first_name": "Shawn",
+    "last_name": "Flowers",
+    "npi": "2423884966",
+    "practice_fax": "878-555-7517",
+    "practice_name": "Greater Pittsburgh Primary Care Associates",
+    "practice_phone": "878-555-6543"
+  },
+  "urgency": "routine"
+}

@@ -176,6 +176,7 @@ def render_referral_pdf(payload: ReferralPayload) -> bytes:
     doc = SimpleDocTemplate(
         buf,
         pagesize=LETTER,
+        invariant=True,  # fixed CreationDate/ModDate → byte-deterministic PDFs
         topMargin=0.7 * inch,
         bottomMargin=0.7 * inch,
         leftMargin=0.8 * inch,
@@ -304,6 +305,7 @@ def render_discharge_pdf(payload: DischargePayload) -> bytes:
     doc = SimpleDocTemplate(
         buf,
         pagesize=LETTER,
+        invariant=True,  # fixed CreationDate/ModDate → byte-deterministic PDFs
         topMargin=0.7 * inch,
         bottomMargin=0.7 * inch,
         leftMargin=0.8 * inch,
@@ -510,7 +512,7 @@ def degrade_to_fax(pdf_bytes: bytes, seed: int) -> bytes:
 
         # Wrap rotated/jpeg image as a page-sized PDF page via reportlab.
         overlay_buf = io.BytesIO()
-        c = canvas.Canvas(overlay_buf, pagesize=(width, height))
+        c = canvas.Canvas(overlay_buf, pagesize=(width, height), invariant=True)
         c.setFillAlpha(0.25)  # blend with underlying text so SOME of it survives
         c.drawImage(
             ImageReader(jpeg_img),

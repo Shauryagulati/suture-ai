@@ -1,0 +1,52 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 48-year-old gentleman with established CAD presents with abnormal findings on recent noninvasive testing. He has significant cardiac risk factors including hypertension, hyperlipidemia, and a sub",
+  "diagnosis_codes": [
+    "I25.110",
+    "I20.9"
+  ],
+  "document_external_id": "REF-022",
+  "follow_up_window_days": 9,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-1618",
+      "member_id": "UDI116155940",
+      "payer": "Highmark BCBS PA"
+    },
+    "secondary": {
+      "group_number": null,
+      "member_id": "U49593103",
+      "payer": "UPMC Health Plan"
+    }
+  },
+  "is_degraded": false,
+  "missing_fields": [
+    "referring_provider.practice_fax"
+  ],
+  "patient": {
+    "address_line1": "31647 Martin Knoll Apt. 419",
+    "city": "Butler",
+    "dob": "1978-01-16",
+    "external_id": "PAT-002",
+    "first_name": "Cynthia",
+    "last_name": "Ferguson",
+    "mrn": "MRN-835030",
+    "phone": "412-555-7359",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93458"
+  ],
+  "referral_type": "cath",
+  "referring_provider": {
+    "external_id": "PRAC-008",
+    "first_name": "Reginald",
+    "last_name": "Robinson",
+    "npi": "5288095701",
+    "practice_fax": null,
+    "practice_name": "South Hills Health Partners",
+    "practice_phone": "412-555-5947"
+  },
+  "urgency": "routine"
+}

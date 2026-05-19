@@ -1,0 +1,9 @@
+{
+  "content": "Mr. [Patient] is a 78-year-old gentleman with a significant cardiac history including longstanding hypertension, type 2 diabetes mellitus, and prior coronary artery disease s/p stent placement approximately five years ago. He presents with progressive bilateral lower extremity edema over the past 6–8 weeks, which has been refractory to modest diuretic therapy. He denies orthopnea or paroxysmal nocturnal dyspnea but reports mild dyspnea on exertion with ambulation beyond one block. His current medications include lisinopril, metoprolol, atorvastatin, and furosemide 40 mg daily.\n\nOn examination today, he demonstrates 2+ pitting edema to the mid-shin bilaterally with no acute skin changes. Vital signs are stable with BP 138/82 and HR 68. Cardiac auscultation reveals regular rate and rhythm without murmurs, though an S4 gallop is appreciated. Lung fields are clear to auscultation bilaterally. JVP is mildly elevated at approximately 8 cm. Basic metabolic panel shows preserved renal function with creatinine 1.1, and BNP is mildly elevated at 285 pg/mL.\n\nGiven his age, risk factor burden, and clinical presentation suggestive of diastolic heart failure with preserved ejection fraction, I would appreciate your evaluation with transthoracic echocardiography to assess left ventricular systolic and diastolic function, estimate ejection fraction, and evaluate for any structural abnormalities. This will help guide optimization of his heart failure regimen and determine whether additional interventions are warranted.",
+  "input_tokens": 297,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 384,
+  "temperature": 0.2,
+  "usd_cost": 0.002217
+}

@@ -1,0 +1,9 @@
+{
+  "content": "Mr. [Patient] is a 74-year-old gentleman with a significant cardiac history including hypertension, hyperlipidemia, and known mild aortic stenosis initially detected on echocardiography approximately two years ago. He has remained largely asymptomatic since that time and continues on his current medical regimen of lisinopril and atorvastatin with good compliance. He denies any recent chest pain, dyspnea on exertion, syncope, or presyncope. His functional capacity remains good, and he continues to ambulate without limitation.\n\nOn examination today, vital signs are stable with BP 138/82 mmHg and HR 68 bpm. Cardiac auscultation reveals a soft systolic ejection murmur at the right upper sternal border consistent with his known aortic stenosis. There is no evidence of peripheral edema, and lung fields are clear to auscultation bilaterally. Given the interval since his last echocardiographic assessment and the need to establish current hemodynamic parameters and assess for any progression of his aortic valve disease, I am referring him for transthoracic echocardiography.\n\nI would appreciate your evaluation of aortic valve morphology and function, assessment of the degree of stenosis, left ventricular size and systolic function, and any interval change from prior studies. Please advise regarding need for endocarditis prophylaxis and any activity restrictions or follow-up recommendations. Thank you for your evaluation of this patient.",
+  "input_tokens": 298,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 336,
+  "temperature": 0.2,
+  "usd_cost": 0.001978
+}

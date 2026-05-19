@@ -1,0 +1,9 @@
+{
+  "content": "This 80-year-old female presents for preoperative cardiac clearance prior to elective surgery. She has a significant cardiac history including prior MI with known CAD. She reports that she remains largely sedentary at baseline due to chronic knee pain, which has limited her functional capacity assessment. She denies current chest pain, dyspnea, or palpitations at rest. Her medications include aspirin, lisinopril, and atorvastatin, and she reports good compliance. She quit smoking approximately 15 years ago.\n\nOn examination today, vital signs are stable with BP 138/82 and HR 72 regular. Cardiac auscultation reveals normal S1 and S2 without murmurs, rubs, or gallops. Lungs are clear to auscultation bilaterally. There is no peripheral edema or JVD. EKG performed in clinic shows normal sinus rhythm with nonspecific ST changes, unchanged from prior.\n\nGiven her age, prior MI, and limited functional capacity due to orthopedic limitations, I am requesting a stress test to objectively assess her cardiac reserve and ischemic burden prior to surgery. The planned procedure is moderate-risk, and I would appreciate your assessment of her perioperative cardiac risk and any recommendations regarding optimization or further workup. Please advise on clearance for elective surgery and any perioperative precautions you would recommend.",
+  "input_tokens": 290,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 309,
+  "temperature": 0.2,
+  "usd_cost": 0.001835
+}

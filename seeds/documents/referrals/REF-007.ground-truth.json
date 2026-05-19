@@ -1,0 +1,52 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "Ms. [Patient] is a 62-year-old woman with a significant cardiac risk profile including longstanding hypertension who presents with a chief complaint of exertional chest pressure. She reports experienc",
+  "diagnosis_codes": [
+    "R07.9",
+    "I10"
+  ],
+  "document_external_id": "REF-007",
+  "follow_up_window_days": 24,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-0260",
+      "member_id": "W013267736",
+      "payer": "Aetna"
+    },
+    "secondary": {
+      "group_number": "GRP-3098",
+      "member_id": "6474687234",
+      "payer": "UnitedHealthcare"
+    }
+  },
+  "is_degraded": true,
+  "missing_fields": [
+    "patient.mrn"
+  ],
+  "patient": {
+    "address_line1": "500 Shaw Walk",
+    "city": "Butler",
+    "dob": "1963-08-21",
+    "external_id": "PAT-007",
+    "first_name": "Amanda",
+    "last_name": "Brown",
+    "mrn": null,
+    "phone": "878-555-2803",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93015"
+  ],
+  "referral_type": "stress_test",
+  "referring_provider": {
+    "external_id": "PRAC-003",
+    "first_name": "Matthew",
+    "last_name": "Davis",
+    "npi": "4752553410",
+    "practice_fax": "412-555-3814",
+    "practice_name": "Mon Valley Internal Medicine",
+    "practice_phone": "878-555-2803"
+  },
+  "urgency": "stat"
+}

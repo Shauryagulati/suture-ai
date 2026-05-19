@@ -1,0 +1,47 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 49-year-old male presents with a two-week history of palpitations and mild exertional chest discomfort. He reports episodes occurring primarily with moderate activity, such as climbing stairs or ",
+  "diagnosis_codes": [
+    "R07.9"
+  ],
+  "document_external_id": "REF-009",
+  "follow_up_window_days": 17,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-3487",
+      "member_id": "NTV241182449",
+      "payer": "Highmark BCBS PA"
+    },
+    "secondary": null
+  },
+  "is_degraded": false,
+  "missing_fields": [
+    "patient.zip_code"
+  ],
+  "patient": {
+    "address_line1": "16400 Wise Route Suite 278",
+    "city": "Pittsburgh",
+    "dob": "1977-04-28",
+    "external_id": "PAT-009",
+    "first_name": "Janice",
+    "last_name": "Hoffman",
+    "mrn": "MRN-805982",
+    "phone": "878-555-5155",
+    "state": "PA",
+    "zip_code": null
+  },
+  "procedure_codes": [
+    "93015"
+  ],
+  "referral_type": "stress_test",
+  "referring_provider": {
+    "external_id": "PRAC-009",
+    "first_name": "Laura",
+    "last_name": "Henderson",
+    "npi": "7182278243",
+    "practice_fax": "878-555-1290",
+    "practice_name": "Sewickley Family Practice",
+    "practice_phone": "878-555-9938"
+  },
+  "urgency": "urgent"
+}

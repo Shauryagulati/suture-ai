@@ -1,0 +1,9 @@
+{
+  "content": "This 70-year-old female with significant cardiac risk factors presents with progressive exertional angina that has become refractory to optimal medical management. She has a long-standing history of hypertension and type 2 diabetes mellitus, both well-controlled on current regimens. Prior workup has documented coronary artery disease, and she has been maintained on aspirin, a beta-blocker, an ACE inhibitor, and a statin. Over the past two months, she reports increasing frequency and severity of chest discomfort with minimal exertion, now occurring at rest on several occasions. Her symptoms are classic for angina—substernal pressure radiating to the left arm, associated with dyspnea, and partially responsive to sublingual nitroglycerin.\n\nRecent stress testing demonstrated inducible ischemia in the anterior and lateral distributions, raising concern for significant left anterior descending and/or left circumflex disease. Given the progressive nature of her symptoms and objective evidence of ischemia despite aggressive antianginal therapy, she is not a suitable candidate for continued conservative management. She remains functionally limited and at risk for acute coronary syndrome.\n\nI am referring her for urgent left heart catheterization to define her coronary anatomy and determine candidacy for revascularization via percutaneous coronary intervention or surgical consultation. Her baseline renal function is adequate, and she has no contraindications to angiography. Please evaluate and advise on optimal revascularization strategy.",
+  "input_tokens": 295,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 321,
+  "temperature": 0.2,
+  "usd_cost": 0.0019
+}

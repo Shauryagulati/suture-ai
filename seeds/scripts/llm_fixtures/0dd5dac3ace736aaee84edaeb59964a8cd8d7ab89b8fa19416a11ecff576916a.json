@@ -1,0 +1,9 @@
+{
+  "content": "Mr. [Patient] is a 60-year-old gentleman with significant cardiac history who presents for urgent risk stratification following recent myocardial infarction. He has longstanding HTN and DM2, both reasonably controlled on current medical therapy. He underwent CABG approximately eight years ago with placement of LIMA to LAD and saphenous vein grafts to RCA and OM. Since that time, he has remained relatively stable on dual antiplatelet therapy and a beta-blocker, though compliance has been variable.\n\nOver the past two weeks, he has experienced recurrent episodes of chest discomfort with exertion, described as substernal pressure radiating to the left arm, associated with dyspnea. He presented to the ED three days ago with acute STEMI and underwent emergent PCI with stent placement to the LAD. Post-intervention, his troponin peaked at 8.2 and has been trending down appropriately. He remains hemodynamically stable on aspirin, ticagrelor, metoprolol, lisinopril, and high-intensity statin therapy.\n\nI am referring him for urgent left heart catheterization to comprehensively evaluate both native coronary anatomy and the patency and function of his prior grafts. Given his recent MI in the setting of prior CABG, we need to determine whether there is significant disease in non-intervened territories, assess graft status, and establish optimal revascularization strategy going forward. His current clinical stability and appropriate troponin trajectory support proceeding with definitive angiography at this time.",
+  "input_tokens": 300,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 347,
+  "temperature": 0.2,
+  "usd_cost": 0.002035
+}

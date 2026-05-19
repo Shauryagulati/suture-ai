@@ -1,0 +1,47 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 62-year-old gentleman with a history of mild aortic stenosis presents for routine cardiology evaluation and echocardiographic assessment. He was initially diagnosed with AS approximately three ye",
+  "diagnosis_codes": [
+    "I35.0"
+  ],
+  "document_external_id": "REF-014",
+  "follow_up_window_days": 17,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-5581",
+      "member_id": "W873471434",
+      "payer": "Aetna"
+    },
+    "secondary": null
+  },
+  "is_degraded": true,
+  "missing_fields": [
+    "insurance.secondary"
+  ],
+  "patient": {
+    "address_line1": "66909 Woods Knoll",
+    "city": "Butler",
+    "dob": "1963-11-25",
+    "external_id": "PAT-014",
+    "first_name": "Kenneth",
+    "last_name": "Price",
+    "mrn": "MRN-937346",
+    "phone": "878-555-2927",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93306"
+  ],
+  "referral_type": "echo",
+  "referring_provider": {
+    "external_id": "PRAC-004",
+    "first_name": "Christian",
+    "last_name": "Carter",
+    "npi": "5030564137",
+    "practice_fax": "724-555-4422",
+    "practice_name": "Greentree Health Partners",
+    "practice_phone": "878-555-5155"
+  },
+  "urgency": "routine"
+}

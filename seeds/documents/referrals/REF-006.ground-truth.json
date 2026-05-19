@@ -1,0 +1,50 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 57-year-old female presents with a three-week history of exertional dyspnea that occurs with moderate activity such as climbing stairs or brisk walking. She reports associated mild chest discomfo",
+  "diagnosis_codes": [
+    "R07.9",
+    "I10"
+  ],
+  "document_external_id": "REF-006",
+  "follow_up_window_days": 24,
+  "insurance": {
+    "primary": {
+      "group_number": null,
+      "member_id": "IIU105183473",
+      "payer": "Highmark BCBS PA"
+    },
+    "secondary": {
+      "group_number": null,
+      "member_id": "W997376311",
+      "payer": "Aetna"
+    }
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "6670 Bruce Stream Suite 133",
+    "city": "Beaver",
+    "dob": "1968-12-26",
+    "external_id": "PAT-006",
+    "first_name": "James",
+    "last_name": "West",
+    "mrn": "MRN-178108",
+    "phone": "412-555-6227",
+    "state": "PA",
+    "zip_code": "15009"
+  },
+  "procedure_codes": [
+    "93015"
+  ],
+  "referral_type": "stress_test",
+  "referring_provider": {
+    "external_id": "PRAC-010",
+    "first_name": "Sherri",
+    "last_name": "Frazier",
+    "npi": "7871331501",
+    "practice_fax": "724-555-6118",
+    "practice_name": "North Hills Medical Group",
+    "practice_phone": "878-555-9075"
+  },
+  "urgency": "routine"
+}

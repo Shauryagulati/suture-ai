@@ -1,0 +1,9 @@
+{
+  "content": "This 58-year-old female presents for pre-operative cardiac clearance prior to elective surgery. She reports a several-month history of intermittent chest discomfort described as mild substernal pressure, occurring primarily with exertion and relieved by rest. She denies associated dyspnea, diaphoresis, or radiation. Her risk factor profile includes hypertension managed with lisinopril and hyperlipidemia on atorvastatin. She has no prior history of CAD, MI, or arrhythmia. Family history is notable for early CAD in a paternal uncle. She remains relatively sedentary and reports good functional capacity for activities of daily living, though she has not engaged in formal exercise testing.\n\nOn examination today, vital signs are stable with BP 138/82 and HR 76. Cardiac auscultation reveals regular rate and rhythm with no murmurs, rubs, or gallops. Lungs are clear bilaterally. No peripheral edema or signs of heart failure. EKG performed in clinic shows normal sinus rhythm with nonspecific ST-T changes, unchanged from prior.\n\nGiven her age, multiple cardiac risk factors, and reported exertional chest discomfort, I believe stress testing is warranted to risk-stratify her prior to surgery and establish her functional cardiac capacity. I would appreciate your evaluation and recommendation regarding need for stress testing and any additional pre-operative cardiac workup. Please advise on clearance for elective surgery once assessment is complete.",
+  "input_tokens": 295,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 330,
+  "temperature": 0.2,
+  "usd_cost": 0.001945
+}

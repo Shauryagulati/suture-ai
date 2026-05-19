@@ -1,0 +1,46 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 58-year-old female presents for pre-operative cardiac clearance prior to elective surgery. She reports a several-month history of intermittent chest discomfort described as mild substernal pressu",
+  "diagnosis_codes": [
+    "R00.0",
+    "R07.9"
+  ],
+  "document_external_id": "REF-010",
+  "follow_up_window_days": 25,
+  "insurance": {
+    "primary": {
+      "group_number": null,
+      "member_id": "6204505331",
+      "payer": "UnitedHealthcare"
+    },
+    "secondary": null
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "692 Michelle Union Apt. 602",
+    "city": "Greensburg",
+    "dob": "1967-12-02",
+    "external_id": "PAT-010",
+    "first_name": "Jill",
+    "last_name": "Cook",
+    "mrn": "MRN-421607",
+    "phone": "724-555-2287",
+    "state": "PA",
+    "zip_code": "15601"
+  },
+  "procedure_codes": [
+    "93015"
+  ],
+  "referral_type": "stress_test",
+  "referring_provider": {
+    "external_id": "PRAC-002",
+    "first_name": "Lisa",
+    "last_name": "Smith",
+    "npi": "8161849590",
+    "practice_fax": "412-555-7527",
+    "practice_name": "Highland Park Family Practice",
+    "practice_phone": "412-555-1139"
+  },
+  "urgency": "routine"
+}

@@ -1,0 +1,9 @@
+{
+  "content": "Mr. [Patient] is an 80-year-old gentleman with a significant cardiac risk factor profile including longstanding hypertension who presents with a chief complaint of exertional chest pressure. He reports experiencing substernal pressure that occurs with moderate exertion, such as walking uphill or climbing stairs, and resolves with rest within several minutes. The patient denies associated dyspnea, diaphoresis, or radiation to the arm or jaw. He has been relatively sedentary over the past several years and reports that these symptoms have been intermittent over the past month, prompting him to seek evaluation.\n\nOn physical examination today, vital signs are stable with BP 148/82 and HR 78. Cardiac auscultation reveals regular rate and rhythm without murmurs, rubs, or gallops. Lungs are clear to auscultation bilaterally. There is no peripheral edema or signs of heart failure. A resting EKG was obtained and shows normal sinus rhythm with nonspecific ST-T changes, unchanged from prior. Given his age, symptom pattern concerning for possible angina, and multiple cardiac risk factors, further risk stratification is warranted.\n\nI would appreciate your evaluation and assessment regarding the need for stress testing to evaluate for inducible ischemia. Please advise on appropriate testing modality given his age and functional status, and provide recommendations regarding medical optimization and activity restrictions pending your evaluation.",
+  "input_tokens": 287,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 309,
+  "temperature": 0.2,
+  "usd_cost": 0.001832
+}

@@ -1,0 +1,9 @@
+{
+  "content": "Mr. [Patient] is a 60-year-old male with significant cardiac risk factors including hypertension, hyperlipidemia, and a 40 pack-year smoking history who presents with several months of exertional chest discomfort. He describes the pain as a dull, pressure-like sensation in the left chest that occurs with moderate exertion, such as climbing stairs or brisk walking, and typically resolves within minutes of rest. He denies associated dyspnea, diaphoresis, or radiation to the arm or jaw. His wife notes he has been more fatigued than usual over the past month. Current medications include lisinopril, atorvastatin, and aspirin.\n\nOn examination today, vital signs are stable with BP 138/82 and HR 78. Cardiac auscultation reveals regular rate and rhythm with no murmurs, rubs, or gallops. Lungs are clear bilaterally. There is no peripheral edema or JVD. EKG performed in clinic shows normal sinus rhythm with nonspecific ST-T changes in the lateral leads, unchanged from prior study two years ago. Given his age, risk profile, and the character of his symptoms, atypical angina cannot be excluded.\n\nI would appreciate your evaluation and assessment for inducible ischemia via stress testing. Please advise on further workup and risk stratification. I will continue current medical management pending your recommendations. Thank you for your prompt attention to this patient.",
+  "input_tokens": 288,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 328,
+  "temperature": 0.2,
+  "usd_cost": 0.001928
+}

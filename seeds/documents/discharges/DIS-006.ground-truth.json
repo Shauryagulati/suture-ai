@@ -1,0 +1,66 @@
+{
+  "admit_date": "2026-04-14",
+  "attending_physician": {
+    "first_name": "Nathan",
+    "last_name": "Phelps",
+    "npi": "8184514627"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I21.09",
+    "I25.10"
+  ],
+  "discharge_date": "2026-04-19",
+  "discharge_type": "post_mi",
+  "discharging_hospital": "AHN West Penn Hospital",
+  "document_external_id": "DIS-006",
+  "follow_up_window_days": 8,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Clopidogrel 75 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Metoprolol succinate 50 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Atorvastatin 80 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Aspirin 81 mg daily"
+    }
+  ],
+  "missing_fields": [
+    "patient.address_line1"
+  ],
+  "patient": {
+    "address_line1": null,
+    "city": "Butler",
+    "dob": "1946-05-06",
+    "external_id": "PAT-008",
+    "first_name": "Natasha",
+    "last_name": "Wood",
+    "mrn": "MRN-980841",
+    "phone": "878-555-5313",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "primary_diagnosis": "NSTEMI, mid-LAD distribution",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "critical",
+  "urgent_flags": [
+    "EF<40%",
+    "recent-revascularization",
+    "post-PCI dual antiplatelet therapy"
+  ]
+}

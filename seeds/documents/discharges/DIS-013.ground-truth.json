@@ -1,0 +1,60 @@
+{
+  "admit_date": "2026-04-18",
+  "attending_physician": {
+    "first_name": "William",
+    "last_name": "Andrews",
+    "npi": "5799118380"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I50.31",
+    "I10"
+  ],
+  "discharge_date": "2026-04-23",
+  "discharge_type": "post_chf",
+  "discharging_hospital": "UPMC Mercy",
+  "document_external_id": "DIS-013",
+  "follow_up_window_days": 9,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "stopped",
+      "name": "Metoprolol tartrate"
+    },
+    {
+      "action": "started",
+      "name": "Furosemide 40 mg BID"
+    },
+    {
+      "action": "started",
+      "name": "Empagliflozin 10 mg daily"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "374 Jackson Rest",
+    "city": "Greensburg",
+    "dob": "1970-10-04",
+    "external_id": "PAT-016",
+    "first_name": "Tamara",
+    "last_name": "Higgins",
+    "mrn": "MRN-496631",
+    "phone": "412-555-5947",
+    "state": "PA",
+    "zip_code": "15601"
+  },
+  "primary_diagnosis": "Acute on chronic systolic heart failure",
+  "procedures_performed": [
+    {
+      "cpt_code": "93451",
+      "description": "Right heart catheterization"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "medium",
+  "urgent_flags": [
+    "EF<40%",
+    "30-day-readmission-risk",
+    "active volume overload at discharge"
+  ]
+}

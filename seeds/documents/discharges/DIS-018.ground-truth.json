@@ -1,0 +1,64 @@
+{
+  "admit_date": "2026-05-07",
+  "attending_physician": {
+    "first_name": "Dakota",
+    "last_name": "Foley",
+    "npi": "4294019656"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I48.0",
+    "Z95.0"
+  ],
+  "discharge_date": "2026-05-12",
+  "discharge_type": "post_ablation",
+  "discharging_hospital": "St. Clair Hospital",
+  "document_external_id": "DIS-018",
+  "follow_up_window_days": 25,
+  "is_degraded": true,
+  "medications_changed": [
+    {
+      "action": "adjusted",
+      "name": "Metoprolol tartrate 25 mg BID"
+    },
+    {
+      "action": "stopped",
+      "name": "Amiodarone"
+    },
+    {
+      "action": "started",
+      "name": "Apixaban 5 mg BID"
+    },
+    {
+      "action": "started",
+      "name": "Flecainide 100 mg BID"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "374 Jackson Rest",
+    "city": "Greensburg",
+    "dob": "1970-10-04",
+    "external_id": "PAT-016",
+    "first_name": "Tamara",
+    "last_name": "Higgins",
+    "mrn": "MRN-496631",
+    "phone": "412-555-5947",
+    "state": "PA",
+    "zip_code": "15601"
+  },
+  "primary_diagnosis": "Atrial flutter s/p cavotricuspid isthmus ablation",
+  "procedures_performed": [
+    {
+      "cpt_code": "93653",
+      "description": "Cavotricuspid isthmus ablation"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "medium",
+  "urgent_flags": [
+    "groin access precautions",
+    "post-ablation anticoagulation required",
+    "blanking period — symptoms expected"
+  ]
+}

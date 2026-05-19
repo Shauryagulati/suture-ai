@@ -1,0 +1,61 @@
+{
+  "admit_date": "2026-05-04",
+  "attending_physician": {
+    "first_name": "Breanna",
+    "last_name": "Cantu",
+    "npi": "6159514846"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I48.3"
+  ],
+  "discharge_date": "2026-05-10",
+  "discharge_type": "post_ablation",
+  "discharging_hospital": "Excela Health Westmoreland Hospital",
+  "document_external_id": "DIS-019",
+  "follow_up_window_days": 26,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Apixaban 5 mg BID"
+    },
+    {
+      "action": "started",
+      "name": "Flecainide 100 mg BID"
+    },
+    {
+      "action": "adjusted",
+      "name": "Metoprolol tartrate 25 mg BID"
+    },
+    {
+      "action": "stopped",
+      "name": "Amiodarone"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "34123 Andrea Estate",
+    "city": "Butler",
+    "dob": "1966-02-02",
+    "external_id": "PAT-020",
+    "first_name": "Aaron",
+    "last_name": "Hayes",
+    "mrn": "MRN-471349",
+    "phone": "412-555-1104",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "primary_diagnosis": "AVNRT s/p slow-pathway ablation",
+  "procedures_performed": [
+    {
+      "cpt_code": "93653",
+      "description": "Slow-pathway ablation for AVNRT"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "routine",
+  "urgent_flags": [
+    "post-ablation anticoagulation required"
+  ]
+}

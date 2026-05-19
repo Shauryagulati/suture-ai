@@ -1,0 +1,54 @@
+{
+  "admit_date": "2026-04-19",
+  "attending_physician": {
+    "first_name": "Nicholas",
+    "last_name": "Davis",
+    "npi": "2624731784"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I50.21",
+    "I25.10"
+  ],
+  "discharge_date": "2026-04-22",
+  "discharge_type": "post_chf",
+  "discharging_hospital": "Heritage Valley Beaver",
+  "document_external_id": "DIS-010",
+  "follow_up_window_days": 11,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Spironolactone 25 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Sacubitril/valsartan 49/51 mg BID"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "148 Eric Track",
+    "city": "Beaver",
+    "dob": "1975-07-14",
+    "external_id": "PAT-004",
+    "first_name": "Evan",
+    "last_name": "Ashley",
+    "mrn": "MRN-543039",
+    "phone": "878-555-7527",
+    "state": "PA",
+    "zip_code": "15009"
+  },
+  "primary_diagnosis": "Acute on chronic systolic heart failure",
+  "procedures_performed": [
+    {
+      "cpt_code": null,
+      "description": "IV diuresis with furosemide"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "critical",
+  "urgent_flags": [
+    "BNP elevated at discharge"
+  ]
+}

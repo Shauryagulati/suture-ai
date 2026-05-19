@@ -1,0 +1,62 @@
+{
+  "admit_date": "2026-04-17",
+  "attending_physician": {
+    "first_name": "Bruce",
+    "last_name": "Mcmahon",
+    "npi": "2427868015"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I25.110"
+  ],
+  "discharge_date": "2026-04-21",
+  "discharge_type": "post_cath",
+  "discharging_hospital": "AHN Allegheny General Hospital",
+  "document_external_id": "DIS-015",
+  "follow_up_window_days": 10,
+  "is_degraded": true,
+  "medications_changed": [
+    {
+      "action": "adjusted",
+      "name": "Atorvastatin 40 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Clopidogrel 75 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Isosorbide mononitrate 30 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Aspirin 81 mg daily"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "148 Eric Track",
+    "city": "Beaver",
+    "dob": "1975-07-14",
+    "external_id": "PAT-004",
+    "first_name": "Evan",
+    "last_name": "Ashley",
+    "mrn": "MRN-543039",
+    "phone": "878-555-7527",
+    "state": "PA",
+    "zip_code": "15009"
+  },
+  "primary_diagnosis": "Coronary artery disease s/p elective LHC",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography with FFR"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "routine",
+  "urgent_flags": [
+    "radial access — wrist precautions",
+    "femoral access — bleed precautions"
+  ]
+}

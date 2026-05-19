@@ -1,0 +1,59 @@
+{
+  "admit_date": "2026-05-12",
+  "attending_physician": {
+    "first_name": "Emily",
+    "last_name": "Mcguire",
+    "npi": "9593103416"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I21.A1",
+    "I25.10"
+  ],
+  "discharge_date": "2026-05-16",
+  "discharge_type": "post_mi",
+  "discharging_hospital": "UPMC Mercy",
+  "document_external_id": "DIS-003",
+  "follow_up_window_days": 9,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Atorvastatin 80 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Lisinopril 10 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Metoprolol succinate 50 mg daily"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "374 Jackson Rest",
+    "city": "Greensburg",
+    "dob": "1970-10-04",
+    "external_id": "PAT-016",
+    "first_name": "Tamara",
+    "last_name": "Higgins",
+    "mrn": "MRN-496631",
+    "phone": "412-555-5947",
+    "state": "PA",
+    "zip_code": "15601"
+  },
+  "primary_diagnosis": "Acute STEMI, anterior wall",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "high",
+  "urgent_flags": [
+    "recent-revascularization",
+    "EF<40%"
+  ]
+}

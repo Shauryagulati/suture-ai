@@ -1,0 +1,68 @@
+{
+  "admit_date": "2026-05-06",
+  "attending_physician": {
+    "first_name": "Amy",
+    "last_name": "Campos",
+    "npi": "2154303913"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I21.4",
+    "I25.10"
+  ],
+  "discharge_date": "2026-05-12",
+  "discharge_type": "post_mi",
+  "discharging_hospital": "AHN Forbes Hospital",
+  "document_external_id": "DIS-007",
+  "follow_up_window_days": 8,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Atorvastatin 80 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Clopidogrel 75 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Ticagrelor 90 mg BID"
+    },
+    {
+      "action": "started",
+      "name": "Aspirin 81 mg daily"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "7738 Leon Underpass Apt. 148",
+    "city": "Pittsburgh",
+    "dob": "1975-01-25",
+    "external_id": "PAT-012",
+    "first_name": "Elizabeth",
+    "last_name": "Harvey",
+    "mrn": "MRN-433200",
+    "phone": "724-555-9763",
+    "state": "PA",
+    "zip_code": "15222"
+  },
+  "primary_diagnosis": "Acute STEMI, anterior wall",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography"
+    },
+    {
+      "cpt_code": "92928",
+      "description": "PCI to RCA with DES"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "medium",
+  "urgent_flags": [
+    "post-acute-MI",
+    "EF<40%",
+    "post-PCI dual antiplatelet therapy"
+  ]
+}

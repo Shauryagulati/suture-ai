@@ -1,0 +1,9 @@
+{
+  "content": "The patient is a 60-year-old male who presented to the emergency department with acute inferior ST-elevation myocardial infarction. He reported sudden onset of substernal chest pain radiating to the left arm and jaw, accompanied by diaphoresis and dyspnea. Initial electrocardiography demonstrated ST elevation in the inferior leads with reciprocal changes, and troponin I was markedly elevated at 8.2 ng/mL. The patient was immediately taken to the cardiac catheterization laboratory where angiography revealed acute thrombotic occlusion of the right coronary artery. Primary percutaneous coronary intervention was performed with successful placement of a drug-eluting stent, achieving TIMI 3 flow and reduction of stenosis from 100% to 0%. Transthoracic echocardiography performed on hospital day two showed mild hypokinesis of the inferior wall with preserved overall left ventricular ejection fraction of 50%.\n\nDuring the hospital course, the patient was managed with dual antiplatelet therapy, high-intensity statin, beta-blocker, and ACE inhibitor. Serial troponin levels peaked at 12.4 ng/mL on day one and subsequently trended downward. Cardiac biomarkers including BNP remained within acceptable limits, and repeat electrocardiography showed resolution of ST elevation with development of Q waves in the inferior distribution. The patient remained hemodynamically stable throughout his stay with no recurrent chest pain, arrhythmia, or signs of cardiogenic shock. He was discharged on hospital day three in stable condition with appropriate cardiology follow-up arranged for two weeks post-discharge and enrollment in cardiac rehabilitation.",
+  "input_tokens": 270,
+  "max_tokens": 1100,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 373,
+  "temperature": 0.2,
+  "usd_cost": 0.002135
+}

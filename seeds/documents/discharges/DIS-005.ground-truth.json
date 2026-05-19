@@ -1,0 +1,60 @@
+{
+  "admit_date": "2026-04-22",
+  "attending_physician": {
+    "first_name": "Andrew",
+    "last_name": "Reynolds",
+    "npi": "3884969650"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I21.09",
+    "I25.10"
+  ],
+  "discharge_date": "2026-04-26",
+  "discharge_type": "post_mi",
+  "discharging_hospital": "AHN Allegheny General Hospital",
+  "document_external_id": "DIS-005",
+  "follow_up_window_days": 9,
+  "is_degraded": true,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Lisinopril 10 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Atorvastatin 80 mg daily"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "148 Eric Track",
+    "city": "Beaver",
+    "dob": "1975-07-14",
+    "external_id": "PAT-004",
+    "first_name": "Evan",
+    "last_name": "Ashley",
+    "mrn": "MRN-543039",
+    "phone": "878-555-7527",
+    "state": "PA",
+    "zip_code": "15009"
+  },
+  "primary_diagnosis": "Type II NSTEMI, demand-related",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography"
+    },
+    {
+      "cpt_code": "92928",
+      "description": "PCI to LAD with DES"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "high",
+  "urgent_flags": [
+    "post-acute-MI",
+    "recent-revascularization",
+    "post-PCI dual antiplatelet therapy"
+  ]
+}

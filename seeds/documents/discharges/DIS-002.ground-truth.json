@@ -1,0 +1,59 @@
+{
+  "admit_date": "2026-04-19",
+  "attending_physician": {
+    "first_name": "Douglas",
+    "last_name": "Ford",
+    "npi": "4026542355"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I21.09",
+    "I25.10"
+  ],
+  "discharge_date": "2026-04-22",
+  "discharge_type": "post_mi",
+  "discharging_hospital": "UPMC Shadyside",
+  "document_external_id": "DIS-002",
+  "follow_up_window_days": 10,
+  "is_degraded": true,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Metoprolol succinate 50 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Aspirin 81 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Ticagrelor 90 mg BID"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "7738 Leon Underpass Apt. 148",
+    "city": "Pittsburgh",
+    "dob": "1975-01-25",
+    "external_id": "PAT-012",
+    "first_name": "Elizabeth",
+    "last_name": "Harvey",
+    "mrn": "MRN-433200",
+    "phone": "724-555-9763",
+    "state": "PA",
+    "zip_code": "15222"
+  },
+  "primary_diagnosis": "Type II NSTEMI, demand-related",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "high",
+  "urgent_flags": [
+    "EF<40%",
+    "recent-revascularization"
+  ]
+}

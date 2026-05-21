@@ -9,6 +9,12 @@ export interface TimelineEvent {
   resource_type: string;
   resource_id: string;
   changed_columns: string[];
+  metadata?: {
+    channel?: "sms" | "email" | "voice";
+    attempt_number?: number;
+    scheduling_link_clicked?: boolean;
+    backfill_offered?: boolean;
+  };
 }
 
 export interface TimelineResponse {

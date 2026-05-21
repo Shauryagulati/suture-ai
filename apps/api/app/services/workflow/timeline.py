@@ -9,6 +9,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.audit_log import AuditLog
+from app.models.outreach_attempt import OutreachAttempt
 from app.models.referral_task import ReferralTask
 from app.schemas.workflow import TimelineEvent
 
@@ -68,23 +69,69 @@ async def _events_for_resource(
     return events
 
 
+async def _outreach_events_for_parent(
+    session: AsyncSession,
+    *,
+    referral_id: UUID | None = None,
+    discharge_id: UUID | None = None,
+) -> list[TimelineEvent]:
+    """Render outreach attempts as timeline events. The event's `at` is
+    `sent_at` if present (i.e., the attempt has fired), else the
+    scheduled_at — so pending future attempts surface too."""
+    q = select(OutreachAttempt)
+    if referral_id is not None:
+        q = q.where(OutreachAttempt.referral_id == referral_id)
+    elif discharge_id is not None:
+        q = q.where(OutreachAttempt.discharge_summary_id == discharge_id)
+    else:
+        return []
+    rows = (await session.execute(q)).scalars().all()
+
+    events: list[TimelineEvent] = []
+    for r in rows:
+        outcome = r.outcome or {}
+        events.append(
+            TimelineEvent(
+                at=r.sent_at or r.scheduled_at,
+                actor_id=None,
+                action=f"outreach_{r.status.value}",
+                resource_type="outreach_attempts",
+                resource_id=r.id,
+                changed_columns=[],
+                metadata={
+                    "channel": r.channel.value,
+                    "attempt_number": r.attempt_number,
+                    "scheduling_link_clicked": bool(
+                        outcome.get("scheduling_link_clicked", False)
+                    ),
+                    "backfill_offered": bool(outcome.get("backfill_offered", False)),
+                },
+            )
+        )
+    return events
+
+
 async def build_referral_timeline(
     session: AsyncSession, *, referral_id: UUID
 ) -> list[TimelineEvent]:
-    return await _events_for_resource(
+    audit = await _events_for_resource(
         session,
         parent_resource_type="referrals",
         parent_resource_id=referral_id,
         child_task_field=ReferralTask.referral_id,
     )
+    outreach = await _outreach_events_for_parent(session, referral_id=referral_id)
+    return sorted(audit + outreach, key=lambda e: e.at)
 
 
 async def build_discharge_timeline(
     session: AsyncSession, *, discharge_id: UUID
 ) -> list[TimelineEvent]:
-    return await _events_for_resource(
+    audit = await _events_for_resource(
         session,
         parent_resource_type="discharge_summaries",
         parent_resource_id=discharge_id,
         child_task_field=ReferralTask.discharge_summary_id,
     )
+    outreach = await _outreach_events_for_parent(session, discharge_id=discharge_id)
+    return sorted(audit + outreach, key=lambda e: e.at)

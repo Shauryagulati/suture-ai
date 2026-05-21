@@ -69,9 +69,7 @@ async def compute_payer_friction(db: AsyncSession) -> PayerFrictionSummary:
             if decided_at is None:
                 continue
             turnarounds.append((decided_at - a.submitted_at).total_seconds() / 86400.0)
-        avg_turnaround = (
-            sum(turnarounds) / len(turnarounds) if turnarounds else None
-        )
+        avg_turnaround = sum(turnarounds) / len(turnarounds) if turnarounds else None
 
         reason_counter: Counter[str] = Counter()
         for a in group:

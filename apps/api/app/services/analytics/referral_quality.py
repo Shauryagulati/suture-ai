@@ -20,11 +20,7 @@ REFERRAL_FIELD_COUNT = 12
 
 async def compute_referral_quality(db: AsyncSession) -> ReferralQualitySummary:
     referrals = (
-        (
-            await db.execute(
-                select(Referral).where(Referral.referring_provider_id.is_not(None))
-            )
-        )
+        (await db.execute(select(Referral).where(Referral.referring_provider_id.is_not(None))))
         .scalars()
         .all()
     )
@@ -33,9 +29,7 @@ async def compute_referral_quality(db: AsyncSession) -> ReferralQualitySummary:
 
     provider_ids = {r.referring_provider_id for r in referrals if r.referring_provider_id}
     providers = (
-        (await db.execute(select(Provider).where(Provider.id.in_(provider_ids))))
-        .scalars()
-        .all()
+        (await db.execute(select(Provider).where(Provider.id.in_(provider_ids)))).scalars().all()
     )
     prov_by_id = {p.id: p for p in providers}
 

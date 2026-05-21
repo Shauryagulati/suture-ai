@@ -28,9 +28,7 @@ _APPROVED = {PriorAuthStatus.approved, PriorAuthStatus.appeal_approved}
 _DENIED = {PriorAuthStatus.denied, PriorAuthStatus.appeal_denied}
 
 
-async def compute_roi_report(
-    db: AsyncSession, *, from_date: date, to_date: date
-) -> RoiReport:
+async def compute_roi_report(db: AsyncSession, *, from_date: date, to_date: date) -> RoiReport:
     from_dt = datetime.combine(from_date, time.min, tzinfo=UTC)
     to_dt = datetime.combine(to_date, time.max, tzinfo=UTC)
 
@@ -78,9 +76,7 @@ async def compute_roi_report(
     ).all()
     avg_days: float | None
     if pairs:
-        avg_days = sum((a - r).total_seconds() / 86400.0 for r, a in pairs) / len(
-            pairs
-        )
+        avg_days = sum((a - r).total_seconds() / 86400.0 for r, a in pairs) / len(pairs)
     else:
         avg_days = None
 

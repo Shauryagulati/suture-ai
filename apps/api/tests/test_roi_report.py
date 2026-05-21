@@ -142,9 +142,7 @@ async def test_avg_days_referral_to_appointment(
         prov = make_provider(clinic_id=clinic_a)
         db_session.add_all([p, prov])
         await db_session.flush()
-        ref = make_referral(
-            clinic_id=clinic_a, patient_id=p.id, status=ReferralStatus.scheduled
-        )
+        ref = make_referral(clinic_id=clinic_a, patient_id=p.id, status=ReferralStatus.scheduled)
         db_session.add(ref)
         await db_session.flush()
         db_session.add(

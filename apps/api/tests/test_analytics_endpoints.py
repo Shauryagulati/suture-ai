@@ -75,9 +75,7 @@ async def test_dashboard_returns_full_payload_shape(
     assert body["leakage"]["at_risk_count"] >= 1
     assert "rows" in body["payer_friction"]
     assert "rows" in body["referral_quality"]
-    assert {"from_date", "to_date", "documents_processed", "hours_saved"} <= set(
-        body["roi"].keys()
-    )
+    assert {"from_date", "to_date", "documents_processed", "hours_saved"} <= set(body["roi"].keys())
 
 
 async def test_leakage_endpoint_orders_by_score_desc(
@@ -104,9 +102,7 @@ async def test_roi_with_explicit_date_range(
     authed_client_factory,
 ):
     client, headers, _ = await authed_client_factory("a")
-    resp = await client.get(
-        "/api/analytics/roi?from=2026-01-01&to=2026-12-31", headers=headers
-    )
+    resp = await client.get("/api/analytics/roi?from=2026-01-01&to=2026-12-31", headers=headers)
     assert resp.status_code == 200
     body = resp.json()
     assert body["from_date"] == "2026-01-01"
@@ -128,7 +124,7 @@ async def test_clinic_a_cannot_see_clinic_b_leakage(
     set_clinic_context,
     authed_client_factory,
 ):
-    clinic_a, clinic_b = two_clinics
+    _clinic_a, clinic_b = two_clinics
     client_a, headers_a, _ = await authed_client_factory("a")
     client_b, headers_b, _ = await authed_client_factory("b")
 
@@ -155,7 +151,7 @@ async def test_clinic_a_cannot_see_clinic_b_payer_friction(
     set_clinic_context,
     authed_client_factory,
 ):
-    clinic_a, clinic_b = two_clinics
+    _clinic_a, clinic_b = two_clinics
     client_a, headers_a, _ = await authed_client_factory("a")
     _, _, _ = await authed_client_factory("b")
 

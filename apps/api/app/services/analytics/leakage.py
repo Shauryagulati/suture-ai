@@ -58,11 +58,7 @@ _MED_URGENCY = {UrgencyLevel.urgent, UrgencyTier.high}
 
 async def compute_leakage_summary(db: AsyncSession) -> LeakageSummary:
     referrals = (
-        (
-            await db.execute(
-                select(Referral).where(Referral.status.in_(_REFERRAL_OPEN_STATUSES))
-            )
-        )
+        (await db.execute(select(Referral).where(Referral.status.in_(_REFERRAL_OPEN_STATUSES))))
         .scalars()
         .all()
     )
@@ -78,16 +74,12 @@ async def compute_leakage_summary(db: AsyncSession) -> LeakageSummary:
         .all()
     )
 
-    patient_ids: set[UUID] = {r.patient_id for r in referrals} | {
-        d.patient_id for d in discharges
-    }
+    patient_ids: set[UUID] = {r.patient_id for r in referrals} | {d.patient_id for d in discharges}
     if not patient_ids:
         return LeakageSummary(at_risk_count=0, threshold=LEAKAGE_THRESHOLD, rows=[])
 
     patients = (
-        (await db.execute(select(Patient).where(Patient.id.in_(patient_ids))))
-        .scalars()
-        .all()
+        (await db.execute(select(Patient).where(Patient.id.in_(patient_ids)))).scalars().all()
     )
     by_id = {p.id: p for p in patients}
 
@@ -96,9 +88,7 @@ async def compute_leakage_summary(db: AsyncSession) -> LeakageSummary:
             await db.execute(
                 select(OutreachAttempt).where(
                     OutreachAttempt.patient_id.in_(patient_ids),
-                    OutreachAttempt.status.in_(
-                        {OutreachStatus.failed, OutreachStatus.no_response}
-                    ),
+                    OutreachAttempt.status.in_({OutreachStatus.failed, OutreachStatus.no_response}),
                 )
             )
         )
@@ -130,9 +120,7 @@ async def compute_leakage_summary(db: AsyncSession) -> LeakageSummary:
             await db.execute(
                 select(PriorAuth.patient_id).where(
                     PriorAuth.patient_id.in_(patient_ids),
-                    PriorAuth.status.in_(
-                        {PriorAuthStatus.denied, PriorAuthStatus.appeal_denied}
-                    ),
+                    PriorAuth.status.in_({PriorAuthStatus.denied, PriorAuthStatus.appeal_denied}),
                 )
             )
         )
@@ -143,13 +131,13 @@ async def compute_leakage_summary(db: AsyncSession) -> LeakageSummary:
 
     referrals_by_patient: dict[UUID, Referral] = {}
     for r in referrals:
-        prev = referrals_by_patient.get(r.patient_id)
-        if prev is None or r.created_at > prev.created_at:
+        prev_r = referrals_by_patient.get(r.patient_id)
+        if prev_r is None or r.created_at > prev_r.created_at:
             referrals_by_patient[r.patient_id] = r
     discharges_by_patient: dict[UUID, DischargeSummary] = {}
     for d in discharges:
-        prev = discharges_by_patient.get(d.patient_id)
-        if prev is None or d.created_at > prev.created_at:
+        prev_d = discharges_by_patient.get(d.patient_id)
+        if prev_d is None or d.created_at > prev_d.created_at:
             discharges_by_patient[d.patient_id] = d
 
     now = datetime.now(UTC)
@@ -201,9 +189,7 @@ async def compute_leakage_summary(db: AsyncSession) -> LeakageSummary:
     return LeakageSummary(at_risk_count=at_risk, threshold=LEAKAGE_THRESHOLD, rows=rows)
 
 
-def _urgency_signal(
-    ref: Referral | None, disch: DischargeSummary | None
-) -> tuple[str, int]:
+def _urgency_signal(ref: Referral | None, disch: DischargeSummary | None) -> tuple[str, int]:
     candidates: list[tuple[str, int]] = []
     if ref is not None:
         if ref.urgency in _HIGH_URGENCY:
@@ -224,9 +210,7 @@ def _urgency_signal(
     return max(candidates, key=lambda c: c[1])
 
 
-def _days_since(
-    ref: Referral | None, disch: DischargeSummary | None, now: datetime
-) -> int | None:
+def _days_since(ref: Referral | None, disch: DischargeSummary | None, now: datetime) -> int | None:
     instants: list[datetime] = []
     if ref is not None:
         instants.append(ref.created_at)

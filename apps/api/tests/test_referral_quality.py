@@ -45,9 +45,7 @@ async def test_clean_provider_scores_higher_than_messy_provider(
             db_session.add(doc)
             await db_session.flush()
             db_session.add(
-                make_extraction(
-                    clinic_id=clinic_a, document_id=doc.id, missing_fields=missing
-                )
+                make_extraction(clinic_id=clinic_a, document_id=doc.id, missing_fields=missing)
             )
             db_session.add(
                 make_referral(
@@ -86,9 +84,7 @@ async def test_top_missing_fields_per_provider(
             db_session.add(doc)
             await db_session.flush()
             db_session.add(
-                make_extraction(
-                    clinic_id=clinic_a, document_id=doc.id, missing_fields=missing
-                )
+                make_extraction(clinic_id=clinic_a, document_id=doc.id, missing_fields=missing)
             )
             db_session.add(
                 make_referral(
@@ -120,9 +116,7 @@ async def test_completeness_pct_is_one_when_no_missing(
         doc = make_document(clinic_id=clinic_a, patient_id=patient.id)
         db_session.add(doc)
         await db_session.flush()
-        db_session.add(
-            make_extraction(clinic_id=clinic_a, document_id=doc.id, missing_fields=[])
-        )
+        db_session.add(make_extraction(clinic_id=clinic_a, document_id=doc.id, missing_fields=[]))
         db_session.add(
             make_referral(
                 clinic_id=clinic_a,

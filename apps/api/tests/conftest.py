@@ -120,9 +120,12 @@ async def db_session() -> AsyncIterator[AsyncSession]:
             yield session
         finally:
             await session.rollback()
-            # Truncate everything between tests for isolation.
+            # Truncate everything between tests for isolation. Order is
+            # children-before-parents so RESTRICT FKs (e.g. referral_tasks
+            # -> patients) don't block the patients DELETE.
             async with async_session_maker() as cleanup:
                 await cleanup.execute(Base.metadata.tables["audit_logs"].delete())
+                await cleanup.execute(Base.metadata.tables["referral_tasks"].delete())
                 await cleanup.execute(Base.metadata.tables["patients"].delete())
                 await cleanup.execute(Base.metadata.tables["providers"].delete())
                 await cleanup.execute(Base.metadata.tables["clinic_memberships"].delete())

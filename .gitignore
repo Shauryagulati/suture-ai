@@ -37,6 +37,8 @@ jwt_*.pem
 *.db
 *.sqlite
 *.sqlite3
+# Uploaded documents land here at runtime (per-clinic subdirs under apps/api/data/documents/).
+data/
 # NOTE: seeds/documents/*.pdf is COMMITTED — they are ground-truth fixtures for the eval harness.
 # Do NOT re-add gitignore lines for those PDFs.
 

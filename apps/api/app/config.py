@@ -56,6 +56,12 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = "INFO"
 
+    # Document storage — uploaded PDFs land here as
+    # {document_storage_path}/{clinic_id}/{uuid4}.pdf.
+    document_storage_path: Path = Path("./data/documents")
+    max_upload_bytes: int = 25 * 1024 * 1024  # 25 MB
+    allowed_mime_types: tuple[str, ...] = ("application/pdf",)
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

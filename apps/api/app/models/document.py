@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 from uuid import UUID
 
-from sqlalchemy import Enum, Float, ForeignKey, Integer, String
+from sqlalchemy import Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -74,3 +74,6 @@ class Document(ClinicScopedBase):
         nullable=True,
     )
     source_fax_number: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    extracted_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ocr_engine: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    notes: Mapped[str | None] = mapped_column(Text, nullable=True)

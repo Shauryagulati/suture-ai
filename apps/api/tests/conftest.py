@@ -123,6 +123,9 @@ async def db_session() -> AsyncIterator[AsyncSession]:
             # Truncate everything between tests for isolation.
             async with async_session_maker() as cleanup:
                 await cleanup.execute(Base.metadata.tables["audit_logs"].delete())
+                await cleanup.execute(Base.metadata.tables["ai_invocations"].delete())
+                await cleanup.execute(Base.metadata.tables["document_extractions"].delete())
+                await cleanup.execute(Base.metadata.tables["documents"].delete())
                 await cleanup.execute(Base.metadata.tables["patients"].delete())
                 await cleanup.execute(Base.metadata.tables["providers"].delete())
                 await cleanup.execute(Base.metadata.tables["clinic_memberships"].delete())

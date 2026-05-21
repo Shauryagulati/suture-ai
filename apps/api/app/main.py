@@ -17,7 +17,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 from app import __version__
 from app.config import get_settings
-from app.routers import auth, health
+from app.routers import auth, documents, health
 from app.utils.logging import configure_logging, get_logger
 
 
@@ -85,3 +85,4 @@ Instrumentator().instrument(app).expose(app, include_in_schema=False)
 
 app.include_router(health.router)
 app.include_router(auth.router)
+app.include_router(documents.router)

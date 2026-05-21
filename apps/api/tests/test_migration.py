@@ -132,6 +132,40 @@ async def test_downgrade_to_base_then_upgrade_head_round_trip(
     )
 
 
+async def test_migration_004_adds_document_inbox_fields(
+    fresh_migration_db: None,
+) -> None:
+    """Migration 0004 adds extracted_text, ocr_engine, notes to documents.
+
+    Verifies columns exist at head and are absent after downgrade -1.
+    """
+
+    async def _column_names() -> set[str]:
+        engine = create_async_engine(MIGRATION_URL)
+        async with engine.connect() as conn:
+            rows = await conn.exec_driver_sql(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'documents'"
+            )
+            cols = {str(r[0]) for r in rows.fetchall()}
+        await engine.dispose()
+        return cols
+
+    up = _run_alembic("upgrade", "head")
+    assert up.returncode == 0, f"upgrade head failed: {up.stderr}"
+    cols = await _column_names()
+    assert {"extracted_text", "ocr_engine", "notes"}.issubset(cols), (
+        f"expected new columns missing: {cols}"
+    )
+
+    down = _run_alembic("downgrade", "-1")
+    assert down.returncode == 0, f"downgrade -1 failed: {down.stderr}"
+    cols_after = await _column_names()
+    assert not (cols_after & {"extracted_text", "ocr_engine", "notes"}), (
+        f"downgrade left new columns behind: {cols_after}"
+    )
+
+
 async def test_migration_003_upgrades_vector_dimension(
     fresh_migration_db: None,
 ) -> None:
@@ -158,8 +192,10 @@ async def test_migration_003_upgrades_vector_dimension(
     assert up.returncode == 0, f"upgrade head failed: {up.stderr}"
     assert await _embedding_type() == "vector(1024)"
 
-    down = _run_alembic("downgrade", "-1")
-    assert down.returncode == 0, f"downgrade -1 failed: {down.stderr}"
+    # Explicit revision target (not -1) so the test is robust to migrations
+    # added on top of 0003.
+    down = _run_alembic("downgrade", "0002")
+    assert down.returncode == 0, f"downgrade 0002 failed: {down.stderr}"
     assert await _embedding_type() == "vector(384)"
 
     up2 = _run_alembic("upgrade", "head")

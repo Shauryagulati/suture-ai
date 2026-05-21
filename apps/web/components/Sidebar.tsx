@@ -1,3 +1,4 @@
+import { AtRiskSidebarBadge } from "@/components/analytics/at-risk-sidebar-badge";
 import { Activity, BarChart3, FileSearch, Inbox, ListChecks, Settings, Users } from "lucide-react";
 import Link from "next/link";
 
@@ -10,7 +11,7 @@ const NAV_ITEMS = [
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-export function Sidebar(): React.ReactElement {
+export async function Sidebar(): Promise<React.ReactElement> {
   return (
     <aside className="flex h-screen w-60 flex-col border-r bg-card">
       <div className="flex items-center gap-2 px-6 py-5 border-b">
@@ -26,6 +27,7 @@ export function Sidebar(): React.ReactElement {
           >
             <Icon className="h-4 w-4" />
             {label}
+            {href === "/analytics" ? <AtRiskSidebarBadge /> : null}
           </Link>
         ))}
       </nav>

@@ -128,6 +128,7 @@ async def db_session() -> AsyncIterator[AsyncSession]:
             # -> patients) don't block the patients DELETE.
             async with async_session_maker() as cleanup:
                 await cleanup.execute(Base.metadata.tables["audit_logs"].delete())
+                await cleanup.execute(Base.metadata.tables["eval_runs"].delete())
                 await cleanup.execute(Base.metadata.tables["ai_invocations"].delete())
                 await cleanup.execute(Base.metadata.tables["document_extractions"].delete())
                 await cleanup.execute(Base.metadata.tables["referral_tasks"].delete())

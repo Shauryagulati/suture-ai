@@ -119,13 +119,18 @@ async def db_session() -> AsyncIterator[AsyncSession]:
         try:
             yield session
         finally:
-            await session.rollback()
+            try:
+                await session.rollback()
+            except Exception:
+                pass  # Ignore rollback errors — cleanup below is always authoritative.
             # Truncate everything between tests for isolation. Order is
             # children-before-parents so RESTRICT FKs (e.g. referral_tasks
             # -> patients) don't block the patients DELETE.
             async with async_session_maker() as cleanup:
                 await cleanup.execute(Base.metadata.tables["audit_logs"].delete())
                 await cleanup.execute(Base.metadata.tables["referral_tasks"].delete())
+                await cleanup.execute(Base.metadata.tables["referrals"].delete())
+                await cleanup.execute(Base.metadata.tables["discharge_summaries"].delete())
                 await cleanup.execute(Base.metadata.tables["patients"].delete())
                 await cleanup.execute(Base.metadata.tables["providers"].delete())
                 await cleanup.execute(Base.metadata.tables["clinic_memberships"].delete())
@@ -195,3 +200,96 @@ async def client() -> AsyncIterator[AsyncClient]:
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
+
+
+@pytest.fixture
+async def seeded_referral_a(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+):
+    """A Referral in clinic A in status `needs_review`, with a real Patient."""
+    from app.models.document import UrgencyLevel
+    from app.models.patient import Patient
+    from app.models.referral import Referral, ReferralStatus
+
+    clinic_a_id, _ = two_clinics
+    patient_id = uuid4()
+    referral_id = uuid4()
+    referral = Referral(
+        id=referral_id,
+        clinic_id=clinic_a_id,
+        patient_id=patient_id,
+        status=ReferralStatus.needs_review,
+        urgency=UrgencyLevel.urgent,
+        diagnosis_codes=["I25.10"],
+        procedure_codes=["93306"],
+    )
+    with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
+        db_session.add_all(
+            [
+                Patient(
+                    id=patient_id,
+                    clinic_id=clinic_a_id,
+                    mrn=f"MRN-{uuid4().hex[:6]}",
+                    first_name="Pat",
+                    last_name="Ref",
+                    dob="1972-03-10",
+                    phone="412-555-0150",
+                ),
+                referral,
+            ]
+        )
+        await db_session.commit()
+    # expire_on_commit=False means the object retains its attribute values after commit
+    # and remains in the session's identity map — no re-fetch needed.
+    return referral
+
+
+@pytest.fixture
+async def seeded_discharge_a(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+):
+    """A DischargeSummary in clinic A in status `new`, urgency_tier=critical (post-MI)."""
+    from datetime import date
+
+    from app.models.discharge_summary import DischargeStatus, DischargeSummary, UrgencyTier
+    from app.models.patient import Patient
+
+    clinic_a_id, _ = two_clinics
+    patient_id = uuid4()
+    discharge_id = uuid4()
+    discharge = DischargeSummary(
+        id=discharge_id,
+        clinic_id=clinic_a_id,
+        patient_id=patient_id,
+        status=DischargeStatus.new,
+        urgency_tier=UrgencyTier.critical,
+        discharge_date=date(2026, 5, 20),
+        diagnosis_codes=["I21.4"],
+        urgent_flags=["recent_MI"],
+        follow_up_window_days=7,
+    )
+    with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
+        # Flush Patient first so the FK dependency is satisfied before discharge insert.
+        db_session.add(
+            Patient(
+                id=patient_id,
+                clinic_id=clinic_a_id,
+                mrn=f"MRN-{uuid4().hex[:6]}",
+                first_name="Pat",
+                last_name="Disch",
+                dob="1955-07-04",
+                phone="412-555-0160",
+            )
+        )
+        await db_session.flush()
+        db_session.add(discharge)
+        await db_session.commit()
+    # expire_on_commit=False means the object retains its attribute values after commit
+    # and remains in the session's identity map — no re-fetch needed.
+    return discharge

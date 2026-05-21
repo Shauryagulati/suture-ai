@@ -98,3 +98,140 @@ def validate_discharge_transition(
         raise InvalidTransitionError(
             f"DischargeStatus.{current.value} -> {target.value} is not allowed"
         )
+
+
+# ────────────────────────────────────────────────────────────────────
+# DB-integrated transition application (Phase 4)
+# ────────────────────────────────────────────────────────────────────
+
+from datetime import datetime  # noqa: E402
+from uuid import UUID  # noqa: E402
+
+from sqlalchemy import select  # noqa: E402
+from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
+
+from app.models.discharge_summary import DischargeSummary  # noqa: E402
+from app.models.referral import Referral  # noqa: E402
+from app.models.referral_task import ReferralTask, TaskStatus  # noqa: E402
+from app.services.workflow.sla import business_days_for_urgency, calculate_due_at  # noqa: E402
+from app.services.workflow.templates import (  # noqa: E402
+    TaskSpec,
+    discharge_task_specs,
+    referral_task_specs,
+)
+
+
+async def apply_referral_transition(
+    session: AsyncSession,
+    *,
+    referral: Referral,
+    target: ReferralStatus,
+) -> Referral:
+    """Validate and apply a transition. Idempotently emits tasks on entry
+    to `ready_to_schedule`. Caller commits."""
+    validate_referral_transition(referral.status, target)
+    referral.status = target
+    if target == ReferralStatus.ready_to_schedule:
+        await _generate_tasks_for_referral(session, referral)
+    return referral
+
+
+async def apply_discharge_transition(
+    session: AsyncSession,
+    *,
+    discharge: DischargeSummary,
+    target: DischargeStatus,
+) -> DischargeSummary:
+    validate_discharge_transition(discharge.status, target)
+    discharge.status = target
+    if target == DischargeStatus.patient_contacted:
+        await _generate_tasks_for_discharge(session, discharge)
+    return discharge
+
+
+async def _existing_task_count_for_referral(
+    session: AsyncSession, referral_id: UUID
+) -> int:
+    rows = (
+        (
+            await session.execute(
+                select(ReferralTask.id).where(
+                    ReferralTask.referral_id == referral_id,
+                    ReferralTask.status != TaskStatus.cancelled,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return len(rows)
+
+
+async def _existing_task_count_for_discharge(
+    session: AsyncSession, discharge_id: UUID
+) -> int:
+    rows = (
+        (
+            await session.execute(
+                select(ReferralTask.id).where(
+                    ReferralTask.discharge_summary_id == discharge_id,
+                    ReferralTask.status != TaskStatus.cancelled,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return len(rows)
+
+
+async def _generate_tasks_for_referral(
+    session: AsyncSession, referral: Referral
+) -> None:
+    if await _existing_task_count_for_referral(session, referral.id) > 0:
+        return
+    due_at = calculate_due_at(referral.urgency)
+    sla_hours = business_days_for_urgency(referral.urgency) * 24
+    for spec in referral_task_specs(referral):
+        session.add(
+            _spec_to_task(spec, referral=referral, due_at=due_at, sla_hours=sla_hours)
+        )
+
+
+async def _generate_tasks_for_discharge(
+    session: AsyncSession, discharge: DischargeSummary
+) -> None:
+    if await _existing_task_count_for_discharge(session, discharge.id) > 0:
+        return
+    due_at = calculate_due_at(discharge.urgency_tier)
+    sla_hours = business_days_for_urgency(discharge.urgency_tier) * 24
+    for spec in discharge_task_specs(discharge):
+        session.add(
+            _spec_to_task(spec, discharge=discharge, due_at=due_at, sla_hours=sla_hours)
+        )
+
+
+def _spec_to_task(
+    spec: TaskSpec,
+    *,
+    referral: Referral | None = None,
+    discharge: DischargeSummary | None = None,
+    due_at: datetime,
+    sla_hours: int,
+) -> ReferralTask:
+    if (referral is None) == (discharge is None):
+        raise ValueError("exactly one of referral / discharge must be provided")
+    parent: Referral | DischargeSummary = referral if referral is not None else discharge  # type: ignore[assignment]
+    return ReferralTask(
+        clinic_id=parent.clinic_id,
+        patient_id=parent.patient_id,
+        referral_id=referral.id if referral else None,
+        discharge_summary_id=discharge.id if discharge else None,
+        task_type=spec.task_type,
+        title=spec.title,
+        description=spec.description,
+        status=TaskStatus.pending,
+        priority=spec.priority,
+        due_at=due_at,
+        sla_hours=sla_hours,
+    )

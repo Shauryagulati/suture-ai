@@ -18,7 +18,10 @@ celery_app = Celery(
     "suture",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["services.workers.tasks"],
+    include=[
+        "services.workers.tasks",
+        "services.workers.outreach_tasks",
+    ],
 )
 
 celery_app.conf.update(
@@ -32,6 +35,14 @@ celery_app.conf.update(
         "check-overdue-tasks-every-15m": {
             "task": "services.workers.tasks.check_overdue_tasks",
             "schedule": crontab(minute="*/15"),
+        },
+        "process-pending-outreach-every-5m": {
+            "task": "services.workers.outreach_tasks.process_pending_outreach",
+            "schedule": crontab(minute="*/5"),
+        },
+        "check-outreach-responses-every-30m": {
+            "task": "services.workers.outreach_tasks.check_outreach_responses",
+            "schedule": crontab(minute="*/30"),
         },
     },
 )

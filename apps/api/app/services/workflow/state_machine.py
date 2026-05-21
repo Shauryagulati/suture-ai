@@ -133,6 +133,12 @@ async def apply_referral_transition(
     referral.status = target
     if target == ReferralStatus.ready_to_schedule:
         await _generate_tasks_for_referral(session, referral)
+        # Late import: state_machine is imported by workflow startup;
+        # outreach orchestrator imports state_machine indirectly via
+        # security helpers. Local import keeps the module-init graph acyclic.
+        from app.services.outreach.orchestrator import schedule_outreach_sequence
+
+        await schedule_outreach_sequence(session, referral=referral)
     return referral
 
 
@@ -146,6 +152,9 @@ async def apply_discharge_transition(
     discharge.status = target
     if target == DischargeStatus.patient_contacted:
         await _generate_tasks_for_discharge(session, discharge)
+        from app.services.outreach.orchestrator import schedule_outreach_sequence
+
+        await schedule_outreach_sequence(session, discharge=discharge)
     return discharge
 
 

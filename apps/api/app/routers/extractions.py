@@ -74,7 +74,7 @@ async def _track_extraction_view(db: AsyncSession, extraction_id: UUID) -> None:
     def _emit(sync_session: SyncSession) -> None:
         track_view(
             sync_session.connection(),
-            resource_type="document_extraction",
+            resource_type="document_extractions",
             resource_id=extraction_id,
         )
 

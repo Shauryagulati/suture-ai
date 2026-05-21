@@ -36,6 +36,7 @@ from app.schemas.document import (
 )
 from app.services.classification import classify_document
 from app.services.document_storage import save_pdf
+from app.services.extraction import extract_document
 from app.services.ocr import extract_text
 from app.utils.audit import track_view
 
@@ -124,6 +125,25 @@ async def upload_document(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="document post-processing failed",
         ) from exc
+
+    # Auto-extract for referrals and discharge summaries. Failure here is
+    # non-fatal: the document stays at `classified` so a future job can
+    # re-run extraction. The upload still returns 201.
+    if doc.classification in (
+        DocumentClassification.referral,
+        DocumentClassification.discharge_summary,
+    ):
+        doc.status = DocumentStatus.extracting
+        try:
+            await extract_document(document_id=doc.id, db=db)
+            doc.status = DocumentStatus.extracted
+        except Exception as exc:
+            logger.exception(
+                "documents.extraction_failed",
+                document_id=str(doc.id),
+                error=str(exc),
+            )
+            doc.status = DocumentStatus.classified
 
     await db.commit()
     await db.refresh(doc)

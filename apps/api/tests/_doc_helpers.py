@@ -6,6 +6,7 @@ the upload pipeline.
 
 from __future__ import annotations
 
+import json
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -75,15 +76,27 @@ def patch_llm_provider(
     monkeypatch: pytest.MonkeyPatch,
     *,
     response_text: str,
+    extraction_response_text: str = "{}",
     model: str = "medgemma1.5",
 ) -> None:
-    """Wire classification's LLM provider to a httpx.MockTransport-backed stub.
+    """Wire classification AND extraction LLM calls to a single MockTransport.
 
-    The mocked transport returns ``{"response": response_text}`` for every
-    /api/generate call, so the OllamaProvider's normal parsing path runs.
+    The mock routes by the system-prompt prefix:
+    - extraction prompts (``"You are a structured-data extractor"`` from the
+      Module 2 prompt files) → ``extraction_response_text`` (default: empty
+      JSON, which yields a parse-success row with ``human_review_required``).
+    - everything else (classification) → ``response_text``.
+
+    Tests that only run classification can ignore ``extraction_response_text``.
+    Tests that exercise the auto-extract path should pass a realistic
+    extraction JSON.
     """
 
-    def handler(_request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content) if request.content else {}
+        system = body.get("system", "")
+        if system.startswith("You are a structured-data extractor"):
+            return httpx.Response(200, json={"response": extraction_response_text})
         return httpx.Response(200, json={"response": response_text})
 
     transport = httpx.MockTransport(handler)
@@ -93,6 +106,10 @@ def patch_llm_provider(
     llm_factory.get_llm_provider.cache_clear()
     monkeypatch.setattr(
         "app.services.classification.get_llm_provider",
+        lambda: provider,
+    )
+    monkeypatch.setattr(
+        "app.services.extraction.service.get_llm_provider",
         lambda: provider,
     )
 

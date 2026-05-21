@@ -67,10 +67,15 @@ async def test_classification_writes_ai_invocation_row(
     finally:
         current_clinic_id.reset(tok)
 
-    matching = [r for r in rows if str(r.document_id) == doc_id]
+    # Filter by invocation_type so the test isolates the classification row
+    # from the auto-extract row added in Module 2.
+    matching = [
+        r
+        for r in rows
+        if str(r.document_id) == doc_id and r.invocation_type == InvocationType.classification
+    ]
     assert len(matching) == 1
     row = matching[0]
-    assert row.invocation_type == InvocationType.classification
     assert row.model == "medgemma1.5"
     assert row.clinic_id == clinic_a
     assert row.latency_ms >= 0

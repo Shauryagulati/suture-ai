@@ -1,7 +1,7 @@
 "use client";
 
-import type { TaskListResponse, TaskPriority, TaskStatus } from "@/lib/types/workflow";
-import { useQuery } from "@tanstack/react-query";
+import type { Task, TaskListResponse, TaskPriority, TaskStatus } from "@/lib/types/workflow";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export interface TaskFilters {
   status?: TaskStatus;
@@ -28,6 +28,33 @@ export function useTasksQuery(filters: TaskFilters) {
       const r = await fetch(`/api/v1/tasks${qs ? `?${qs}` : ""}`);
       if (!r.ok) throw new Error(`GET /tasks failed: ${r.status}`);
       return r.json();
+    },
+  });
+}
+
+export interface TaskPatch {
+  status?: Task["status"];
+  assigned_to?: string | null;
+  priority?: Task["priority"];
+  description?: string | null;
+}
+
+export function useTaskMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload: { id: string; patch: TaskPatch }) => {
+      const r = await fetch(`/api/v1/tasks/${payload.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(payload.patch),
+      });
+      if (!r.ok) {
+        throw new Error(`PATCH /tasks/${payload.id} failed: ${r.status}`);
+      }
+      return (await r.json()) as Task;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["tasks"] });
     },
   });
 }

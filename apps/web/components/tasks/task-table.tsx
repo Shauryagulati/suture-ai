@@ -22,9 +22,11 @@ import { useMemo, useState } from "react";
 import { FilterBar } from "./filter-bar";
 import { SLABadge } from "./sla-badge";
 import { StatusBadge } from "./status-badge";
+import { TaskDetailSheet } from "./task-detail-sheet";
 
 export function TaskTable() {
   const [filters, setFilters] = useState<TaskFilters>({});
+  const [openTask, setOpenTask] = useState<Task | null>(null);
   const { data, isLoading, error } = useTasksQuery(filters);
   const rows = data?.items ?? [];
 
@@ -51,8 +53,8 @@ export function TaskTable() {
       {
         id: "actions",
         header: "",
-        cell: () => (
-          <Button size="sm" variant="ghost">
+        cell: ({ row }) => (
+          <Button size="sm" variant="ghost" onClick={() => setOpenTask(row.original)}>
             Open
           </Button>
         ),
@@ -110,6 +112,7 @@ export function TaskTable() {
           </TableBody>
         </Table>
       </div>
+      <TaskDetailSheet task={openTask} onClose={() => setOpenTask(null)} />
     </div>
   );
 }

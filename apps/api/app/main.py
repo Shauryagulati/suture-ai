@@ -21,6 +21,7 @@ from app.routers import (
     auth,
     discharges,
     documents,
+    evals,
     extractions,
     health,
     prior_auth,
@@ -96,6 +97,7 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(documents.router)
 app.include_router(extractions.router)
+app.include_router(evals.router)
 app.include_router(tasks.router)
 app.include_router(referrals.router)
 app.include_router(discharges.router)

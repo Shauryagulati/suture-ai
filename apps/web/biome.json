@@ -6,7 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "ignore": [".next/**", "node_modules/**", "next-env.d.ts"]
+    "ignore": [".next/**", "node_modules/**", "next-env.d.ts", "public/**"]
   },
   "formatter": {
     "enabled": true,

@@ -52,6 +52,7 @@ def register_audited_models() -> None:
         OutreachAttempt,
         Patient,
         Referral,
+        ReferralTask,
     )
 
     AUDITED_MODELS.clear()
@@ -67,6 +68,7 @@ def register_audited_models() -> None:
             Call,
             CallTranscript,
             InsurancePolicy,
+            ReferralTask,
         ]
     )
 

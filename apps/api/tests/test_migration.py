@@ -158,8 +158,11 @@ async def test_migration_003_upgrades_vector_dimension(
     assert up.returncode == 0, f"upgrade head failed: {up.stderr}"
     assert await _embedding_type() == "vector(1024)"
 
-    down = _run_alembic("downgrade", "-1")
-    assert down.returncode == 0, f"downgrade -1 failed: {down.stderr}"
+    # Downgrade past 0003 (to 0002, the original vector(384) state). Using
+    # a named revision instead of -1 so this test stays valid as further
+    # migrations are added on top of 0003.
+    down = _run_alembic("downgrade", "0002")
+    assert down.returncode == 0, f"downgrade to 0002 failed: {down.stderr}"
     assert await _embedding_type() == "vector(384)"
 
     up2 = _run_alembic("upgrade", "head")

@@ -1,4 +1,4 @@
-.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic ingest-payer-rules api web dev worker beat test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c
+.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic ingest-payer-rules api web dev worker beat test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c verify-gate-module2 eval-extraction
 
 # Use bash for recipe lines (consistent shell semantics)
 SHELL := /bin/bash
@@ -179,3 +179,21 @@ verify-gate-b2:
 
 verify-gate-c:
 	@bash scripts/verify_gate_c.sh
+
+# Module 2 — extraction pipeline + review + eval harness.
+verify-gate-module2:
+	@echo "→ alembic upgrade head"
+	cd apps/api && uv run alembic upgrade head
+	@echo "\n→ pytest"
+	cd apps/api && uv run pytest -v
+	@echo "\n→ mypy apps/api"
+	cd apps/api && uv run mypy app
+	@echo "\n→ ruff apps/api"
+	cd apps/api && uv run ruff check app tests
+	@echo "\n→ tsc apps/web"
+	cd apps/web && pnpm typecheck
+	@echo "\n→ biome apps/web"
+	cd apps/web && pnpm lint
+	@echo "\n→ eval-extraction smoke (--limit 5)"
+	PYTHONPATH=apps/api:. uv --project apps/api run python -m ai.evals.eval_extraction --limit 5
+	@echo "\nModule 2 gate: PASS"

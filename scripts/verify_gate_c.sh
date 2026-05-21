@@ -67,7 +67,7 @@ check "OTel exporter wired in app/main.py (gated on OTEL_DISABLED)" \
 echo ""
 echo "── Quality ──"
 
-check "Full pytest suite (25 tests)" \
+check "Full pytest suite (33 tests)" \
   "cd apps/api && uv run pytest -q"
 
 check "mypy strict clean" \

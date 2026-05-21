@@ -66,6 +66,11 @@ The product targets independent cardiology practices, starting in Western Pennsy
 
 Set by the auth dependency (`get_current_user`) and request middleware. Read by the tenant guard and the audit listener.
 
+### LLM and embedding providers
+- Every LLM call goes through `app.services.llm.get_llm_provider()`. Every embedding call goes through `app.services.embedding.get_embedding_provider()`.
+- Default provider is local Ollama (`medgemma1.5` for LLM, `bge-m3` for embeddings, 1024-dim). BYOK opt-in via `LLM_PROVIDER` / `EMBEDDING_PROVIDER` env vars (`openai`, `anthropic`).
+- See ADR 007 for the design and rejection rationale.
+
 ### Time columns
 - Every datetime column is `TIMESTAMPTZ`. No naive `DateTime` anywhere.
 - Naming: `*_at` for instants (`appointment_at`, `scheduled_at`, `due_at`).
@@ -78,6 +83,9 @@ Set by the auth dependency (`get_current_user`) and request middleware. Read by 
 - ❌ **`pgcrypto` column encryption.** Rejected in ADR 003.
 - ❌ **Per-query manual `WHERE clinic_id = ...` filtering.** That's a regression — the session-level guard is the source of truth.
 - ❌ **Commits without tests for new code paths.**
+- ❌ **Direct `anthropic.Anthropic(...)` or `openai.OpenAI(...)` in application code.** Use `get_llm_provider()`. Direct SDK imports break BYOK, break the local-default Ollama path, and skip future eval routing.
+- ❌ **Hardcoding embedding dimensions.** Read `get_embedding_provider().dimension`. The 384→1024 migration burned us once already.
+- ❌ **`ANTHROPIC_API_KEY` in any committed `.env` file.** The seeds wrapper is fixture-backed; live calls require explicit `SUTURE_ALLOW_LIVE_LLM=1`.
 - ❌ **Claude API calls without inserting a row into `ai_invocations`.** Every call must be logged with model, tokens, latency, cost.
 - ❌ **Naive `DateTime` columns.** `TIMESTAMPTZ` everywhere.
 - ❌ **Frontend code that touches the FastAPI bearer token directly outside the NextAuth session callback path** (or the route-handler proxy if the Gate B2 fallback was engaged).
@@ -90,7 +98,7 @@ Set by the auth dependency (`get_current_user`) and request middleware. Read by 
 - `tsc` strict on `apps/web`
 - `ruff` (lint + format) clean
 - `biome` (lint + format) clean
-- All 25 foundation tests passing in CI before any feature branch merges to `main`
+- All 33 foundation tests passing in CI before any feature branch merges to `main`
 - Once Module 2 lands: every prompt-file change re-runs the eval harness; merges blocked if accuracy regresses
 
 ## Repo structure

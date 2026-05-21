@@ -130,3 +130,38 @@ async def test_downgrade_to_base_then_upgrade_head_round_trip(
         f"second upgrade (after downgrade) failed — likely a missing "
         f"DROP TYPE in downgrade():\nstderr: {up2.stderr}"
     )
+
+
+async def test_migration_003_upgrades_vector_dimension(
+    fresh_migration_db: None,
+) -> None:
+    """Migration 0003 changes payer_rules.embedding from vector(384) to vector(1024).
+
+    Verifies the round-trip: head -> downgrade -1 (back to vector(384)) -> head
+    (back to vector(1024)).
+    """
+    dim_query = (
+        "SELECT format_type(atttypid, atttypmod) "
+        "FROM pg_attribute "
+        "WHERE attrelid = 'payer_rules'::regclass AND attname = 'embedding'"
+    )
+
+    async def _embedding_type() -> str:
+        engine = create_async_engine(MIGRATION_URL)
+        async with engine.connect() as conn:
+            rows = await conn.exec_driver_sql(dim_query)
+            value = rows.scalar()
+        await engine.dispose()
+        return str(value)
+
+    up = _run_alembic("upgrade", "head")
+    assert up.returncode == 0, f"upgrade head failed: {up.stderr}"
+    assert await _embedding_type() == "vector(1024)"
+
+    down = _run_alembic("downgrade", "-1")
+    assert down.returncode == 0, f"downgrade -1 failed: {down.stderr}"
+    assert await _embedding_type() == "vector(384)"
+
+    up2 = _run_alembic("upgrade", "head")
+    assert up2.returncode == 0, f"re-upgrade head failed: {up2.stderr}"
+    assert await _embedding_type() == "vector(1024)"

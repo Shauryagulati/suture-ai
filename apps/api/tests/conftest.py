@@ -203,6 +203,50 @@ async def client() -> AsyncIterator[AsyncClient]:
 
 
 @pytest.fixture
+async def authed_client_factory(client, db_session, two_clinics):
+    """Factory: returns an async function that creates a user in a given
+    clinic, logs in, and returns (client, headers_dict, user_id).
+
+    Usage:
+        client_a, headers_a, user_id_a = await authed_client_factory("a")
+    """
+    from app.models.clinic_membership import ClinicMembership, MembershipRole
+    from app.models.user import User
+    from app.utils.security import hash_password
+
+    clinic_a_id, clinic_b_id = two_clinics
+
+    async def _make(letter: str):
+        clinic_id = clinic_a_id if letter == "a" else clinic_b_id
+        email = f"endpoint-test-{letter}-{uuid4().hex[:6]}@suture-test.example.com"
+        user = User(
+            id=uuid4(),
+            email=email,
+            hashed_password=hash_password("test-password-xyz"),
+            full_name="Endpoint Test User",
+            is_active=True,
+        )
+        db_session.add(user)
+        await db_session.flush()
+        db_session.add(
+            ClinicMembership(
+                user_id=user.id, clinic_id=clinic_id, role=MembershipRole.admin, is_default=True
+            )
+        )
+        await db_session.commit()
+
+        resp = await client.post(
+            "/api/auth/login",
+            json={"email": email, "password": "test-password-xyz"},
+        )
+        assert resp.status_code == 200, resp.text
+        token = resp.json()["access_token"]
+        return client, {"Authorization": f"Bearer {token}"}, user.id
+
+    return _make
+
+
+@pytest.fixture
 async def seeded_referral_a(
     db_session: AsyncSession,
     two_clinics: tuple[UUID, UUID],

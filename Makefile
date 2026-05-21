@@ -82,6 +82,10 @@ migrate-down:
 seed:
 	PYTHONPATH=apps/api uv --project apps/api run python -m seeds.scripts.seed_dev
 
+# Run structured-extraction eval against the synthetic corpus.
+eval-extraction:
+	PYTHONPATH=apps/api:. uv --project apps/api run python -m ai.evals.eval_extraction --limit 50
+
 # Embed payer-rules markdown + load structured JSON into payer_rules.
 # Idempotent — clears each payer's rows first, then re-inserts 5 per payer.
 # Requires Ollama running locally with `bge-m3` pulled (or a BYOK provider

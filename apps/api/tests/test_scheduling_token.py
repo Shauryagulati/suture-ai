@@ -7,7 +7,9 @@ from uuid import uuid4
 
 import pytest
 
-from app.utils.security import (
+pytestmark = pytest.mark.asyncio
+
+from app.utils.security import (  # noqa: E402
     JwtError,
     decode_scheduling_token,
     encode_access_token,
@@ -15,7 +17,7 @@ from app.utils.security import (
 )
 
 
-def test_encode_decode_scheduling_token_roundtrip() -> None:
+async def test_encode_decode_scheduling_token_roundtrip() -> None:
     patient_id = uuid4()
     clinic_id = uuid4()
     attempt_id = uuid4()
@@ -38,7 +40,7 @@ def test_encode_decode_scheduling_token_roundtrip() -> None:
     assert claims["exp"] == int(expires.timestamp())
 
 
-def test_encode_with_discharge_id_only_omits_referral() -> None:
+async def test_encode_with_discharge_id_only_omits_referral() -> None:
     discharge_id = uuid4()
     token, _ = encode_scheduling_token(
         patient_id=uuid4(),
@@ -51,19 +53,19 @@ def test_encode_with_discharge_id_only_omits_referral() -> None:
     assert claims["discharge_summary_id"] == str(discharge_id)
 
 
-def test_decode_rejects_wrong_token_type() -> None:
+async def test_decode_rejects_wrong_token_type() -> None:
     """An access token must not be accepted by the scheduling decoder."""
     access, _ = encode_access_token(user_id=uuid4(), clinic_id=uuid4(), role="admin")
     with pytest.raises(JwtError, match="not 'scheduling'"):
         decode_scheduling_token(access)
 
 
-def test_decode_rejects_garbage() -> None:
+async def test_decode_rejects_garbage() -> None:
     with pytest.raises(JwtError):
         decode_scheduling_token("not-a-jwt")
 
 
-def test_decode_rejects_expired_token(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_decode_rejects_expired_token(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.config import get_settings
 
     # Override TTL on the cached settings instance for this test.
@@ -83,7 +85,7 @@ def test_decode_rejects_expired_token(monkeypatch: pytest.MonkeyPatch) -> None:
         )
 
 
-def test_scheduling_token_carries_iat_and_exp_in_correct_order() -> None:
+async def test_scheduling_token_carries_iat_and_exp_in_correct_order() -> None:
     token, _ = encode_scheduling_token(
         patient_id=uuid4(), clinic_id=uuid4(), outreach_attempt_id=uuid4()
     )

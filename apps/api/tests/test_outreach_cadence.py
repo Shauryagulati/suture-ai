@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from app.models.discharge_summary import UrgencyTier
-from app.models.document import UrgencyLevel
-from app.models.outreach_attempt import OutreachChannel
-from app.services.outreach.cadence import cadence_for_urgency
+pytestmark = pytest.mark.asyncio
+
+from app.models.discharge_summary import UrgencyTier  # noqa: E402
+from app.models.document import UrgencyLevel  # noqa: E402
+from app.models.outreach_attempt import OutreachChannel  # noqa: E402
+from app.services.outreach.cadence import cadence_for_urgency  # noqa: E402
 
 
-def test_cadence_critical_compresses_into_first_day() -> None:
+async def test_cadence_critical_compresses_into_first_day() -> None:
     steps = cadence_for_urgency(UrgencyTier.critical)
     assert steps == [
         (OutreachChannel.sms, 0),
@@ -19,11 +21,11 @@ def test_cadence_critical_compresses_into_first_day() -> None:
     ]
 
 
-def test_cadence_stat_matches_critical() -> None:
+async def test_cadence_stat_matches_critical() -> None:
     assert cadence_for_urgency(UrgencyLevel.stat) == cadence_for_urgency(UrgencyTier.critical)
 
 
-def test_cadence_high_uses_twelve_then_twentyfour() -> None:
+async def test_cadence_high_uses_twelve_then_twentyfour() -> None:
     steps = cadence_for_urgency(UrgencyTier.high)
     assert steps == [
         (OutreachChannel.sms, 0),
@@ -32,11 +34,11 @@ def test_cadence_high_uses_twelve_then_twentyfour() -> None:
     ]
 
 
-def test_cadence_urgent_matches_high() -> None:
+async def test_cadence_urgent_matches_high() -> None:
     assert cadence_for_urgency(UrgencyLevel.urgent) == cadence_for_urgency(UrgencyTier.high)
 
 
-def test_cadence_routine_spreads_over_two_days() -> None:
+async def test_cadence_routine_spreads_over_two_days() -> None:
     steps = cadence_for_urgency(UrgencyLevel.routine)
     assert steps == [
         (OutreachChannel.sms, 0),
@@ -45,29 +47,29 @@ def test_cadence_routine_spreads_over_two_days() -> None:
     ]
 
 
-def test_cadence_unclassified_uses_routine_tempo() -> None:
+async def test_cadence_unclassified_uses_routine_tempo() -> None:
     assert cadence_for_urgency(UrgencyLevel.unclassified) == cadence_for_urgency(
         UrgencyLevel.routine
     )
 
 
-def test_cadence_medium_tier_uses_routine_tempo() -> None:
+async def test_cadence_medium_tier_uses_routine_tempo() -> None:
     assert cadence_for_urgency(UrgencyTier.medium) == cadence_for_urgency(UrgencyTier.routine)
 
 
-def test_cadence_returns_fresh_list_each_call() -> None:
+async def test_cadence_returns_fresh_list_each_call() -> None:
     first = cadence_for_urgency(UrgencyTier.critical)
     first.clear()
     second = cadence_for_urgency(UrgencyTier.critical)
     assert len(second) == 3  # mutation of first must not affect future calls
 
 
-def test_cadence_unknown_value_raises_value_error() -> None:
+async def test_cadence_unknown_value_raises_value_error() -> None:
     with pytest.raises(ValueError, match="unknown urgency"):
         cadence_for_urgency("garbage")  # type: ignore[arg-type]
 
 
-def test_cadence_all_steps_start_with_sms_at_zero() -> None:
+async def test_cadence_all_steps_start_with_sms_at_zero() -> None:
     for urgency in (
         UrgencyTier.critical,
         UrgencyTier.high,
@@ -83,7 +85,7 @@ def test_cadence_all_steps_start_with_sms_at_zero() -> None:
         assert first_offset == 0
 
 
-def test_cadence_steps_are_monotonically_increasing() -> None:
+async def test_cadence_steps_are_monotonically_increasing() -> None:
     for urgency in (
         UrgencyTier.critical,
         UrgencyTier.high,

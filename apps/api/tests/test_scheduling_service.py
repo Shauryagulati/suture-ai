@@ -6,18 +6,20 @@ from datetime import UTC, datetime
 
 import pytest
 
-from app.services.outreach.scheduling import (
+pytestmark = pytest.mark.asyncio
+
+from app.services.outreach.scheduling import (  # noqa: E402
     build_scheduling_link_url,
     mock_available_slots,
 )
 
 
-def test_build_scheduling_link_url_uses_web_base_from_settings() -> None:
+async def test_build_scheduling_link_url_uses_web_base_from_settings() -> None:
     url = build_scheduling_link_url("abc.def.ghi")
     assert url == "http://localhost:3000/schedule/abc.def.ghi"
 
 
-def test_build_scheduling_link_url_strips_trailing_slash(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_build_scheduling_link_url_strips_trailing_slash(monkeypatch: pytest.MonkeyPatch) -> None:
     from app.config import get_settings
 
     settings = get_settings()
@@ -25,14 +27,14 @@ def test_build_scheduling_link_url_strips_trailing_slash(monkeypatch: pytest.Mon
     assert build_scheduling_link_url("xyz") == "https://app.example.com/schedule/xyz"
 
 
-def test_mock_slots_returns_six_by_default() -> None:
+async def test_mock_slots_returns_six_by_default() -> None:
     # Pin to a Monday 2026-05-18 UTC noon so we get a deterministic span.
     now = datetime(2026, 5, 18, 12, 0, 0, tzinfo=UTC)
     slots = mock_available_slots(now=now)
     assert len(slots) == 6
 
 
-def test_mock_slots_skips_weekends() -> None:
+async def test_mock_slots_skips_weekends() -> None:
     # Pin to Friday 2026-05-22 noon — the next 6 slots span Mon/Tue, not Sat/Sun.
     now = datetime(2026, 5, 22, 12, 0, 0, tzinfo=UTC)
     slots = mock_available_slots(now=now)
@@ -40,13 +42,13 @@ def test_mock_slots_skips_weekends() -> None:
         assert slot.weekday() < 5, f"weekend slot leaked: {slot}"
 
 
-def test_mock_slots_all_after_now() -> None:
+async def test_mock_slots_all_after_now() -> None:
     now = datetime(2026, 5, 18, 23, 59, 0, tzinfo=UTC)
     slots = mock_available_slots(now=now)
     assert all(slot > now for slot in slots)
 
 
-def test_mock_slots_uses_three_hours_per_day() -> None:
+async def test_mock_slots_uses_three_hours_per_day() -> None:
     now = datetime(2026, 5, 18, 12, 0, 0, tzinfo=UTC)
     slots = mock_available_slots(now=now, count=3)
     # First three slots should all be on the same weekday at 09/11/14.
@@ -54,17 +56,17 @@ def test_mock_slots_uses_three_hours_per_day() -> None:
     assert {s.date() for s in slots} == {slots[0].date()}
 
 
-def test_mock_slots_count_zero_returns_empty() -> None:
+async def test_mock_slots_count_zero_returns_empty() -> None:
     assert mock_available_slots(count=0) == []
 
 
-def test_mock_slots_offered_in_chronological_order() -> None:
+async def test_mock_slots_offered_in_chronological_order() -> None:
     now = datetime(2026, 5, 18, 12, 0, 0, tzinfo=UTC)
     slots = mock_available_slots(now=now, count=9)
     assert slots == sorted(slots)
 
 
-def test_mock_slots_appointment_type_currently_ignored() -> None:
+async def test_mock_slots_appointment_type_currently_ignored() -> None:
     """appointment_type is reserved for future per-type availability — for
     v1 it must not change the mock output."""
     now = datetime(2026, 5, 18, 12, 0, 0, tzinfo=UTC)

@@ -6,13 +6,15 @@ import logging
 
 import pytest
 
-from app.models.outreach_attempt import OutreachChannel
-from app.services.outreach.base import OutreachMessage
-from app.services.outreach.factory import (
+pytestmark = pytest.mark.asyncio
+
+from app.models.outreach_attempt import OutreachChannel  # noqa: E402
+from app.services.outreach.base import OutreachMessage  # noqa: E402
+from app.services.outreach.factory import (  # noqa: E402
     get_outreach_provider,
     reset_outreach_provider_cache,
 )
-from app.services.outreach.stub import StubOutreachProvider, _redact
+from app.services.outreach.stub import StubOutreachProvider, _redact  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -22,7 +24,6 @@ def _reset_factory_cache() -> None:
     reset_outreach_provider_cache()
 
 
-@pytest.mark.asyncio
 async def test_stub_provider_records_send_and_returns_success() -> None:
     provider = StubOutreachProvider()
     result = await provider.send(
@@ -40,7 +41,6 @@ async def test_stub_provider_records_send_and_returns_success() -> None:
     assert provider.sent[0].to == "412-555-0150"
 
 
-@pytest.mark.asyncio
 async def test_stub_provider_accumulates_multiple_sends() -> None:
     provider = StubOutreachProvider()
     for i in range(3):
@@ -55,7 +55,6 @@ async def test_stub_provider_accumulates_multiple_sends() -> None:
     assert [m.body for m in provider.sent] == ["msg 0", "msg 1", "msg 2"]
 
 
-@pytest.mark.asyncio
 async def test_stub_provider_does_not_log_raw_phone(caplog: pytest.LogCaptureFixture) -> None:
     provider = StubOutreachProvider()
     raw_phone = "412-555-9999"
@@ -69,27 +68,29 @@ async def test_stub_provider_does_not_log_raw_phone(caplog: pytest.LogCaptureFix
     assert raw_phone not in rendered
 
 
-def test_redact_phone_keeps_last_four_only() -> None:
+async def test_redact_phone_keeps_last_four_only() -> None:
     assert _redact("412-555-0150") == "***-0150"
     assert _redact("(412) 555 - 0123") == "***-0123"
 
 
-def test_redact_email_keeps_first_initial_and_domain_tail() -> None:
+async def test_redact_email_keeps_first_initial_and_domain_tail() -> None:
     assert _redact("patient@example.com") == "p***@le.com"
 
 
-def test_redact_empty_string() -> None:
+async def test_redact_empty_string() -> None:
     assert _redact("") == "<empty>"
 
 
-def test_factory_defaults_to_stub_when_env_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_factory_defaults_to_stub_when_env_unset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.delenv("OUTREACH_PROVIDER", raising=False)
     reset_outreach_provider_cache()
     provider = get_outreach_provider()
     assert isinstance(provider, StubOutreachProvider)
 
 
-def test_factory_returns_cached_singleton(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_factory_returns_cached_singleton(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("OUTREACH_PROVIDER", raising=False)
     reset_outreach_provider_cache()
     a = get_outreach_provider()
@@ -97,14 +98,16 @@ def test_factory_returns_cached_singleton(monkeypatch: pytest.MonkeyPatch) -> No
     assert a is b
 
 
-def test_factory_rejects_unknown_provider(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_factory_rejects_unknown_provider(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("OUTREACH_PROVIDER", "ghost-courier")
     reset_outreach_provider_cache()
     with pytest.raises(ValueError, match="Unknown OUTREACH_PROVIDER"):
         get_outreach_provider()
 
 
-def test_factory_treats_provider_case_insensitively(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_factory_treats_provider_case_insensitively(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setenv("OUTREACH_PROVIDER", "STUB")
     reset_outreach_provider_cache()
     provider = get_outreach_provider()

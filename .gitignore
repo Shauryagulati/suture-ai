@@ -58,3 +58,6 @@ logs/
 
 # Docker volumes (compose puts these in named volumes already, just in case)
 infra/data/
+
+# Personal notes / walkthroughs — not part of the repo
+FOUNDATION_WALKTHROUGH.md

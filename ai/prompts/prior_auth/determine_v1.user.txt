@@ -1,0 +1,12 @@
+Payer: {payer}
+Procedures (CPT): {cpts}
+Diagnoses (ICD-10): {icds}
+Clinical context: {clinical_summary}
+
+Structured rule from the payer-policy database:
+{structured_result_json}
+
+Retrieved policy excerpts (most semantically relevant first):
+{retrieved_chunks}
+
+Produce the JSON object now.

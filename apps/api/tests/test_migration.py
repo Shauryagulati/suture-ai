@@ -158,8 +158,10 @@ async def test_migration_004_adds_document_inbox_fields(
         f"expected new columns missing: {cols}"
     )
 
-    down = _run_alembic("downgrade", "-1")
-    assert down.returncode == 0, f"downgrade -1 failed: {down.stderr}"
+    # Downgrade past 0004 by named revision (not -1) so this test stays valid
+    # as further migrations are added on top of 0004.
+    down = _run_alembic("downgrade", "0003")
+    assert down.returncode == 0, f"downgrade to 0003 failed: {down.stderr}"
     cols_after = await _column_names()
     assert not (cols_after & {"extracted_text", "ocr_engine", "notes"}), (
         f"downgrade left new columns behind: {cols_after}"

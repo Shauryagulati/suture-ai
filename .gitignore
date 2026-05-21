@@ -61,5 +61,10 @@ logs/
 # Docker volumes (compose puts these in named volumes already, just in case)
 infra/data/
 
+# Runtime artifacts written by the API at request time (prior-auth packet/appeal
+# PDFs land here). Local-dev only; production swaps for S3.
+apps/api/var/
+apps/var/
+
 # Personal notes / walkthroughs — not part of the repo
 FOUNDATION_WALKTHROUGH.md

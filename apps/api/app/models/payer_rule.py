@@ -29,6 +29,9 @@ class PayerRule(GlobalBase):
     required_documents: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, server_default="{}"
     )
+    common_denial_reasons: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=False, server_default="{}"
+    )
     typical_turnaround_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
     guidelines_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(1024), nullable=True)

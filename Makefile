@@ -1,4 +1,4 @@
-.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic api web dev worker beat test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c
+.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic ingest-payer-rules api web dev worker beat test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c
 
 # Use bash for recipe lines (consistent shell semantics)
 SHELL := /bin/bash
@@ -19,8 +19,9 @@ help:
 	@echo "    seed            Populate dev data"
 	@echo ""
 	@echo "  Synthetic eval corpus"
-	@echo "    seed-synthetic   Generate 30 referrals + 20 discharges + ground truth"
-	@echo "    verify-synthetic Run structural verification on committed corpus"
+	@echo "    seed-synthetic       Generate 30 referrals + 20 discharges + ground truth"
+	@echo "    verify-synthetic     Run structural verification on committed corpus"
+	@echo "    ingest-payer-rules   Embed + load payer rules (5 payers × 5 CPTs)"
 	@echo ""
 	@echo "  Dev servers"
 	@echo "    api             Run FastAPI (uvicorn auto-reload) on :8000"
@@ -80,6 +81,13 @@ migrate-down:
 
 seed:
 	PYTHONPATH=apps/api uv --project apps/api run python -m seeds.scripts.seed_dev
+
+# Embed payer-rules markdown + load structured JSON into payer_rules.
+# Idempotent — clears each payer's rows first, then re-inserts 5 per payer.
+# Requires Ollama running locally with `bge-m3` pulled (or a BYOK provider
+# configured via EMBEDDING_PROVIDER / OPENAI_API_KEY).
+ingest-payer-rules:
+	cd apps/api && uv run python -m scripts.ingest_payer_rules
 
 # Generate the synthetic eval corpus: 30 referral PDFs, 20 discharge PDFs,
 # 20 patient JSON, 10 referring-practice JSON, 5 payer rule sets, plus

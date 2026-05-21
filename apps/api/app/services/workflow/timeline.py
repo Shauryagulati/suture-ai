@@ -2,9 +2,8 @@
 and its child tasks into a chronological event list."""
 from __future__ import annotations
 
-from uuid import UUID
-
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession

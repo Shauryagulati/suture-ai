@@ -16,31 +16,31 @@ from app.services.outreach.templates import (  # noqa: E402
 )
 
 
-def test_urgency_label_critical_is_patient_friendly_urgent() -> None:
+async def test_urgency_label_critical_is_patient_friendly_urgent() -> None:
     assert urgency_label(UrgencyTier.critical) == "urgent"
     assert urgency_label(UrgencyLevel.stat) == "urgent"
 
 
-def test_urgency_label_high_is_soon() -> None:
+async def test_urgency_label_high_is_soon() -> None:
     assert urgency_label(UrgencyTier.high) == "soon"
     assert urgency_label(UrgencyLevel.urgent) == "soon"
 
 
-def test_urgency_label_routine_is_routine() -> None:
+async def test_urgency_label_routine_is_routine() -> None:
     assert urgency_label(UrgencyTier.routine) == "routine"
     assert urgency_label(UrgencyLevel.routine) == "routine"
 
 
-def test_urgency_label_unclassified_is_followup() -> None:
+async def test_urgency_label_unclassified_is_followup() -> None:
     assert urgency_label(UrgencyLevel.unclassified) == "follow-up"
 
 
-def test_urgency_label_unknown_raises() -> None:
+async def test_urgency_label_unknown_raises() -> None:
     with pytest.raises(ValueError, match="unknown urgency"):
         urgency_label("garbage")  # type: ignore[arg-type]
 
 
-def test_render_sms_includes_name_link_and_opt_out() -> None:
+async def test_render_sms_includes_name_link_and_opt_out() -> None:
     msg = render_sms(
         patient_first_name="Pat",
         scheduling_link_url="https://app/schedule/abc",
@@ -53,7 +53,7 @@ def test_render_sms_includes_name_link_and_opt_out() -> None:
     assert "routine" in msg.body
 
 
-def test_render_sms_critical_says_urgent() -> None:
+async def test_render_sms_critical_says_urgent() -> None:
     msg = render_sms(
         patient_first_name="Pat",
         scheduling_link_url="https://app/schedule/abc",
@@ -62,7 +62,7 @@ def test_render_sms_critical_says_urgent() -> None:
     assert "urgent" in msg.body
 
 
-def test_render_email_includes_subject_and_clinic_name() -> None:
+async def test_render_email_includes_subject_and_clinic_name() -> None:
     msg = render_email(
         patient_first_name="Pat",
         scheduling_link_url="https://app/schedule/abc",
@@ -76,7 +76,7 @@ def test_render_email_includes_subject_and_clinic_name() -> None:
     assert "https://app/schedule/abc" in msg.body
 
 
-def test_render_voice_script_context_carries_greeting() -> None:
+async def test_render_voice_script_context_carries_greeting() -> None:
     ctx = render_voice_script_context(
         patient_first_name="Pat",
         urgency=UrgencyLevel.urgent,

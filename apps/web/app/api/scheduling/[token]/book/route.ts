@@ -4,10 +4,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const API_URL = process.env.API_URL ?? "http://localhost:8000";
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ token: string }> },
-) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const body = await req.text();
   const upstream = await fetch(`${API_URL}/api/schedule/${token}/book`, {

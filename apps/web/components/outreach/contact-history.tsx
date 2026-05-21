@@ -29,10 +29,7 @@ export function ContactHistory({
         const clicked = Boolean(outcome.scheduling_link_clicked);
         const backfill = Boolean(outcome.backfill_offered);
         return (
-          <li
-            key={item.id}
-            className="flex items-start gap-3 rounded-lg border bg-card p-3"
-          >
+          <li key={item.id} className="flex items-start gap-3 rounded-lg border bg-card p-3">
             <ChannelIcon channel={item.channel} className="mt-1 h-5 w-5" />
             <div className="flex-1">
               <div className="flex items-center justify-between gap-2">

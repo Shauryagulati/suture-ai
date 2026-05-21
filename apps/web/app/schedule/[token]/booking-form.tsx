@@ -72,8 +72,8 @@ export function BookingForm({
           {new Date(confirmed.appointment_at).toLocaleString()}
         </p>
         <p className="mt-2 text-xs text-emerald-800">
-          Confirmation #{confirmed.appointment_id.slice(0, 8)} · We&apos;ll send a reminder
-          the day before.
+          Confirmation #{confirmed.appointment_id.slice(0, 8)} · We&apos;ll send a reminder the day
+          before.
         </p>
       </div>
     );

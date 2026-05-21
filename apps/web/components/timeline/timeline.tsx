@@ -70,14 +70,10 @@ export function ReferralTimeline({ referralId }: { referralId: string }): React.
       {events.map((e, i) => (
         <li key={`${e.at}-${i}`} className="mb-6 ml-4">
           <span className="absolute -left-2 mt-1.5 h-3 w-3 rounded-full bg-primary" />
-          <time className="text-xs text-muted-foreground">
-            {new Date(e.at).toLocaleString()}
-          </time>
+          <time className="text-xs text-muted-foreground">{new Date(e.at).toLocaleString()}</time>
           <p className="text-sm font-medium">{renderAction(e)}</p>
           {e.changed_columns.length > 0 && (
-            <p className="text-xs text-muted-foreground">
-              changed: {e.changed_columns.join(", ")}
-            </p>
+            <p className="text-xs text-muted-foreground">changed: {e.changed_columns.join(", ")}</p>
           )}
         </li>
       ))}

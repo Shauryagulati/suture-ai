@@ -18,6 +18,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from app import __version__
 from app.config import get_settings
 from app.routers import (
+    appointments,
     auth,
     discharges,
     documents,
@@ -102,3 +103,4 @@ app.include_router(discharges.router)
 app.include_router(prior_auth.router)
 app.include_router(scheduling.router)
 app.include_router(outreach.router)
+app.include_router(appointments.router)

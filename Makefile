@@ -1,4 +1,4 @@
-.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed api web dev test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c
+.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic api web dev test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c
 
 # Use bash for recipe lines (consistent shell semantics)
 SHELL := /bin/bash
@@ -17,6 +17,10 @@ help:
 	@echo "    migrate         alembic upgrade head"
 	@echo "    migrate-down    alembic downgrade base"
 	@echo "    seed            Populate dev data"
+	@echo ""
+	@echo "  Synthetic eval corpus"
+	@echo "    seed-synthetic   Generate 30 referrals + 20 discharges + ground truth"
+	@echo "    verify-synthetic Run structural verification on committed corpus"
 	@echo ""
 	@echo "  Dev servers"
 	@echo "    api             Run FastAPI (uvicorn auto-reload) on :8000"
@@ -74,6 +78,17 @@ migrate-down:
 
 seed:
 	PYTHONPATH=apps/api uv --project apps/api run python -m seeds.scripts.seed_dev
+
+# Generate the synthetic eval corpus: 30 referral PDFs, 20 discharge PDFs,
+# 20 patient JSON, 10 referring-practice JSON, 5 payer rule sets, plus
+# parallel ground-truth JSON for every PDF. Idempotent — re-runs read
+# committed LLM fixtures and produce byte-identical output.
+seed-synthetic:
+	uv --project apps/api run python -m seeds.scripts.generate_all --seed 42
+
+# Run the 7-check structural verification on the committed synthetic corpus.
+verify-synthetic:
+	@bash scripts/verify_synthetic.sh
 
 # ─── Dev servers ───────────────────────────────────────────────────────
 

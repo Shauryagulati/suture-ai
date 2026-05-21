@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://suture.local/schemas/payer_rule.schema.json",
+  "title": "Payer rule set",
+  "description": "Structured prior-auth + documentation rules for a single payer across the 5 cardiology procedures Suture tracks: 93015, 93306, 93458, 93620, 93224.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["payer", "effective_date", "source_note", "procedures"],
+  "properties": {
+    "payer": {"type": "string", "minLength": 1},
+    "effective_date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+    "source_note": {"type": "string", "minLength": 1},
+    "procedures": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cpt_code",
+          "description",
+          "prior_auth_required",
+          "required_documents",
+          "typical_turnaround_business_days",
+          "common_denial_reasons",
+          "notes"
+        ],
+        "properties": {
+          "cpt_code": {"type": "string", "enum": ["93015", "93306", "93458", "93620", "93224"]},
+          "description": {"type": "string"},
+          "prior_auth_required": {"type": "boolean"},
+          "required_documents": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "typical_turnaround_business_days": {
+            "oneOf": [
+              {"type": "integer", "minimum": 0},
+              {
+                "type": "array",
+                "items": {"type": "integer", "minimum": 0},
+                "minItems": 2,
+                "maxItems": 2
+              }
+            ]
+          },
+          "common_denial_reasons": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "notes": {"type": "string"}
+        }
+      }
+    }
+  }
+}

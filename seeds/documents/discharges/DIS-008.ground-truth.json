@@ -1,0 +1,58 @@
+{
+  "admit_date": "2026-04-12",
+  "attending_physician": {
+    "first_name": "Ryan",
+    "last_name": "Thompson",
+    "npi": "5787133151"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I21.4",
+    "I25.10"
+  ],
+  "discharge_date": "2026-04-19",
+  "discharge_type": "post_mi",
+  "discharging_hospital": "St. Clair Hospital",
+  "document_external_id": "DIS-008",
+  "follow_up_window_days": 6,
+  "is_degraded": true,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Metoprolol succinate 50 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Clopidogrel 75 mg daily"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "374 Jackson Rest",
+    "city": "Greensburg",
+    "dob": "1970-10-04",
+    "external_id": "PAT-016",
+    "first_name": "Tamara",
+    "last_name": "Higgins",
+    "mrn": "MRN-496631",
+    "phone": "412-555-5947",
+    "state": "PA",
+    "zip_code": "15601"
+  },
+  "primary_diagnosis": "NSTEMI, mid-LAD distribution",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography"
+    },
+    {
+      "cpt_code": "92928",
+      "description": "PCI to LAD with DES"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "medium",
+  "urgent_flags": [
+    "post-acute-MI"
+  ]
+}

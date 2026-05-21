@@ -1,0 +1,49 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 80-year-old female presents with recurrent episodes of palpitations and presyncope over the past three weeks. She reports sudden onset of rapid heartbeat associated with mild dyspnea and lighthea",
+  "diagnosis_codes": [
+    "I47.1",
+    "R00.0"
+  ],
+  "document_external_id": "REF-028",
+  "follow_up_window_days": 19,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-5346",
+      "member_id": "9HUQ-09N-1699",
+      "payer": "Medicare"
+    },
+    "secondary": null
+  },
+  "is_degraded": false,
+  "missing_fields": [
+    "insurance.secondary",
+    "patient.address_line1"
+  ],
+  "patient": {
+    "address_line1": null,
+    "city": "Butler",
+    "dob": "1946-05-06",
+    "external_id": "PAT-008",
+    "first_name": "Natasha",
+    "last_name": "Wood",
+    "mrn": "MRN-980841",
+    "phone": "878-555-5313",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93620"
+  ],
+  "referral_type": "ep_study",
+  "referring_provider": {
+    "external_id": "PRAC-006",
+    "first_name": "Frank",
+    "last_name": "Gray",
+    "npi": "1226916694",
+    "practice_fax": "412-555-0771",
+    "practice_name": "Wexford Family Practice",
+    "practice_phone": "724-555-8669"
+  },
+  "urgency": "routine"
+}

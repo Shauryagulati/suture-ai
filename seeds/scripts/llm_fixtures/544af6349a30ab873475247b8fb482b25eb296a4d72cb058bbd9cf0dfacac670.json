@@ -1,0 +1,9 @@
+{
+  "content": "This 80-year-old female presents with recurrent episodes of palpitations and presyncope over the past three weeks. She reports sudden onset of rapid heartbeat associated with mild dyspnea and lightheadedness, with episodes lasting 30 seconds to several minutes before spontaneously resolving. Her past medical history is significant for hypertension managed with lisinopril and amlodipine, type 2 diabetes on metformin, and remote history of atrial fibrillation diagnosed five years ago but not currently on anticoagulation. She denies chest pain, orthopnea, or lower extremity edema.\n\nOn physical examination, vital signs were stable at presentation with heart rate 72 bpm and regular rhythm. Cardiac auscultation revealed normal S1 and S2 without murmurs. Lungs were clear to auscultation bilaterally. However, telemetry monitoring during her recent ED visit documented a wide-complex tachycardia at approximately 160 bpm with a duration of 120 milliseconds, concerning for ventricular tachycardia versus supraventricular tachycardia with aberrancy. A 12-lead EKG showed normal sinus rhythm with nonspecific ST changes. Transthoracic echocardiography revealed preserved left ventricular ejection fraction at 55% with no structural abnormalities.\n\nGiven the documented wide-complex tachycardia and recurrent symptomatic episodes, I am referring her for electrophysiology evaluation and possible EP study to clarify the mechanism of her arrhythmia and guide appropriate management. Please advise regarding further workup and therapeutic options.",
+  "input_tokens": 300,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 376,
+  "temperature": 0.2,
+  "usd_cost": 0.00218
+}

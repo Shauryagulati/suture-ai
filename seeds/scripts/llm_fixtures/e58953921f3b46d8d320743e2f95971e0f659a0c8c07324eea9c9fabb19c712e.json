@@ -1,0 +1,9 @@
+{
+  "content": "This 49-year-old gentleman with a history of paroxysmal atrial fibrillation presents with recurrent symptomatic episodes despite adequate rate control on metoprolol 100 mg daily. He reports palpitations, dyspnea, and presyncope occurring 2–3 times weekly, with episodes lasting 30 minutes to several hours before spontaneous conversion. Initial presentation was approximately 8 months ago; since then, frequency and symptom burden have increased despite optimization of his beta-blocker regimen. He denies chest pain, orthopnea, or lower extremity edema. Past medical history is notable for hypertension managed with lisinopril and amlodipine; he has no prior history of CAD, structural heart disease, or significant valvular pathology. Social history is unremarkable; he denies tobacco, alcohol, and illicit drug use.\n\nOn examination today, vital signs are stable with heart rate 68 and regular rhythm. Cardiac auscultation reveals normal S1 and S2 without murmurs. Lungs are clear to auscultation bilaterally. Recent 12-lead ECG during normal sinus rhythm shows normal intervals and axis. Transthoracic echocardiogram performed last month demonstrated normal LV function (EF 55%), normal chamber dimensions, and no structural abnormalities.\n\nGiven the symptomatic, recurrent nature of his paroxysmal AFib refractory to rate control alone and the absence of structural heart disease, I am referring him for electrophysiology evaluation and consideration of EPS with possible ablation. I would appreciate your assessment regarding candidacy for catheter ablation versus alternative antiarrhythmic therapy.",
+  "input_tokens": 300,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 381,
+  "temperature": 0.2,
+  "usd_cost": 0.002205
+}

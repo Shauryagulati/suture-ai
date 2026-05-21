@@ -1,0 +1,49 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 75-year-old female presents for cardiology evaluation regarding her known mild aortic stenosis. She was initially diagnosed approximately three years ago during a routine echocardiogram performed",
+  "diagnosis_codes": [
+    "I50.9"
+  ],
+  "document_external_id": "REF-018",
+  "follow_up_window_days": 7,
+  "insurance": {
+    "primary": {
+      "group_number": null,
+      "member_id": "4UAF-80J-8313",
+      "payer": "Medicare"
+    },
+    "secondary": {
+      "group_number": "GRP-3495",
+      "member_id": "U377701436",
+      "payer": "Cigna"
+    }
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "856 Bell Motorway Suite 443",
+    "city": "Monroeville",
+    "dob": "1950-10-09",
+    "external_id": "PAT-018",
+    "first_name": "David",
+    "last_name": "Lee",
+    "mrn": "MRN-233749",
+    "phone": "878-555-5107",
+    "state": "PA",
+    "zip_code": "15146"
+  },
+  "procedure_codes": [
+    "93306"
+  ],
+  "referral_type": "echo",
+  "referring_provider": {
+    "external_id": "PRAC-006",
+    "first_name": "Frank",
+    "last_name": "Gray",
+    "npi": "1226916694",
+    "practice_fax": "412-555-0771",
+    "practice_name": "Wexford Family Practice",
+    "practice_phone": "724-555-8669"
+  },
+  "urgency": "routine"
+}

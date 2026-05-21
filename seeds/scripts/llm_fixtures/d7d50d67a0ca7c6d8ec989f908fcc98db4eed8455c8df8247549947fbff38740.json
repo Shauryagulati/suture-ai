@@ -1,0 +1,9 @@
+{
+  "content": "This 50-year-old female with significant cardiac risk factors presents with unstable angina and biochemical evidence of myocardial injury. She reports onset of chest discomfort at rest over the past 48 hours, characterized as substernal pressure radiating to the left arm, associated with dyspnea and diaphoresis. She denies prior similar episodes. Her past medical history is notable for hypertension and hyperlipidemia, both managed medically. She is a former smoker with a 20 pack-year history, quit 5 years ago. Family history is significant for premature CAD in a first-degree relative.\n\nOn examination, vital signs are stable with BP 138/82 and HR 78. Cardiac auscultation reveals regular rate and rhythm without murmurs. Lungs are clear bilaterally. Initial troponin I was 0.08 ng/mL with a repeat value 6 hours later of 0.14 ng/mL, demonstrating a rising trend. EKG shows nonspecific ST-segment changes in the lateral leads without acute ST elevation. Chest X-ray is unremarkable. She has been started on dual antiplatelet therapy, high-intensity statin, and beta-blocker with symptomatic improvement, though troponin elevation persists.\n\nGiven the clinical presentation of unstable angina with objective evidence of myocardial necrosis and rising troponin trend, she requires coronary angiography to assess for obstructive CAD and guide revascularization strategy. I would appreciate your evaluation and recommendation regarding left heart catheterization at your earliest convenience.",
+  "input_tokens": 297,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 364,
+  "temperature": 0.2,
+  "usd_cost": 0.002117
+}

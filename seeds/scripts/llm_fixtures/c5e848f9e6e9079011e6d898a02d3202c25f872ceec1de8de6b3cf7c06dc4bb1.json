@@ -1,0 +1,9 @@
+{
+  "content": "This 57-year-old female with a significant history of paroxysmal supraventricular tachycardia presents for urgent electrophysiology evaluation and consideration for catheter ablation. She has experienced recurrent episodes of SVT over the past two years, with increasing frequency and symptomatic burden despite optimization of medical therapy. She has trialed beta-blockers and calcium channel blockers without adequate rate control or symptom prevention. Most recently, she was started on flecainide but continues to experience breakthrough episodes of palpitations, dyspnea, and presyncope that significantly impact her quality of life and work capacity.\n\nOn examination today, she is hemodynamically stable in normal sinus rhythm with a regular rate of 72 bpm and normal blood pressure. Cardiac auscultation reveals a regular rate and rhythm without murmurs. She denies current chest pain or dyspnea at rest. Her EKG in sinus rhythm shows normal intervals and axis. A recent Holter monitor documented multiple episodes of narrow-complex tachycardia consistent with SVT, with rates reaching 180 bpm. Transthoracic echocardiography was normal with preserved ejection fraction and no structural abnormalities.\n\nI am referring her for electrophysiology study with the goal of identifying the mechanism of her SVT and proceeding with radiofrequency ablation if anatomically feasible. Given her refractory symptoms despite adequate medical management and the significant functional impact, she is an excellent candidate for definitive intervention. Please evaluate and advise on procedural candidacy and timing.",
+  "input_tokens": 305,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 349,
+  "temperature": 0.2,
+  "usd_cost": 0.00205
+}

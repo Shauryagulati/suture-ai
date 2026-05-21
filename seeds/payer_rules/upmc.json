@@ -1,0 +1,84 @@
+{
+  "payer": "UPMC Health Plan",
+  "effective_date": "2026-01-01",
+  "source_note": "Patterns in public UPMC Health Plan medical-policy documents as of 2025; SIMULATED — not authoritative.",
+  "procedures": [
+    {
+      "cpt_code": "93015",
+      "description": "Cardiovascular stress test, treadmill, physician-supervised",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10",
+        "Indication statement"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "out-of-network without network-adequacy waiver",
+        "missing indication"
+      ],
+      "notes": "Retrospective review only for in-network; PA may apply for out-of-network providers."
+    },
+    {
+      "cpt_code": "93306",
+      "description": "Transthoracic echocardiogram",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10",
+        "Indication statement"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "site-of-service mismatch (HOPD vs. office when clinically equivalent)"
+      ],
+      "notes": "Prefer office over hospital outpatient when clinically equivalent."
+    },
+    {
+      "cpt_code": "93458",
+      "description": "Catheter placement in coronary arteries with contrast injection(s)",
+      "prior_auth_required": true,
+      "required_documents": [
+        "Prior non-invasive testing report",
+        "Anginal symptom characterization (CCS class)",
+        "Absence of absolute contraindication",
+        "Recent ECG"
+      ],
+      "typical_turnaround_business_days": [2, 4],
+      "common_denial_reasons": [
+        "missing prior non-invasive testing",
+        "stable angina without high-risk features",
+        "out-of-network site without justification"
+      ],
+      "notes": "In-network requests are auto-routed and clear faster."
+    },
+    {
+      "cpt_code": "93620",
+      "description": "Comprehensive electrophysiologic evaluation",
+      "prior_auth_required": true,
+      "required_documents": [
+        "Documented arrhythmia (Holter / event monitor / telemetry / ECG)",
+        "Prior pharmacologic trial outcome",
+        "Statement of suspected arrhythmia mechanism"
+      ],
+      "typical_turnaround_business_days": [4, 6],
+      "common_denial_reasons": [
+        "non-specific symptoms without documented arrhythmia",
+        "no prior pharmacologic trial"
+      ],
+      "notes": "Mechanism-specific documentation is the policy hinge point."
+    },
+    {
+      "cpt_code": "93224",
+      "description": "48-hour external electrocardiographic recording",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10",
+        "Symptom-correlation rationale"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "hospital-outpatient billing when office would suffice"
+      ],
+      "notes": "No PA; site-of-service rule applies."
+    }
+  ]
+}

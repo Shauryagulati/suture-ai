@@ -1,0 +1,55 @@
+{
+  "admit_date": "2026-04-13",
+  "attending_physician": {
+    "first_name": "William",
+    "last_name": "Crawford",
+    "npi": "7468723433"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I50.22"
+  ],
+  "discharge_date": "2026-04-20",
+  "discharge_type": "post_chf",
+  "discharging_hospital": "UPMC Presbyterian",
+  "document_external_id": "DIS-011",
+  "follow_up_window_days": 13,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "stopped",
+      "name": "Metoprolol tartrate"
+    },
+    {
+      "action": "started",
+      "name": "Spironolactone 25 mg daily"
+    }
+  ],
+  "missing_fields": [
+    "patient.address_line1"
+  ],
+  "patient": {
+    "address_line1": null,
+    "city": "Butler",
+    "dob": "1946-05-06",
+    "external_id": "PAT-008",
+    "first_name": "Natasha",
+    "last_name": "Wood",
+    "mrn": "MRN-980841",
+    "phone": "878-555-5313",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "primary_diagnosis": "Acute on chronic systolic heart failure",
+  "procedures_performed": [
+    {
+      "cpt_code": null,
+      "description": "IV diuresis with furosemide"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "medium",
+  "urgent_flags": [
+    "EF<40%"
+  ]
+}

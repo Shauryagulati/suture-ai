@@ -1,0 +1,9 @@
+{
+  "content": "This 57-year-old female presents with a three-week history of exertional dyspnea that occurs with moderate activity such as climbing stairs or brisk walking. She reports associated mild chest discomfort described as pressure-like in nature, which resolves with rest. The patient denies orthopnea, PND, or lower extremity edema. She has a significant past medical history of hypertension managed with lisinopril and amlodipine, with generally good BP control. She is a former smoker with a 15 pack-year history, quit five years ago. Family history is notable for early CAD in her father, who suffered an MI at age 62. She denies prior cardiac workup or known structural heart disease.\n\nOn examination today, vital signs are stable with BP 138/82 and HR 78. Cardiac auscultation reveals regular rate and rhythm with no murmurs, rubs, or gallops. Lungs are clear to auscultation bilaterally. No peripheral edema or JVD appreciated. Resting EKG shows normal sinus rhythm with no acute ST changes or T-wave inversions, though there is mild nonspecific ST depression in the lateral leads.\n\nGiven her age, risk factor profile, and new-onset exertional chest discomfort with dyspnea, cardiac etiology must be excluded. I would appreciate your evaluation with stress testing to assess for inducible ischemia and further risk stratify this patient. Please advise on further management and any additional testing you deem necessary.",
+  "input_tokens": 296,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 345,
+  "temperature": 0.2,
+  "usd_cost": 0.002021
+}

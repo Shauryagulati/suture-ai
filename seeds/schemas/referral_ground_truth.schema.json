@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://suture.local/schemas/referral_ground_truth.schema.json",
+  "title": "Referral document ground truth",
+  "description": "Canonical extraction values for a single synthetic referral PDF. The Module 2 eval harness asserts the model's extraction matches these fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "document_external_id",
+    "classification",
+    "referral_type",
+    "patient",
+    "referring_provider",
+    "insurance",
+    "diagnosis_codes",
+    "procedure_codes",
+    "urgency",
+    "follow_up_window_days",
+    "clinical_notes_excerpt",
+    "missing_fields",
+    "is_degraded"
+  ],
+  "properties": {
+    "document_external_id": {
+      "type": "string",
+      "pattern": "^REF-[0-9]{3}$"
+    },
+    "classification": {"type": "string", "const": "referral"},
+    "referral_type": {
+      "type": "string",
+      "enum": ["stress_test", "echo", "cath", "ep_study"]
+    },
+    "patient": {"$ref": "#/$defs/patient"},
+    "referring_provider": {"$ref": "#/$defs/referring_provider"},
+    "insurance": {"$ref": "#/$defs/insurance"},
+    "diagnosis_codes": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "procedure_codes": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "urgency": {
+      "type": "string",
+      "enum": ["stat", "urgent", "routine"]
+    },
+    "follow_up_window_days": {"type": ["integer", "null"]},
+    "clinical_notes_excerpt": {
+      "type": "string",
+      "minLength": 1
+    },
+    "missing_fields": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "is_degraded": {"type": "boolean"}
+  },
+  "$defs": {
+    "patient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_id",
+        "first_name",
+        "last_name",
+        "dob",
+        "phone",
+        "address_line1",
+        "city",
+        "state",
+        "zip_code",
+        "mrn"
+      ],
+      "properties": {
+        "external_id": {"type": "string", "pattern": "^PAT-[0-9]{3}$"},
+        "first_name": {"type": "string"},
+        "last_name": {"type": "string"},
+        "dob": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+        "phone": {"type": ["string", "null"]},
+        "address_line1": {"type": ["string", "null"]},
+        "city": {"type": ["string", "null"]},
+        "state": {"type": ["string", "null"]},
+        "zip_code": {"type": ["string", "null"]},
+        "mrn": {"type": ["string", "null"]}
+      }
+    },
+    "referring_provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_id",
+        "first_name",
+        "last_name",
+        "npi",
+        "practice_name",
+        "practice_phone",
+        "practice_fax"
+      ],
+      "properties": {
+        "external_id": {"type": "string", "pattern": "^PRAC-[0-9]{3}$"},
+        "first_name": {"type": "string"},
+        "last_name": {"type": "string"},
+        "npi": {"type": "string", "pattern": "^[0-9]{10}$"},
+        "practice_name": {"type": "string"},
+        "practice_phone": {"type": ["string", "null"]},
+        "practice_fax": {"type": ["string", "null"]}
+      }
+    },
+    "insurance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary", "secondary"],
+      "properties": {
+        "primary": {"$ref": "#/$defs/insurance_policy"},
+        "secondary": {
+          "oneOf": [
+            {"$ref": "#/$defs/insurance_policy"},
+            {"type": "null"}
+          ]
+        }
+      }
+    },
+    "insurance_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["payer", "member_id", "group_number"],
+      "properties": {
+        "payer": {"type": "string"},
+        "member_id": {"type": "string"},
+        "group_number": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "Mr. [Patient] is a 78-year-old gentleman with a significant cardiac history including longstanding hypertension, type 2 diabetes mellitus, and prior coronary artery disease s/p stent placement approxi",
+  "diagnosis_codes": [
+    "I42.9"
+  ],
+  "document_external_id": "REF-015",
+  "follow_up_window_days": 16,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-6990",
+      "member_id": "7INI-06B-5627",
+      "payer": "Medicare"
+    },
+    "secondary": null
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "627 Brent Light",
+    "city": "Butler",
+    "dob": "1948-02-24",
+    "external_id": "PAT-015",
+    "first_name": "Mark",
+    "last_name": "Gibson",
+    "mrn": "MRN-417080",
+    "phone": "412-555-6126",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93306"
+  ],
+  "referral_type": "echo",
+  "referring_provider": {
+    "external_id": "PRAC-007",
+    "first_name": "Joseph",
+    "last_name": "Clark",
+    "npi": "4514627049",
+    "practice_fax": "412-555-8797",
+    "practice_name": "Squirrel Hill Family Practice",
+    "practice_phone": "878-555-2927"
+  },
+  "urgency": "routine"
+}

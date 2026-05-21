@@ -1,0 +1,57 @@
+{
+  "admit_date": "2026-04-19",
+  "attending_physician": {
+    "first_name": "Melissa",
+    "last_name": "Wilkins",
+    "npi": "8299737634"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I50.22"
+  ],
+  "discharge_date": "2026-04-22",
+  "discharge_type": "post_chf",
+  "discharging_hospital": "Excela Health Westmoreland Hospital",
+  "document_external_id": "DIS-009",
+  "follow_up_window_days": 14,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Spironolactone 25 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Sacubitril/valsartan 49/51 mg BID"
+    },
+    {
+      "action": "stopped",
+      "name": "Metoprolol tartrate"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "34123 Andrea Estate",
+    "city": "Butler",
+    "dob": "1966-02-02",
+    "external_id": "PAT-020",
+    "first_name": "Aaron",
+    "last_name": "Hayes",
+    "mrn": "MRN-471349",
+    "phone": "412-555-1104",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "primary_diagnosis": "Right-sided heart failure with volume overload",
+  "procedures_performed": [
+    {
+      "cpt_code": "93451",
+      "description": "Right heart catheterization"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "medium",
+  "urgent_flags": [
+    "active volume overload at discharge"
+  ]
+}

@@ -11,6 +11,8 @@ Built solo by Shaurya. Local-only in v1. The **only paid service is the Anthropi
 
 The product targets independent cardiology practices, starting in Western Pennsylvania. The codebase is also a portfolio artifact demonstrating senior-level engineering judgement on a HIPAA-class workload.
 
+**Geographic footprint (v1):** Pittsburgh, Monroeville, Cranberry, Greensburg, Washington, Butler, Beaver — all Western PA / Pittsburgh metro. Patient addresses, clinic names, and referring-practice locations stay within this footprint. Highmark BCBS and UPMC Health Plan are the primary insurance footprints.
+
 ## Tech stack
 
 | Layer | Choice |

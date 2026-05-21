@@ -1,0 +1,62 @@
+{
+  "admit_date": "2026-05-01",
+  "attending_physician": {
+    "first_name": "Benjamin",
+    "last_name": "Horton",
+    "npi": "1043321813"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I21.09",
+    "I25.10"
+  ],
+  "discharge_date": "2026-05-07",
+  "discharge_type": "post_mi",
+  "discharging_hospital": "UPMC Presbyterian",
+  "document_external_id": "DIS-001",
+  "follow_up_window_days": 9,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Ticagrelor 90 mg BID"
+    },
+    {
+      "action": "started",
+      "name": "Metoprolol succinate 50 mg daily"
+    }
+  ],
+  "missing_fields": [
+    "patient.address_line1"
+  ],
+  "patient": {
+    "address_line1": null,
+    "city": "Butler",
+    "dob": "1946-05-06",
+    "external_id": "PAT-008",
+    "first_name": "Natasha",
+    "last_name": "Wood",
+    "mrn": "MRN-980841",
+    "phone": "878-555-5313",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "primary_diagnosis": "Acute STEMI, anterior wall",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography"
+    },
+    {
+      "cpt_code": "92928",
+      "description": "PCI to LAD with DES"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "critical",
+  "urgent_flags": [
+    "post-PCI dual antiplatelet therapy",
+    "recent-revascularization",
+    "post-acute-MI"
+  ]
+}

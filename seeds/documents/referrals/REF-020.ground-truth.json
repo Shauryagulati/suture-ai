@@ -1,0 +1,50 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "Mr. [Patient] is a 60-year-old gentleman with significant cardiac history who presents for urgent risk stratification following recent myocardial infarction. He has longstanding HTN and DM2, both reas",
+  "diagnosis_codes": [
+    "R94.39",
+    "I20.9"
+  ],
+  "document_external_id": "REF-020",
+  "follow_up_window_days": 13,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-6999",
+      "member_id": "W022941318",
+      "payer": "Aetna"
+    },
+    "secondary": {
+      "group_number": "GRP-4990",
+      "member_id": "U38677496",
+      "payer": "UPMC Health Plan"
+    }
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "34123 Andrea Estate",
+    "city": "Butler",
+    "dob": "1966-02-02",
+    "external_id": "PAT-020",
+    "first_name": "Aaron",
+    "last_name": "Hayes",
+    "mrn": "MRN-471349",
+    "phone": "412-555-1104",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93458"
+  ],
+  "referral_type": "cath",
+  "referring_provider": {
+    "external_id": "PRAC-002",
+    "first_name": "Lisa",
+    "last_name": "Smith",
+    "npi": "8161849590",
+    "practice_fax": "412-555-7527",
+    "practice_name": "Highland Park Family Practice",
+    "practice_phone": "412-555-1139"
+  },
+  "urgency": "urgent"
+}

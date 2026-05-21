@@ -1,0 +1,9 @@
+{
+  "content": "This 62-year-old female with a history of hypertension and hyperlipidemia presents with recurrent symptomatic paroxysmal atrial fibrillation that has proven refractory to rate-control strategies. She was initially diagnosed with PAF approximately eight months ago following an episode of palpitations and dyspnea. She has been trialed on metoprolol and subsequently diltiazem, achieving adequate ventricular rate control during episodes; however, she continues to experience breakthrough arrhythmias occurring roughly twice weekly, each lasting 30 minutes to several hours. She reports associated palpitations, mild dyspnea, and presyncope but denies frank syncope or chest pain. Her most recent episode occurred three days ago despite therapeutic diltiazem dosing.\n\nOn examination today, vital signs are stable with HR 72 and regular rhythm. Cardiac auscultation reveals normal S1 and S2 without murmurs. No peripheral edema or JVD noted. EKG in sinus rhythm shows normal intervals and axis. Recent transthoracic echocardiogram demonstrates normal LV function with EF 60%, normal chamber dimensions, and no structural abnormality. Holter monitoring from last month captured multiple short runs of PAF with rates up to 130s.\n\nGiven her symptomatic, drug-refractory paroxysmal atrial fibrillation and preserved cardiac structure, she is an excellent candidate for rhythm-control strategy via catheter ablation. I am referring her for electrophysiology evaluation and EPS with intent to proceed with pulmonary vein isolation if anatomically feasible. Please advise on candidacy and timing.",
+  "input_tokens": 305,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 373,
+  "temperature": 0.2,
+  "usd_cost": 0.00217
+}

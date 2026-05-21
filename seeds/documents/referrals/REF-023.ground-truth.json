@@ -1,0 +1,46 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "Mr. [Patient Name] is a 63-year-old gentleman with significant cardiac history including established CAD s/p prior intervention, HTN, and hyperlipidemia who presents with abnormal noninvasive cardiac ",
+  "diagnosis_codes": [
+    "I25.110",
+    "I20.9"
+  ],
+  "document_external_id": "REF-023",
+  "follow_up_window_days": 5,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-7672",
+      "member_id": "U56413953",
+      "payer": "UPMC Health Plan"
+    },
+    "secondary": null
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "38849 Hurst Locks Suite 328",
+    "city": "Monroeville",
+    "dob": "1963-01-04",
+    "external_id": "PAT-003",
+    "first_name": "Trevor",
+    "last_name": "Campos",
+    "mrn": "MRN-691669",
+    "phone": "724-555-1674",
+    "state": "PA",
+    "zip_code": "15146"
+  },
+  "procedure_codes": [
+    "93458"
+  ],
+  "referral_type": "cath",
+  "referring_provider": {
+    "external_id": "PRAC-001",
+    "first_name": "Anthony",
+    "last_name": "Robinson",
+    "npi": "2265423519",
+    "practice_fax": "878-555-4557",
+    "practice_name": "Allegheny Community Health",
+    "practice_phone": "724-555-1584"
+  },
+  "urgency": "urgent"
+}

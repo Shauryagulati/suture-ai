@@ -37,8 +37,11 @@ jwt_*.pem
 *.db
 *.sqlite
 *.sqlite3
-seeds/documents/*.pdf
-seeds/documents/*.PDF
+# NOTE: seeds/documents/*.pdf is COMMITTED — they are ground-truth fixtures for the eval harness.
+# Do NOT re-add gitignore lines for those PDFs.
+
+# Transient atomic-write lockfiles for LLM fixtures (fixtures themselves ARE committed)
+seeds/scripts/llm_fixtures/in_flight/
 
 # IDE
 .vscode/
@@ -50,6 +53,8 @@ seeds/documents/*.PDF
 # Logs
 *.log
 logs/
+# Exception: generation.log is a committed artifact documenting the synthetic-data generation run.
+!seeds/scripts/generation.log
 
 # Docker volumes (compose puts these in named volumes already, just in case)
 infra/data/

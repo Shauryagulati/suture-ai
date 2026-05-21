@@ -1,0 +1,9 @@
+{
+  "content": "This 48-year-old gentleman with established CAD presents with abnormal findings on recent noninvasive testing. He has significant cardiac risk factors including hypertension, hyperlipidemia, and a substantial smoking history. Prior coronary angiography approximately three years ago revealed single-vessel disease of the left anterior descending artery, which was managed medically at that time. He has been compliant with aspirin, a beta-blocker, and a statin regimen.\n\nRecently, he underwent stress testing that demonstrated inducible ischemia in the LAD distribution with moderate reversible defect on imaging. He reports occasional exertional chest discomfort with exertion that resolves with rest, consistent with stable angina. On examination today, vital signs are stable, heart rate regular, and no acute distress. Cardiac auscultation reveals normal S1 and S2 without murmurs. Lungs are clear bilaterally.\n\nGiven the objective evidence of inducible ischemia in the setting of known CAD and recurrent anginal symptoms, I believe he would benefit from left heart catheterization to reassess his coronary anatomy and determine whether revascularization is indicated. Please evaluate for possible percutaneous coronary intervention versus continued medical management. I would also appreciate your assessment of his current risk stratification and optimization of his antianginal regimen. Thank you for your prompt attention to this patient.",
+  "input_tokens": 300,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 310,
+  "temperature": 0.2,
+  "usd_cost": 0.00185
+}

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://suture.local/schemas/patient_record.schema.json",
+  "title": "Synthetic patient corpus",
+  "description": "Validates seeds/data/patients.json — 20 synthetic Western-PA cardiology patients with mixed insurance and intentional data-quality issues.",
+  "type": "array",
+  "minItems": 20,
+  "maxItems": 20,
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "external_id",
+      "first_name",
+      "last_name",
+      "dob",
+      "phone",
+      "email",
+      "address_line1",
+      "address_line2",
+      "city",
+      "state",
+      "zip_code",
+      "mrn",
+      "ssn",
+      "insurance",
+      "data_quality_issues"
+    ],
+    "properties": {
+      "external_id": {
+        "type": "string",
+        "pattern": "^PAT-[0-9]{3}$"
+      },
+      "first_name": {"type": "string", "minLength": 1, "maxLength": 120},
+      "last_name": {"type": "string", "minLength": 1, "maxLength": 120},
+      "dob": {
+        "type": "string",
+        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+      },
+      "phone": {"type": ["string", "null"]},
+      "ssn": {"type": ["string", "null"]},
+      "email": {"type": ["string", "null"]},
+      "address_line1": {"type": ["string", "null"]},
+      "address_line2": {"type": ["string", "null"]},
+      "city": {
+        "oneOf": [
+          {"type": "null"},
+          {
+            "type": "string",
+            "enum": [
+              "Pittsburgh",
+              "Monroeville",
+              "Cranberry Twp",
+              "Greensburg",
+              "Washington",
+              "Butler",
+              "Beaver"
+            ]
+          }
+        ]
+      },
+      "state": {
+        "oneOf": [
+          {"type": "null"},
+          {"type": "string", "const": "PA"}
+        ]
+      },
+      "zip_code": {"type": ["string", "null"]},
+      "mrn": {"type": ["string", "null"]},
+      "insurance": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["primary", "secondary"],
+        "properties": {
+          "primary": {"$ref": "#/$defs/insurance_policy"},
+          "secondary": {
+            "oneOf": [
+              {"$ref": "#/$defs/insurance_policy"},
+              {"type": "null"}
+            ]
+          }
+        }
+      },
+      "data_quality_issues": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "missing_phone",
+            "malformed_member_id",
+            "partial_address",
+            "missing_zip"
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "insurance_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["payer", "member_id", "group_number"],
+      "properties": {
+        "payer": {
+          "type": "string",
+          "enum": [
+            "Highmark BCBS PA",
+            "UPMC Health Plan",
+            "Aetna",
+            "UnitedHealthcare",
+            "Cigna",
+            "Medicare"
+          ]
+        },
+        "member_id": {"type": "string", "minLength": 1},
+        "group_number": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

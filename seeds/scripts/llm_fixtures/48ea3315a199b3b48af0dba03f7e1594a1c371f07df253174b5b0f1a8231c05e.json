@@ -1,0 +1,9 @@
+{
+  "content": "This 55-year-old male presents with progressive dyspnea over the past three months, initially exertional but now occurring with minimal activity and at rest. He reports associated orthopnea, PND, and lower extremity edema. The patient has a significant past medical history including HTN managed with lisinopril and amlodipine, and remote tobacco use. He denies chest pain, palpitations, or syncope. Family history is notable for early CAD in a first-degree relative.\n\nOn examination today, vital signs reveal BP 148/92 and HR 88 regular. Cardiac auscultation demonstrates an S3 gallop with no murmurs appreciated. Lung bases show bibasilar crackles. Significant bilateral lower extremity pitting edema is present. JVD is elevated at approximately 8 cm. The clinical presentation is consistent with decompensated heart failure, and we need to assess left ventricular systolic and diastolic function to guide further management.\n\nI am requesting a transthoracic echocardiogram to evaluate LV ejection fraction, wall motion abnormalities, diastolic parameters, and right ventricular function. This study will help establish the etiology of his cardiomyopathy and determine whether systolic dysfunction, diastolic dysfunction, or both are contributing to his presentation. Results will inform decisions regarding ACE inhibitor optimization, beta-blocker initiation, and consideration of additional therapies. Please see this patient at your earliest convenience given his symptomatic status.",
+  "input_tokens": 298,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 343,
+  "temperature": 0.2,
+  "usd_cost": 0.002013
+}

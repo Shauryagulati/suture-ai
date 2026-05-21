@@ -1,0 +1,46 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 70-year-old female with significant cardiac risk factors presents with progressive exertional angina that has become refractory to optimal medical management. She has a long-standing history of h",
+  "diagnosis_codes": [
+    "I25.110",
+    "I20.9"
+  ],
+  "document_external_id": "REF-019",
+  "follow_up_window_days": 12,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-8240",
+      "member_id": "8XLT-94A-1343",
+      "payer": "Medicare"
+    },
+    "secondary": null
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "427 Monique Ports",
+    "city": "Washington",
+    "dob": "1955-12-10",
+    "external_id": "PAT-019",
+    "first_name": "Justin",
+    "last_name": "Mendoza",
+    "mrn": "MRN-116719",
+    "phone": "412-555-4061",
+    "state": "PA",
+    "zip_code": "15301"
+  },
+  "procedure_codes": [
+    "93458"
+  ],
+  "referral_type": "cath",
+  "referring_provider": {
+    "external_id": "PRAC-009",
+    "first_name": "Laura",
+    "last_name": "Henderson",
+    "npi": "7182278243",
+    "practice_fax": "878-555-1290",
+    "practice_name": "Sewickley Family Practice",
+    "practice_phone": "878-555-9938"
+  },
+  "urgency": "urgent"
+}

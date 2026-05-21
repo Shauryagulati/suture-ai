@@ -1,0 +1,46 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 50-year-old female presents for pre-operative cardiac clearance prior to elective surgery. She reports a several-month history of intermittent chest discomfort described as mild substernal pressu",
+  "diagnosis_codes": [
+    "R00.0",
+    "R07.9"
+  ],
+  "document_external_id": "REF-004",
+  "follow_up_window_days": 20,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-2704",
+      "member_id": "HSB784 801845",
+      "payer": "Highmark BCBS PA"
+    },
+    "secondary": null
+  },
+  "is_degraded": true,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "148 Eric Track",
+    "city": "Beaver",
+    "dob": "1975-07-14",
+    "external_id": "PAT-004",
+    "first_name": "Evan",
+    "last_name": "Ashley",
+    "mrn": "MRN-543039",
+    "phone": "878-555-7527",
+    "state": "PA",
+    "zip_code": "15009"
+  },
+  "procedure_codes": [
+    "93015"
+  ],
+  "referral_type": "stress_test",
+  "referring_provider": {
+    "external_id": "PRAC-004",
+    "first_name": "Christian",
+    "last_name": "Carter",
+    "npi": "5030564137",
+    "practice_fax": "724-555-4422",
+    "practice_name": "Greentree Health Partners",
+    "practice_phone": "878-555-5155"
+  },
+  "urgency": "routine"
+}

@@ -1,0 +1,9 @@
+{
+  "content": "This 60-year-old female presents with progressive bilateral lower extremity edema over the past two months, accompanied by mild dyspnea on exertion and orthopnea. She reports sleeping on three pillows and notes that her symptoms worsen toward the end of the day. Her past medical history is significant for hypertension managed with lisinopril and amlodipine, type 2 diabetes controlled on metformin, and hyperlipidemia on atorvastatin. She denies chest pain, palpitations, or syncope. Social history is notable for a 20 pack-year smoking history, though she quit five years ago.\n\nOn physical examination, she has 2+ pitting edema to the knees bilaterally with no skin changes or ulceration. Vital signs reveal a blood pressure of 148/92 mmHg and heart rate of 78 bpm. Cardiac auscultation demonstrates a regular rate and rhythm with an S4 gallop; no murmurs are appreciated. Lung bases are clear to auscultation bilaterally. Abdominal exam reveals no hepatomegaly or ascites. The remainder of the exam is unremarkable.\n\nGiven her clinical presentation of lower extremity edema with orthopnea and an S4 gallop, diastolic dysfunction is suspected. A transthoracic echocardiogram is requested to assess left ventricular function, evaluate for diastolic impairment, and determine if her symptoms are attributable to heart failure with preserved ejection fraction. This will help guide further management and risk stratification.",
+  "input_tokens": 297,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 358,
+  "temperature": 0.2,
+  "usd_cost": 0.002087
+}

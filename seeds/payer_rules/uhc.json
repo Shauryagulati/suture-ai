@@ -1,0 +1,80 @@
+{
+  "payer": "UnitedHealthcare",
+  "effective_date": "2026-01-01",
+  "source_note": "Patterns in public UHC commercial medical-necessity policies and advance-notification lists as of 2025; SIMULATED — not authoritative.",
+  "procedures": [
+    {
+      "cpt_code": "93015",
+      "description": "Cardiovascular stress test, treadmill, physician-supervised",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "missing indication detail"
+      ],
+      "notes": "Advance notification may be required under specific high-volume contracts."
+    },
+    {
+      "cpt_code": "93306",
+      "description": "Transthoracic echocardiogram",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10",
+        "Indication"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "repeat within 60 days without interval clinical change"
+      ],
+      "notes": "Retrospective flag on close-interval repeats."
+    },
+    {
+      "cpt_code": "93458",
+      "description": "Catheter placement in coronary arteries with contrast injection(s)",
+      "prior_auth_required": true,
+      "required_documents": [
+        "Prior non-invasive testing OR ACS documentation",
+        "Recent ECG",
+        "Troponin trend (if ACS)",
+        "Clinical rationale"
+      ],
+      "typical_turnaround_business_days": [3, 5],
+      "common_denial_reasons": [
+        "missing prior non-invasive testing in non-ACS case",
+        "incomplete ACS documentation"
+      ],
+      "notes": "PA handled by Optum clinical-review vendor; weekday morning submissions clear faster."
+    },
+    {
+      "cpt_code": "93620",
+      "description": "Comprehensive electrophysiologic evaluation",
+      "prior_auth_required": true,
+      "required_documents": [
+        "Documented arrhythmia",
+        "Failed medical management OR contraindication"
+      ],
+      "typical_turnaround_business_days": [4, 7],
+      "common_denial_reasons": [
+        "no documented arrhythmia",
+        "no failure of medical management documented"
+      ],
+      "notes": "Optum review pathway."
+    },
+    {
+      "cpt_code": "93224",
+      "description": "48-hour external electrocardiographic recording",
+      "prior_auth_required": false,
+      "required_documents": [
+        "Order with ICD-10",
+        "Symptom-correlation rationale"
+      ],
+      "typical_turnaround_business_days": 0,
+      "common_denial_reasons": [
+        "extended monitoring (>14d MCT) billed under wrong code"
+      ],
+      "notes": "Mobile cardiac telemetry under separate codes requires PA."
+    }
+  ]
+}

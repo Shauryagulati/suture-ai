@@ -1,0 +1,63 @@
+{
+  "admit_date": "2026-05-03",
+  "attending_physician": {
+    "first_name": "Kelsey",
+    "last_name": "Harper",
+    "npi": "1939909168"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I50.22"
+  ],
+  "discharge_date": "2026-05-10",
+  "discharge_type": "post_chf",
+  "discharging_hospital": "UPMC Shadyside",
+  "document_external_id": "DIS-012",
+  "follow_up_window_days": 8,
+  "is_degraded": true,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Furosemide 40 mg BID"
+    },
+    {
+      "action": "started",
+      "name": "Empagliflozin 10 mg daily"
+    },
+    {
+      "action": "adjusted",
+      "name": "Carvedilol 6.25 mg BID"
+    },
+    {
+      "action": "started",
+      "name": "Sacubitril/valsartan 49/51 mg BID"
+    }
+  ],
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "7738 Leon Underpass Apt. 148",
+    "city": "Pittsburgh",
+    "dob": "1975-01-25",
+    "external_id": "PAT-012",
+    "first_name": "Elizabeth",
+    "last_name": "Harvey",
+    "mrn": "MRN-433200",
+    "phone": "724-555-9763",
+    "state": "PA",
+    "zip_code": "15222"
+  },
+  "primary_diagnosis": "HFrEF with acute decompensation",
+  "procedures_performed": [
+    {
+      "cpt_code": null,
+      "description": "IV diuresis with furosemide"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "high",
+  "urgent_flags": [
+    "30-day-readmission-risk",
+    "active volume overload at discharge",
+    "EF<40%"
+  ]
+}

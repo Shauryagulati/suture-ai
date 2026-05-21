@@ -1,0 +1,534 @@
+[
+  {
+    "address_line1": "33890 Jennifer Squares",
+    "address_line2": null,
+    "city": "Pittsburgh",
+    "data_quality_issues": [
+      "missing_phone"
+    ],
+    "dob": "1966-03-13",
+    "email": "lisa02@example.net",
+    "external_id": "PAT-001",
+    "first_name": "Amy",
+    "insurance": {
+      "primary": {
+        "group_number": null,
+        "member_id": "LBC104332181",
+        "payer": "Highmark BCBS PA"
+      },
+      "secondary": null
+    },
+    "last_name": "Robinson",
+    "mrn": "MRN-654235",
+    "phone": null,
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15222"
+  },
+  {
+    "address_line1": "31647 Martin Knoll Apt. 419",
+    "address_line2": null,
+    "city": "Butler",
+    "data_quality_issues": [],
+    "dob": "1978-01-16",
+    "email": "frankgray@example.net",
+    "external_id": "PAT-002",
+    "first_name": "Cynthia",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-1618",
+        "member_id": "UDI116155940",
+        "payer": "Highmark BCBS PA"
+      },
+      "secondary": {
+        "group_number": null,
+        "member_id": "U49593103",
+        "payer": "UPMC Health Plan"
+      }
+    },
+    "last_name": "Ferguson",
+    "mrn": "MRN-835030",
+    "phone": "412-555-7359",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  {
+    "address_line1": "38849 Hurst Locks Suite 328",
+    "address_line2": null,
+    "city": "Monroeville",
+    "data_quality_issues": [],
+    "dob": "1963-01-04",
+    "email": "hernandezernest@example.net",
+    "external_id": "PAT-003",
+    "first_name": "Trevor",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-7672",
+        "member_id": "U56413953",
+        "payer": "UPMC Health Plan"
+      },
+      "secondary": null
+    },
+    "last_name": "Campos",
+    "mrn": "MRN-691669",
+    "phone": "724-555-1674",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15146"
+  },
+  {
+    "address_line1": "148 Eric Track",
+    "address_line2": null,
+    "city": "Beaver",
+    "data_quality_issues": [
+      "malformed_member_id"
+    ],
+    "dob": "1975-07-14",
+    "email": "georgetracy@example.org",
+    "external_id": "PAT-004",
+    "first_name": "Evan",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-2704",
+        "member_id": "HSB784 801845",
+        "payer": "Highmark BCBS PA"
+      },
+      "secondary": null
+    },
+    "last_name": "Ashley",
+    "mrn": "MRN-543039",
+    "phone": "878-555-7527",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15009"
+  },
+  {
+    "address_line1": "346 Kim Path",
+    "address_line2": null,
+    "city": "Washington",
+    "data_quality_issues": [],
+    "dob": "1946-03-05",
+    "email": "morganbrianna@example.org",
+    "external_id": "PAT-005",
+    "first_name": "Shannon",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-4896",
+        "member_id": "1QEJ-17K-1822",
+        "payer": "Medicare"
+      },
+      "secondary": null
+    },
+    "last_name": "Wright",
+    "mrn": "MRN-930103",
+    "phone": "878-555-5925",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15301"
+  },
+  {
+    "address_line1": "6670 Bruce Stream Suite 133",
+    "address_line2": null,
+    "city": "Beaver",
+    "data_quality_issues": [],
+    "dob": "1968-12-26",
+    "email": "dwhite@example.org",
+    "external_id": "PAT-006",
+    "first_name": "James",
+    "insurance": {
+      "primary": {
+        "group_number": null,
+        "member_id": "IIU105183473",
+        "payer": "Highmark BCBS PA"
+      },
+      "secondary": {
+        "group_number": null,
+        "member_id": "W997376311",
+        "payer": "Aetna"
+      }
+    },
+    "last_name": "West",
+    "mrn": "MRN-178108",
+    "phone": "412-555-6227",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15009"
+  },
+  {
+    "address_line1": "500 Shaw Walk",
+    "address_line2": null,
+    "city": "Butler",
+    "data_quality_issues": [],
+    "dob": "1963-08-21",
+    "email": "yorkcasey@example.org",
+    "external_id": "PAT-007",
+    "first_name": "Amanda",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-0260",
+        "member_id": "W013267736",
+        "payer": "Aetna"
+      },
+      "secondary": {
+        "group_number": "GRP-3098",
+        "member_id": "6474687234",
+        "payer": "UnitedHealthcare"
+      }
+    },
+    "last_name": "Brown",
+    "mrn": "MRN-361939",
+    "phone": "878-555-2803",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  {
+    "address_line1": null,
+    "address_line2": null,
+    "city": "Butler",
+    "data_quality_issues": [
+      "partial_address"
+    ],
+    "dob": "1946-05-06",
+    "email": "samueldaniels@example.com",
+    "external_id": "PAT-008",
+    "first_name": "Natasha",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-5346",
+        "member_id": "9HUQ-09N-1699",
+        "payer": "Medicare"
+      },
+      "secondary": {
+        "group_number": null,
+        "member_id": "2475107991",
+        "payer": "UnitedHealthcare"
+      }
+    },
+    "last_name": "Wood",
+    "mrn": "MRN-980841",
+    "phone": "878-555-5313",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  {
+    "address_line1": "16400 Wise Route Suite 278",
+    "address_line2": null,
+    "city": "Pittsburgh",
+    "data_quality_issues": [
+      "missing_zip"
+    ],
+    "dob": "1977-04-28",
+    "email": "jonesnicole@example.org",
+    "external_id": "PAT-009",
+    "first_name": "Janice",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-3487",
+        "member_id": "NTV241182449",
+        "payer": "Highmark BCBS PA"
+      },
+      "secondary": null
+    },
+    "last_name": "Hoffman",
+    "mrn": "MRN-805982",
+    "phone": "878-555-5155",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": null
+  },
+  {
+    "address_line1": "692 Michelle Union Apt. 602",
+    "address_line2": null,
+    "city": "Greensburg",
+    "data_quality_issues": [],
+    "dob": "1967-12-02",
+    "email": "vpham@example.org",
+    "external_id": "PAT-010",
+    "first_name": "Jill",
+    "insurance": {
+      "primary": {
+        "group_number": null,
+        "member_id": "6204505331",
+        "payer": "UnitedHealthcare"
+      },
+      "secondary": null
+    },
+    "last_name": "Cook",
+    "mrn": "MRN-421607",
+    "phone": "724-555-2287",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15601"
+  },
+  {
+    "address_line1": "19655 Obrien Pass Apt. 693",
+    "address_line2": null,
+    "city": "Monroeville",
+    "data_quality_issues": [],
+    "dob": "1965-10-15",
+    "email": "meyerlindsay@example.net",
+    "external_id": "PAT-011",
+    "first_name": "Jonathan",
+    "insurance": {
+      "primary": {
+        "group_number": null,
+        "member_id": "U337543303",
+        "payer": "Cigna"
+      },
+      "secondary": {
+        "group_number": "GRP-0142",
+        "member_id": "6541458685",
+        "payer": "UnitedHealthcare"
+      }
+    },
+    "last_name": "Fletcher",
+    "mrn": "MRN-356159",
+    "phone": "878-555-8085",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15146"
+  },
+  {
+    "address_line1": "7738 Leon Underpass Apt. 148",
+    "address_line2": null,
+    "city": "Pittsburgh",
+    "data_quality_issues": [],
+    "dob": "1975-01-25",
+    "email": "cardenaskaren@example.net",
+    "external_id": "PAT-012",
+    "first_name": "Elizabeth",
+    "insurance": {
+      "primary": {
+        "group_number": null,
+        "member_id": "JIM514846564",
+        "payer": "Highmark BCBS PA"
+      },
+      "secondary": {
+        "group_number": "GRP-4436",
+        "member_id": "W662994680",
+        "payer": "Aetna"
+      }
+    },
+    "last_name": "Harvey",
+    "mrn": "MRN-433200",
+    "phone": "724-555-9763",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15222"
+  },
+  {
+    "address_line1": "72788 Dodson Mills",
+    "address_line2": null,
+    "city": "Butler",
+    "data_quality_issues": [],
+    "dob": "1951-09-28",
+    "email": "jrivas@example.com",
+    "external_id": "PAT-013",
+    "first_name": "Cheyenne",
+    "insurance": {
+      "primary": {
+        "group_number": null,
+        "member_id": "3MTS-79Y-1769",
+        "payer": "Medicare"
+      },
+      "secondary": {
+        "group_number": "GRP-8708",
+        "member_id": "U763201632",
+        "payer": "Cigna"
+      }
+    },
+    "last_name": "Ball",
+    "mrn": "MRN-277434",
+    "phone": "878-555-8797",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  {
+    "address_line1": "66909 Woods Knoll",
+    "address_line2": null,
+    "city": "Butler",
+    "data_quality_issues": [],
+    "dob": "1963-11-25",
+    "email": "vmedina@example.net",
+    "external_id": "PAT-014",
+    "first_name": "Kenneth",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-5581",
+        "member_id": "W873471434",
+        "payer": "Aetna"
+      },
+      "secondary": {
+        "group_number": "GRP-5876",
+        "member_id": "U223623166",
+        "payer": "Cigna"
+      }
+    },
+    "last_name": "Price",
+    "mrn": "MRN-937346",
+    "phone": "878-555-2927",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  {
+    "address_line1": "627 Brent Light",
+    "address_line2": null,
+    "city": "Butler",
+    "data_quality_issues": [],
+    "dob": "1948-02-24",
+    "email": "kathleen64@example.com",
+    "external_id": "PAT-015",
+    "first_name": "Mark",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-6990",
+        "member_id": "7INI-06B-5627",
+        "payer": "Medicare"
+      },
+      "secondary": null
+    },
+    "last_name": "Gibson",
+    "mrn": "MRN-417080",
+    "phone": "412-555-6126",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  {
+    "address_line1": "374 Jackson Rest",
+    "address_line2": null,
+    "city": "Greensburg",
+    "data_quality_issues": [],
+    "dob": "1970-10-04",
+    "email": "tamirodriguez@example.org",
+    "external_id": "PAT-016",
+    "first_name": "Tamara",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-2327",
+        "member_id": "U531003309",
+        "payer": "Cigna"
+      },
+      "secondary": null
+    },
+    "last_name": "Higgins",
+    "mrn": "MRN-496631",
+    "phone": "412-555-5947",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15601"
+  },
+  {
+    "address_line1": "6945 Mariah Corners Suite 737",
+    "address_line2": null,
+    "city": "Pittsburgh",
+    "data_quality_issues": [],
+    "dob": "1961-05-03",
+    "email": "anthony52@example.com",
+    "external_id": "PAT-017",
+    "first_name": "Ashley",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-5185",
+        "member_id": "IBQ931491905",
+        "payer": "Highmark BCBS PA"
+      },
+      "secondary": {
+        "group_number": "GRP-6284",
+        "member_id": "U06716572",
+        "payer": "UPMC Health Plan"
+      }
+    },
+    "last_name": "Barnett",
+    "mrn": "MRN-354549",
+    "phone": "412-555-2103",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15237"
+  },
+  {
+    "address_line1": "856 Bell Motorway Suite 443",
+    "address_line2": null,
+    "city": "Monroeville",
+    "data_quality_issues": [],
+    "dob": "1950-10-09",
+    "email": "newtonstephanie@example.net",
+    "external_id": "PAT-018",
+    "first_name": "David",
+    "insurance": {
+      "primary": {
+        "group_number": null,
+        "member_id": "4UAF-80J-8313",
+        "payer": "Medicare"
+      },
+      "secondary": {
+        "group_number": "GRP-3495",
+        "member_id": "U377701436",
+        "payer": "Cigna"
+      }
+    },
+    "last_name": "Lee",
+    "mrn": "MRN-233749",
+    "phone": "878-555-5107",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15146"
+  },
+  {
+    "address_line1": "427 Monique Ports",
+    "address_line2": null,
+    "city": "Washington",
+    "data_quality_issues": [],
+    "dob": "1955-12-10",
+    "email": "jack04@example.com",
+    "external_id": "PAT-019",
+    "first_name": "Justin",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-8240",
+        "member_id": "8XLT-94A-1343",
+        "payer": "Medicare"
+      },
+      "secondary": null
+    },
+    "last_name": "Mendoza",
+    "mrn": "MRN-116719",
+    "phone": "412-555-4061",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "15301"
+  },
+  {
+    "address_line1": "34123 Andrea Estate",
+    "address_line2": null,
+    "city": "Butler",
+    "data_quality_issues": [],
+    "dob": "1966-02-02",
+    "email": "ocarter@example.com",
+    "external_id": "PAT-020",
+    "first_name": "Aaron",
+    "insurance": {
+      "primary": {
+        "group_number": "GRP-6999",
+        "member_id": "W022941318",
+        "payer": "Aetna"
+      },
+      "secondary": {
+        "group_number": "GRP-4990",
+        "member_id": "U38677496",
+        "payer": "UPMC Health Plan"
+      }
+    },
+    "last_name": "Hayes",
+    "mrn": "MRN-471349",
+    "phone": "412-555-1104",
+    "ssn": null,
+    "state": "PA",
+    "zip_code": "16001"
+  }
+]

@@ -1,0 +1,70 @@
+{
+  "admit_date": "2026-05-10",
+  "attending_physician": {
+    "first_name": "Mary",
+    "last_name": "Phillips",
+    "npi": "3158692327"
+  },
+  "classification": "discharge_summary",
+  "diagnosis_codes": [
+    "I25.10",
+    "Z98.61"
+  ],
+  "discharge_date": "2026-05-14",
+  "discharge_type": "post_cath",
+  "discharging_hospital": "AHN West Penn Hospital",
+  "document_external_id": "DIS-016",
+  "follow_up_window_days": 20,
+  "is_degraded": false,
+  "medications_changed": [
+    {
+      "action": "started",
+      "name": "Isosorbide mononitrate 30 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Clopidogrel 75 mg daily"
+    },
+    {
+      "action": "started",
+      "name": "Aspirin 81 mg daily"
+    },
+    {
+      "action": "adjusted",
+      "name": "Atorvastatin 40 mg daily"
+    }
+  ],
+  "missing_fields": [
+    "patient.address_line1"
+  ],
+  "patient": {
+    "address_line1": null,
+    "city": "Butler",
+    "dob": "1946-05-06",
+    "external_id": "PAT-008",
+    "first_name": "Natasha",
+    "last_name": "Wood",
+    "mrn": "MRN-980841",
+    "phone": "878-555-5313",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "primary_diagnosis": "Mild CAD on diagnostic angiography",
+  "procedures_performed": [
+    {
+      "cpt_code": "93458",
+      "description": "Coronary angiography"
+    },
+    {
+      "cpt_code": "92928",
+      "description": "PCI to LAD with DES"
+    }
+  ],
+  "recommended_specialist": "Cardiology",
+  "urgency_tier": "routine",
+  "urgent_flags": [
+    "radial access — wrist precautions",
+    "femoral access — bleed precautions",
+    "post-PCI dual antiplatelet therapy"
+  ]
+}

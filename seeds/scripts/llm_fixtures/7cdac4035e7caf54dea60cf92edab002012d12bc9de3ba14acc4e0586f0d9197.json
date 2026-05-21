@@ -1,0 +1,9 @@
+{
+  "content": "This 80-year-old gentleman with a significant cardiac history presents with abnormal findings on recent noninvasive testing. He has established CAD with prior percutaneous coronary intervention and carries risk factors including hypertension, hyperlipidemia, and a remote smoking history. His current medications include aspirin, a beta-blocker, an ACE inhibitor, and a statin. He reports occasional exertional chest discomfort that is somewhat atypical in character but warrants further investigation given his age and risk profile.\n\nRecent stress testing revealed inducible ischemia in the inferior and lateral territories, raising concern for significant coronary stenosis. His ejection fraction remains preserved on echocardiography, though diastolic dysfunction is noted. Physical examination today shows stable vital signs, regular rate and rhythm, and no acute distress. Cardiac auscultation is unremarkable. Given the abnormal stress study and his established CAD history, he would benefit from coronary angiography to define his current anatomy and determine whether revascularization is indicated.\n\nI would appreciate your evaluation and recommendation regarding left heart catheterization. Please assess the severity and distribution of any coronary disease and advise on the appropriateness of percutaneous or surgical intervention. He is medically optimized and willing to proceed with further testing. Thank you for your prompt attention to this patient.",
+  "input_tokens": 295,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 298,
+  "temperature": 0.2,
+  "usd_cost": 0.001785
+}

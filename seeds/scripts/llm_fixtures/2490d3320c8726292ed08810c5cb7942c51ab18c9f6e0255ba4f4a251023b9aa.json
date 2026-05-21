@@ -1,0 +1,9 @@
+{
+  "content": "This 51-year-old gentleman presents with progressive bilateral lower extremity edema over the past 6–8 weeks, accompanied by mild dyspnea on exertion and orthopnea. He reports sleeping on three pillows and notes that his symptoms worsen toward the end of the day. His past medical history is significant for hypertension managed with lisinopril and amlodipine, type 2 diabetes on metformin, and hyperlipidemia on atorvastatin. He denies chest pain, palpitations, or syncope. Social history notable for remote tobacco use, quit 15 years ago.\n\nOn examination today, vital signs reveal BP 148/92, HR 88 regular, RR 18, and O2 sat 96% on room air. Cardiac auscultation demonstrates normal S1 and S2 without murmurs, rubs, or gallops. Lung fields are clear to auscultation bilaterally. Significant findings include 2+ pitting edema to the knees bilaterally and mild hepatomegaly. JVD is not appreciated at 45 degrees. Extremity exam shows no calf tenderness or asymmetry.\n\nGiven the clinical presentation of volume overload with preserved exercise tolerance and the constellation of findings suggestive of diastolic dysfunction, I am referring for transthoracic echocardiography to assess left ventricular function, chamber dimensions, diastolic parameters, and valvular pathology. Please evaluate for heart failure with preserved ejection fraction and any structural abnormalities. I would appreciate your recommendations regarding further management and optimization of his cardiac regimen.",
+  "input_tokens": 297,
+  "max_tokens": 900,
+  "model": "claude-haiku-4-5-20251001",
+  "output_tokens": 370,
+  "temperature": 0.2,
+  "usd_cost": 0.002147
+}

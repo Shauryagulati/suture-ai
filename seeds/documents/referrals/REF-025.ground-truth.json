@@ -1,0 +1,45 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 80-year-old gentleman with a significant cardiac history presents with abnormal findings on recent noninvasive testing. He has established CAD with prior percutaneous coronary intervention and ca",
+  "diagnosis_codes": [
+    "I20.0"
+  ],
+  "document_external_id": "REF-025",
+  "follow_up_window_days": 9,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-4896",
+      "member_id": "1QEJ-17K-1822",
+      "payer": "Medicare"
+    },
+    "secondary": null
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "346 Kim Path",
+    "city": "Washington",
+    "dob": "1946-03-05",
+    "external_id": "PAT-005",
+    "first_name": "Shannon",
+    "last_name": "Wright",
+    "mrn": "MRN-930103",
+    "phone": "878-555-5925",
+    "state": "PA",
+    "zip_code": "15301"
+  },
+  "procedure_codes": [
+    "93458"
+  ],
+  "referral_type": "cath",
+  "referring_provider": {
+    "external_id": "PRAC-007",
+    "first_name": "Joseph",
+    "last_name": "Clark",
+    "npi": "4514627049",
+    "practice_fax": "412-555-8797",
+    "practice_name": "Squirrel Hill Family Practice",
+    "practice_phone": "878-555-2927"
+  },
+  "urgency": "routine"
+}

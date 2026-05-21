@@ -1,0 +1,50 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 62-year-old female with a history of hypertension and hyperlipidemia presents with recurrent symptomatic paroxysmal atrial fibrillation that has proven refractory to rate-control strategies. She ",
+  "diagnosis_codes": [
+    "I47.1",
+    "R00.0"
+  ],
+  "document_external_id": "REF-027",
+  "follow_up_window_days": 7,
+  "insurance": {
+    "primary": {
+      "group_number": "GRP-0260",
+      "member_id": "W013267736",
+      "payer": "Aetna"
+    },
+    "secondary": {
+      "group_number": "GRP-3098",
+      "member_id": "6474687234",
+      "payer": "UnitedHealthcare"
+    }
+  },
+  "is_degraded": true,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "500 Shaw Walk",
+    "city": "Butler",
+    "dob": "1963-08-21",
+    "external_id": "PAT-007",
+    "first_name": "Amanda",
+    "last_name": "Brown",
+    "mrn": "MRN-361939",
+    "phone": "878-555-2803",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93620"
+  ],
+  "referral_type": "ep_study",
+  "referring_provider": {
+    "external_id": "PRAC-003",
+    "first_name": "Matthew",
+    "last_name": "Davis",
+    "npi": "4752553410",
+    "practice_fax": "412-555-3814",
+    "practice_name": "Mon Valley Internal Medicine",
+    "practice_phone": "878-555-2803"
+  },
+  "urgency": "stat"
+}

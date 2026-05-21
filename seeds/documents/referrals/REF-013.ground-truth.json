@@ -1,0 +1,49 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "Mr. [Patient] is a 74-year-old gentleman with a significant cardiac history including hypertension, hyperlipidemia, and known mild aortic stenosis initially detected on echocardiography approximately ",
+  "diagnosis_codes": [
+    "I50.9"
+  ],
+  "document_external_id": "REF-013",
+  "follow_up_window_days": 14,
+  "insurance": {
+    "primary": {
+      "group_number": null,
+      "member_id": "3MTS-79Y-1769",
+      "payer": "Medicare"
+    },
+    "secondary": {
+      "group_number": "GRP-8708",
+      "member_id": "U763201632",
+      "payer": "Cigna"
+    }
+  },
+  "is_degraded": false,
+  "missing_fields": [],
+  "patient": {
+    "address_line1": "72788 Dodson Mills",
+    "city": "Butler",
+    "dob": "1951-09-28",
+    "external_id": "PAT-013",
+    "first_name": "Cheyenne",
+    "last_name": "Ball",
+    "mrn": "MRN-277434",
+    "phone": "878-555-8797",
+    "state": "PA",
+    "zip_code": "16001"
+  },
+  "procedure_codes": [
+    "93306"
+  ],
+  "referral_type": "echo",
+  "referring_provider": {
+    "external_id": "PRAC-001",
+    "first_name": "Anthony",
+    "last_name": "Robinson",
+    "npi": "2265423519",
+    "practice_fax": "878-555-4557",
+    "practice_name": "Allegheny Community Health",
+    "practice_phone": "724-555-1584"
+  },
+  "urgency": "routine"
+}

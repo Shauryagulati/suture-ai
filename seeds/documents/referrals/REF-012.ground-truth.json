@@ -1,0 +1,51 @@
+{
+  "classification": "referral",
+  "clinical_notes_excerpt": "This 51-year-old gentleman presents with progressive bilateral lower extremity edema over the past 6–8 weeks, accompanied by mild dyspnea on exertion and orthopnea. He reports sleeping on three pillow",
+  "diagnosis_codes": [
+    "I35.0"
+  ],
+  "document_external_id": "REF-012",
+  "follow_up_window_days": 20,
+  "insurance": {
+    "primary": {
+      "group_number": null,
+      "member_id": "JIM514846564",
+      "payer": "Highmark BCBS PA"
+    },
+    "secondary": {
+      "group_number": "GRP-4436",
+      "member_id": "W662994680",
+      "payer": "Aetna"
+    }
+  },
+  "is_degraded": false,
+  "missing_fields": [
+    "referring_provider.practice_fax"
+  ],
+  "patient": {
+    "address_line1": "7738 Leon Underpass Apt. 148",
+    "city": "Pittsburgh",
+    "dob": "1975-01-25",
+    "external_id": "PAT-012",
+    "first_name": "Elizabeth",
+    "last_name": "Harvey",
+    "mrn": "MRN-433200",
+    "phone": "724-555-9763",
+    "state": "PA",
+    "zip_code": "15222"
+  },
+  "procedure_codes": [
+    "93306"
+  ],
+  "referral_type": "echo",
+  "referring_provider": {
+    "external_id": "PRAC-008",
+    "first_name": "Reginald",
+    "last_name": "Robinson",
+    "npi": "5288095701",
+    "practice_fax": null,
+    "practice_name": "South Hills Health Partners",
+    "practice_phone": "412-555-5947"
+  },
+  "urgency": "stat"
+}

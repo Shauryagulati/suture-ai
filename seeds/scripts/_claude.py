@@ -19,9 +19,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
+
+_log = logging.getLogger(__name__)
+
+# Env var that flips allow_live_api to True for the whole process. Used by seed
+# scripts when intentionally regenerating fixtures.
+_ALLOW_LIVE_LLM_ENV = "SUTURE_ALLOW_LIVE_LLM"
+
+# Module-level flag so the "ANTHROPIC_API_KEY is set but live API is off"
+# warning fires once per process, not once per FixtureBackedClaude instance.
+_LIVE_API_WARNING_EMITTED = False
 
 
 HAIKU_4_5_MODEL = "claude-haiku-4-5-20251001"
@@ -36,6 +47,14 @@ DEFAULT_COST_CAP_USD = 5.00
 
 class FixtureMissingError(RuntimeError):
     """Raised on cache miss when no ANTHROPIC_API_KEY is available."""
+
+
+class CacheMissNotAllowed(RuntimeError):
+    """Raised on cache miss when live API calls are disabled.
+
+    Default behavior is cache-only. Pass `allow_live_api=True` to the
+    constructor or set `SUTURE_ALLOW_LIVE_LLM=1` in env to permit live calls.
+    """
 
 
 class CostCapExceeded(RuntimeError):
@@ -62,6 +81,7 @@ class FixtureBackedClaude:
         temperature: float = 0.2,
         cost_cap_usd: float = DEFAULT_COST_CAP_USD,
         client: object | None = None,
+        allow_live_api: bool = False,
     ) -> None:
         self.fixtures_dir = fixtures_dir
         self.in_flight_dir = fixtures_dir / "in_flight"
@@ -73,6 +93,9 @@ class FixtureBackedClaude:
         self.cumulative_output_tokens = 0
         self.api_calls = 0
         self._client = client  # injected for testing; None = lazy-init from env
+        # Default refuses live API calls even when ANTHROPIC_API_KEY is set.
+        # Override via constructor or SUTURE_ALLOW_LIVE_LLM=1 in env.
+        self.allow_live_api = allow_live_api
 
     def _hash_key(self, system: str, prompt: str, max_tokens: int) -> str:
         payload = json.dumps(
@@ -107,6 +130,33 @@ class FixtureBackedClaude:
         self._client = anthropic.Anthropic(api_key=api_key)
         return self._client
 
+    def _guard_live_api(self, sha: str) -> None:
+        """Refuse live API calls unless explicitly allowed.
+
+        Allowed if either `allow_live_api=True` on the instance OR
+        `SUTURE_ALLOW_LIVE_LLM=1` in env. Otherwise raises CacheMissNotAllowed.
+        If ANTHROPIC_API_KEY is set but live API is off, log a one-shot WARNING
+        explaining the refusal — likely a misconfigured .env.
+        """
+        global _LIVE_API_WARNING_EMITTED
+        if self.allow_live_api or os.getenv(_ALLOW_LIVE_LLM_ENV) == "1":
+            return
+
+        if os.getenv("ANTHROPIC_API_KEY") and not _LIVE_API_WARNING_EMITTED:
+            _log.warning(
+                "ANTHROPIC_API_KEY is set but allow_live_api=False and "
+                "%s!=1; refusing live API call. Pass allow_live_api=True "
+                "or set %s=1 to enable.",
+                _ALLOW_LIVE_LLM_ENV,
+                _ALLOW_LIVE_LLM_ENV,
+            )
+            _LIVE_API_WARNING_EMITTED = True
+
+        raise CacheMissNotAllowed(
+            f"Cache miss for key {sha}. Re-run with allow_live_api=True or "
+            f"{_ALLOW_LIVE_LLM_ENV}=1 to make a live API call."
+        )
+
     def generate(
         self,
         *,
@@ -126,8 +176,12 @@ class FixtureBackedClaude:
                 from_fixture=True,
             )
 
-        # Cache miss → API call. Check cost cap BEFORE calling so we never
-        # exceed the cap by even one over-budget call.
+        # Cache miss. Default behavior is cache-only — refuse live API calls
+        # unless the caller explicitly opted in. ADR 007.
+        self._guard_live_api(sha)
+
+        # Check cost cap BEFORE calling so we never exceed the cap by even one
+        # over-budget call.
         if self.cumulative_cost > self.cost_cap_usd:
             raise CostCapExceeded(
                 f"cumulative cost ${self.cumulative_cost:.4f} already exceeds "

@@ -1,11 +1,14 @@
 import { Sidebar } from "@/components/Sidebar";
+import { TaskTable } from "@/components/tasks/task-table";
 
 export default function TasksPage(): React.ReactElement {
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 p-10 text-muted-foreground">
-        Tasks — Module 3a ships the workflow engine and SLA-tracked task queue.
+      <main className="flex-1 p-10">
+        <h1 className="text-2xl font-semibold mb-2">Tasks</h1>
+        <p className="text-muted-foreground mb-6">SLA-tracked work queue for the active clinic.</p>
+        <TaskTable />
       </main>
     </div>
   );

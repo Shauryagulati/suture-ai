@@ -1,4 +1,4 @@
-.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic api web dev test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c
+.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic api web dev worker beat test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c
 
 # Use bash for recipe lines (consistent shell semantics)
 SHELL := /bin/bash
@@ -26,6 +26,8 @@ help:
 	@echo "    api             Run FastAPI (uvicorn auto-reload) on :8000"
 	@echo "    web             Run Next.js dev server on :3000"
 	@echo "    dev             Run api + web in parallel"
+	@echo "    worker          Run Celery worker"
+	@echo "    beat            Run Celery beat scheduler"
 	@echo ""
 	@echo "  Quality"
 	@echo "    test            Run pytest"
@@ -104,6 +106,12 @@ dev:
 	  $(MAKE) api & \
 	  $(MAKE) web & \
 	  wait)
+
+worker:
+	cd apps/api && PYTHONPATH=../.. uv run celery -A services.workers.app worker --loglevel=info
+
+beat:
+	cd apps/api && PYTHONPATH=../.. uv run celery -A services.workers.app beat --loglevel=info
 
 # ─── Quality ───────────────────────────────────────────────────────────
 

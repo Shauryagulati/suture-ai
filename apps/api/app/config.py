@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 
+    # Celery
+    celery_broker_url: str = "redis://localhost:6379/0"
+    celery_result_backend: str = "redis://localhost:6379/1"
+    celery_task_always_eager: bool = False
+
     # Auth — empty by default; Gate B2 populates this from .env
     jwt_secret: str = ""
     jwt_algorithm: str = "HS256"

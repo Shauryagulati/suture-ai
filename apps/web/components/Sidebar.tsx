@@ -1,4 +1,13 @@
-import { Activity, BarChart3, FileSearch, Inbox, ListChecks, Settings, Users } from "lucide-react";
+import {
+  Activity,
+  BarChart3,
+  FileSearch,
+  Gauge,
+  Inbox,
+  ListChecks,
+  Settings,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +19,7 @@ const NAV_ITEMS = [
   { href: "/tasks", label: "Tasks", icon: ListChecks },
   { href: "/prior-auth", label: "Prior Auth", icon: FileSearch },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/analytics/evals", label: "Evals", icon: Gauge },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 

@@ -266,3 +266,29 @@ verify-gate-outreach:
 	    tests/test_waitlist_backfill.py \
 	    tests/test_timeline_outreach.py \
 	    tests/test_outreach_tenant_isolation.py
+
+# Module 6 — Ember voice agent. Runs the full test suite (default
+# `pytest` skips -m slow), the migration head, mypy + ruff for both the
+# API and the voice-agent worker package, frontend tsc + biome, and a
+# liveness check on the LiveKit container.
+verify-gate-voice:
+	@echo "→ alembic upgrade head"
+	cd apps/api && uv run alembic upgrade head
+	@echo "\n→ pytest (api)"
+	cd apps/api && uv run pytest
+	@echo "\n→ mypy apps/api"
+	cd apps/api && uv run mypy app
+	@echo "\n→ ruff apps/api"
+	cd apps/api && uv run ruff check app tests
+	@echo "\n→ mypy services/voice-agent"
+	cd services/voice-agent && uv run mypy ember
+	@echo "\n→ ruff services/voice-agent"
+	cd services/voice-agent && uv run ruff check ember
+	@echo "\n→ tsc apps/web"
+	cd apps/web && pnpm typecheck
+	@echo "\n→ biome apps/web"
+	cd apps/web && pnpm lint
+	@echo "\n→ livekit container running"
+	@docker ps --filter name=suture-livekit --format '{{.Status}}' | grep -qi "up" \
+	    || (echo "livekit container is not running — \`make voice-up\`" && exit 1)
+	@echo "\nVoice gate: PASS"

@@ -28,23 +28,22 @@ if str(_VOICE_AGENT_ROOT) not in sys.path:
     sys.path.insert(0, str(_VOICE_AGENT_ROOT))
 
 from ember.worker import (  # noqa: E402  — late import after sys.path setup
-    AGENT_USER_ID,
     CallMetadata,
     CallOutcome,
     persist_call_end,
     run_call_pipeline,
 )
 
-from app.models.call import Call, CallStatus, CallTranscript, CallType
-from app.models.outreach_attempt import (
+from app.models.call import Call, CallStatus, CallTranscript, CallType  # noqa: E402
+from app.models.outreach_attempt import (  # noqa: E402
     OutreachAttempt,
     OutreachChannel,
     OutreachStatus,
 )
-from app.models.patient import Patient
-from app.services.llm.base import LLMProvider
-from app.services.voice.agent import EmberAgent
-from app.utils.context import current_clinic_id, current_user_id
+from app.models.patient import Patient  # noqa: E402
+from app.services.llm.base import LLMProvider  # noqa: E402
+from app.services.voice.agent import EmberAgent  # noqa: E402
+from app.utils.context import current_clinic_id, current_user_id  # noqa: E402
 
 pytestmark = pytest.mark.asyncio
 
@@ -115,7 +114,7 @@ class _ScriptedAudioIn:
         if self._payloads:
             return self._payloads.pop(0)
         if self._disconnect_after:
-            from ember.worker import _PatientDisconnected  # noqa: PLC0415
+            from ember.worker import _PatientDisconnected
 
             raise _PatientDisconnected()
         raise StopAsyncIteration

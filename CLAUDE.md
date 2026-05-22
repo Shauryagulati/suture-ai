@@ -99,6 +99,7 @@ Set by the auth dependency (`get_current_user`) and request middleware. Read by 
 - `ruff` (lint + format) clean
 - `biome` (lint + format) clean
 - All 33 foundation tests passing in CI before any feature branch merges to `main`
+- Module 2 (extraction + review + eval) is shipped. The extraction service is wired inline in the upload route — runs synchronously after classification, with non-fatal error fallback to `status=classified`. ADR 008 describes the trade-off; the service interface is Celery-shaped if we need to move it to a worker. Per-field confidence is deterministic (validators + missing_fields, not LLM self-report) — see ADR 009.
 - Once Module 2 lands: every prompt-file change re-runs the eval harness; merges blocked if accuracy regresses
 
 ## Repo structure
@@ -157,6 +158,8 @@ suture/
 | `make gen-phi-key` | Generate a Fernet key into `apps/api/.env` (PHI_ENCRYPTION_KEY) |
 | `make gen-jwt-keys` | Generate a JWT secret into `apps/api/.env` (JWT_SECRET) |
 | `make verify-gate-{0,a,b1,b2,c}` | Run the verification suite for the given foundation gate |
+| `make verify-gate-module2` | Run the Module 2 verification (alembic + pytest + mypy + ruff + tsc + biome + eval smoke) |
+| `make eval-extraction` | Run the extraction eval harness against the synthetic corpus |
 
 ## How we work (Plan-Gate-Verify-Commit)
 

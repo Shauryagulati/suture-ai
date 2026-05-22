@@ -28,7 +28,10 @@ class DocumentExtraction(ClinicScopedBase):
     missing_fields: Mapped[list[str]] = mapped_column(
         ARRAY(String), nullable=False, server_default="{}"
     )
-    human_edits: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, server_default="{}")
+    # Append-only delta log: [{field, old, new, edited_by, edited_at}, ...].
+    human_edits: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB, nullable=False, server_default="[]"
+    )
     human_review_required: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default="true"
     )

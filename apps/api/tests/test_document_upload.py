@@ -60,7 +60,10 @@ async def test_upload_happy_path_creates_row_and_file(
     body = resp.json()
     assert body["file_name"] == "scan.pdf"
     assert body["mime_type"] == "application/pdf"
-    assert body["status"] == DocumentStatus.classified.value
+    # Referral classification now auto-triggers extraction, so the final
+    # status moves on past `classified` to `extracted` (or `classified`
+    # again if extraction raises — see auto-extract block in the router).
+    assert body["status"] == DocumentStatus.extracted.value
     assert body["classification"] == DocumentClassification.referral.value
     assert body["classification_confidence"] == pytest.approx(0.92)
     assert body["ocr_engine"] == "pypdf"

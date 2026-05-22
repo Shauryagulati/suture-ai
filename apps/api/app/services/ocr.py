@@ -27,9 +27,38 @@ OcrEngine = Literal["docling", "pypdf"]
 
 @lru_cache(maxsize=1)
 def _docling_converter() -> Any:
-    from docling.document_converter import DocumentConverter
+    """Build a Docling converter pinned to CPU.
 
-    return DocumentConverter()
+    Docling defaults to ``device='auto'``, which selects MPS on Apple
+    Silicon. As of docling 2.94 / PyTorch 2.x the MPS path hits
+    ``Cannot convert a MPS Tensor to float64 dtype`` on any document that
+    triggers the layout/OCR models (i.e., every scanned PDF in our
+    corpus). The pypdf fallback then yields empty text for those
+    rasterized pages and extraction silently degrades to
+    ``__parse_failed__``. CPU is slower but correct everywhere; override
+    with ``SUTURE_OCR_DEVICE=mps`` (or ``cuda``) at your own risk.
+    """
+    import os
+
+    from docling.datamodel.accelerator_options import (
+        AcceleratorDevice,
+        AcceleratorOptions,
+    )
+    from docling.datamodel.base_models import InputFormat
+    from docling.datamodel.pipeline_options import PdfPipelineOptions
+    from docling.document_converter import DocumentConverter, PdfFormatOption
+
+    device_name = os.getenv("SUTURE_OCR_DEVICE", "cpu").lower()
+    try:
+        device = AcceleratorDevice(device_name)
+    except ValueError:
+        device = AcceleratorDevice.CPU
+
+    pdf_opts = PdfPipelineOptions()
+    pdf_opts.accelerator_options = AcceleratorOptions(device=device)
+    return DocumentConverter(
+        format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_opts)}
+    )
 
 
 def _extract_with_docling(pdf_path: Path) -> str:

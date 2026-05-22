@@ -1,0 +1,40 @@
+import { ChevronLeft } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { ExtractionReviewPanel } from "@/components/extraction/ExtractionReviewPanel";
+import { PdfViewer } from "@/components/inbox/pdf-viewer";
+import { buttonVariants } from "@/components/ui/button";
+import { getDocument } from "@/lib/documents";
+import { findExtractionForDocument } from "@/lib/extractions";
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default async function ExtractionReviewPage({
+  params,
+}: PageProps): Promise<React.ReactElement> {
+  const { id } = await params;
+
+  const document = await getDocument(id).catch(() => null);
+  if (!document) notFound();
+
+  const extraction = await findExtractionForDocument(id).catch(() => null);
+  if (!extraction) notFound();
+
+  return (
+    <div className="flex h-screen flex-col px-6 py-4">
+      <div className="flex items-center gap-2 pb-3">
+        <Link href={`/inbox/${id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
+          <ChevronLeft className="mr-1 h-4 w-4" />
+          Back to document
+        </Link>
+      </div>
+      <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden lg:grid-cols-[1.5fr_1fr]">
+        <PdfViewer documentId={document.id} />
+        <ExtractionReviewPanel initial={extraction} />
+      </div>
+    </div>
+  );
+}

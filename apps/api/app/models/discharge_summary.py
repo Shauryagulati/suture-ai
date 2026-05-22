@@ -72,3 +72,6 @@ class DischargeSummary(ClinicScopedBase):
     confirmation_fax_sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    confirmation_fax_path: Mapped[str | None] = mapped_column(
+        String(512), nullable=True
+    )

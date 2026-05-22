@@ -7,12 +7,13 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Text
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import ClinicScopedBase
+from app.utils.encryption import EncryptedString
 
 
 class CallType(enum.StrEnum):
@@ -65,7 +66,7 @@ class CallTranscript(ClinicScopedBase):
         nullable=False,
         index=True,
     )
-    full_transcript: Mapped[str] = mapped_column(Text, nullable=False)
+    full_transcript: Mapped[str] = mapped_column(EncryptedString, nullable=False)
     structured_data: Mapped[dict[str, Any]] = mapped_column(
         JSONB, nullable=False, server_default="{}"
     )

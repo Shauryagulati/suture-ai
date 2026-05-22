@@ -7,8 +7,10 @@ suspenders, since Qwen sometimes ignores `/no_think`.
 
 from __future__ import annotations
 
+import json
 import os
 import re
+from collections.abc import AsyncIterator
 from typing import Any
 
 import httpx
@@ -62,6 +64,43 @@ class OllamaProvider(LLMProvider):
         data = response.json()
         text: str = data.get("response", "")
         return self._maybe_strip_thinking(text)
+
+    async def stream(
+        self,
+        *,
+        system: str,
+        prompt: str,
+        max_tokens: int = 500,
+    ) -> AsyncIterator[str]:
+        """Stream text deltas from `/api/generate?stream=true`.
+
+        Ollama emits one JSON object per line: `{"response": "...", "done": false}`
+        with a terminal `{"done": true}`. We yield the `response` field of each
+        non-empty chunk.
+
+        Qwen `<think>` blocks are NOT filtered on the streaming path — voice
+        callers should pick a non-thinking model (medgemma default, or
+        explicitly disable thinking with `/no_think`, which we still prepend
+        for Qwen).
+        """
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "system": system,
+            "prompt": self._maybe_no_think(prompt),
+            "stream": True,
+            "options": {"num_predict": max_tokens},
+        }
+        async with self._client.stream("POST", "/api/generate", json=payload) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if not line:
+                    continue
+                data = json.loads(line)
+                chunk = data.get("response", "")
+                if chunk:
+                    yield chunk
+                if data.get("done"):
+                    return
 
     async def aclose(self) -> None:
         await self._client.aclose()

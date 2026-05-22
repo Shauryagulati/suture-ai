@@ -25,8 +25,15 @@ def get_outreach_provider() -> OutreachProvider:
     if name == "stub":
         return StubOutreachProvider()
 
+    if name == "livekit":
+        # Lazy import — LiveKitOutreachProvider pulls in the livekit SDK
+        # which we don't want loaded under OUTREACH_PROVIDER=stub.
+        from app.services.outreach.livekit import LiveKitOutreachProvider
+
+        return LiveKitOutreachProvider()
+
     raise ValueError(
-        f"Unknown OUTREACH_PROVIDER={name!r}; expected one of: stub"
+        f"Unknown OUTREACH_PROVIDER={name!r}; expected one of: stub, livekit"
     )
 
 

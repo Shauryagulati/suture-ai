@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import AsyncIterator
 
 from app.services.llm.base import LLMProvider
 
@@ -49,3 +50,27 @@ class OpenAIProvider(LLMProvider):
         )
         content = response.choices[0].message.content or ""
         return str(content)
+
+    async def stream(
+        self,
+        *,
+        system: str,
+        prompt: str,
+        max_tokens: int = 500,
+    ) -> AsyncIterator[str]:
+        """Stream text deltas via chat completions with stream=True."""
+        stream = await self._client.chat.completions.create(
+            model=self.model,
+            max_tokens=max_tokens,
+            stream=True,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        async for chunk in stream:
+            if not chunk.choices:
+                continue
+            delta = chunk.choices[0].delta.content
+            if delta:
+                yield str(delta)

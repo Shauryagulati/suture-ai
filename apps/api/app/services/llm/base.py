@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import re
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from typing import Any
 
 _THINK_BLOCK_RE = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
@@ -65,6 +66,24 @@ class LLMProvider(ABC):
         max_tokens: int = 1500,
     ) -> str:
         """Return the raw text response. No parsing, no stripping."""
+
+    @abstractmethod
+    def stream(
+        self,
+        *,
+        system: str,
+        prompt: str,
+        max_tokens: int = 500,
+    ) -> AsyncIterator[str]:
+        """Yield text deltas as the LLM produces them.
+
+        Used by the voice agent (Module 6 / Ember) for low-latency replies
+        — the TTS pipeline can start synthesizing on the first chunk
+        instead of waiting for the full utterance.
+
+        Subclasses implement this as an `async def` generator so the
+        return type is implicitly an `AsyncIterator[str]`.
+        """
 
     async def extract_json(
         self,

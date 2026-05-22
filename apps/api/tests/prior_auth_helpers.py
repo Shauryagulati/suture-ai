@@ -8,7 +8,7 @@ so the suite runs without Ollama.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -32,6 +32,11 @@ class FakeLLMProvider(LLMProvider):
     async def generate(self, *, system: str, prompt: str, max_tokens: int = 1500) -> str:
         self.calls.append({"system": system, "prompt": prompt, "max_tokens": max_tokens})
         return self.response_text
+
+    async def stream(
+        self, *, system: str, prompt: str, max_tokens: int = 500
+    ) -> AsyncIterator[str]:
+        yield await self.generate(system=system, prompt=prompt, max_tokens=max_tokens)
 
 
 @dataclass

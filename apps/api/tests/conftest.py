@@ -137,6 +137,10 @@ async def db_session() -> AsyncIterator[AsyncSession]:
                 await cleanup.execute(Base.metadata.tables["document_extractions"].delete())
                 await cleanup.execute(Base.metadata.tables["referral_tasks"].delete())
                 await cleanup.execute(Base.metadata.tables["referrals"].delete())
+                # faxes must be deleted before appointments, discharge_summaries,
+                # documents, patients, and clinics — Fax.patient_id / document_id
+                # are SET NULL but clinic_id is RESTRICT.
+                await cleanup.execute(Base.metadata.tables["faxes"].delete())
                 await cleanup.execute(Base.metadata.tables["discharge_summaries"].delete())
                 await cleanup.execute(Base.metadata.tables["appointments"].delete())
                 await cleanup.execute(Base.metadata.tables["outreach_attempts"].delete())

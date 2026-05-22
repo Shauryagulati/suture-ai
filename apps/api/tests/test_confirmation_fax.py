@@ -24,9 +24,32 @@ from app.models.outreach_attempt import (
 )
 from app.models.patient import Patient
 from app.models.provider import Provider, ProviderType
+from app.models.fax import Fax, FaxDirection, FaxStatus, FaxType
 from app.services.discharge.confirmation_pdf import generate_confirmation_pdf
+from app.services.discharge import confirmation as confirmation_mod
+from app.services.discharge.confirmation import send_confirmation_fax
+from app.services.fax import factory as fax_factory
+from app.services.fax import stub as fax_stub_mod
+from app.services.fax.base import FaxResult
+from app.services.fax.stub import StubFaxProvider
+from sqlalchemy import select
 
 pytestmark = pytest.mark.asyncio
+
+
+@pytest.fixture(autouse=True)
+def _reset_fax_factory_cache():
+    fax_factory.reset_fax_provider_cache()
+    yield
+    fax_factory.reset_fax_provider_cache()
+
+
+@pytest.fixture
+def _isolated_persist_root(tmp_path, monkeypatch):
+    """Redirect confirmation PDF + stub fax outbox to per-test tmp dirs."""
+    monkeypatch.setattr(confirmation_mod, "_PERSIST_ROOT", tmp_path / "confirmations")
+    monkeypatch.setattr(fax_stub_mod, "_OUTBOX_ROOT", tmp_path / "fax_outbox")
+    return tmp_path / "confirmations"
 
 
 async def _seed_provider(db: AsyncSession, clinic_id: UUID) -> Provider:
@@ -189,3 +212,123 @@ async def test_confirmation_pdf_raises_for_unknown_discharge(
     with set_clinic_context(clinic_id=clinic_a):
         with pytest.raises(ValueError, match="not found"):
             await generate_confirmation_pdf(db_session, uuid4())
+
+
+# ─────────────────────────────────────────────────────────────────────
+# Orchestrator: send_confirmation_fax
+# ─────────────────────────────────────────────────────────────────────
+
+
+async def test_send_confirmation_fax_persists_logs_fax_and_updates_discharge(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+    seeded_discharge_a: DischargeSummary,
+    _isolated_persist_root,
+) -> None:
+    clinic_a, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a, user_id=test_user):
+        out_path = await send_confirmation_fax(db_session, seeded_discharge_a)
+        await db_session.commit()
+
+        assert out_path.exists()
+        assert out_path.read_bytes().startswith(b"%PDF-")
+
+        # Discharge columns updated.
+        fresh = await db_session.get(DischargeSummary, seeded_discharge_a.id)
+        assert fresh is not None
+        assert fresh.confirmation_fax_path == str(out_path)
+        assert fresh.confirmation_fax_sent_at is not None
+
+        # Auditable Fax row inserted.
+        fax_rows = (
+            await db_session.execute(
+                select(Fax).where(
+                    Fax.direction == FaxDirection.outbound,
+                    Fax.fax_type == FaxType.confirmation,
+                    Fax.patient_id == seeded_discharge_a.patient_id,
+                )
+            )
+        ).scalars().all()
+        assert len(fax_rows) == 1
+        assert fax_rows[0].status == FaxStatus.sent
+        assert fax_rows[0].sent_at is not None
+        assert fax_rows[0].file_path == str(out_path)
+
+        # Stub provider recorded exactly one send for this discharge.
+        provider = fax_factory.get_fax_provider()
+        assert isinstance(provider, StubFaxProvider)
+        matching = [r for r in provider.sent if r.discharge_summary_id == seeded_discharge_a.id]
+        assert len(matching) == 1
+
+
+async def test_send_confirmation_fax_is_idempotent(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+    seeded_discharge_a: DischargeSummary,
+    _isolated_persist_root,
+) -> None:
+    """Second call returns same path without regenerating or re-sending."""
+    clinic_a, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a, user_id=test_user):
+        first = await send_confirmation_fax(db_session, seeded_discharge_a)
+        await db_session.commit()
+        first_sent_at = seeded_discharge_a.confirmation_fax_sent_at
+
+        second = await send_confirmation_fax(db_session, seeded_discharge_a)
+        await db_session.commit()
+
+        assert first == second
+        # Sent timestamp unchanged on the second call.
+        assert seeded_discharge_a.confirmation_fax_sent_at == first_sent_at
+        # Stub recorded only one send.
+        provider = fax_factory.get_fax_provider()
+        assert len([r for r in provider.sent if r.discharge_summary_id == seeded_discharge_a.id]) == 1
+        # Only one Fax row exists for this discharge.
+        fax_rows = (
+            await db_session.execute(
+                select(Fax).where(Fax.patient_id == seeded_discharge_a.patient_id)
+            )
+        ).scalars().all()
+        assert len(fax_rows) == 1
+
+
+async def test_send_confirmation_fax_records_failed_send(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+    seeded_discharge_a: DischargeSummary,
+    _isolated_persist_root,
+    monkeypatch,
+) -> None:
+    """If the provider returns delivered=False, the Fax row reflects failure."""
+
+    class FailingProvider(StubFaxProvider):
+        async def send_fax(self, request):  # type: ignore[override]
+            return FaxResult(delivered=False, error="upstream timeout")
+
+    # Patch at the import site (confirmation_mod imported the symbol).
+    monkeypatch.setattr(
+        confirmation_mod, "get_fax_provider", lambda: FailingProvider()
+    )
+
+    clinic_a, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a, user_id=test_user):
+        await send_confirmation_fax(db_session, seeded_discharge_a)
+        await db_session.commit()
+
+        fax_rows = (
+            await db_session.execute(
+                select(Fax).where(Fax.patient_id == seeded_discharge_a.patient_id)
+            )
+        ).scalars().all()
+        assert len(fax_rows) == 1
+        assert fax_rows[0].status == FaxStatus.failed
+        assert fax_rows[0].sent_at is None
+        # Discharge path/timestamp still recorded — the PDF was written, just not sent.
+        assert seeded_discharge_a.confirmation_fax_path is not None
+        assert seeded_discharge_a.confirmation_fax_sent_at is not None

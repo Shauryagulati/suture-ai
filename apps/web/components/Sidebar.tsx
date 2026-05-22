@@ -5,6 +5,7 @@ import {
   Gauge,
   Inbox,
   ListChecks,
+  PhoneCall,
   Settings,
   Users,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { href: "/patients", label: "Patients", icon: Users },
   { href: "/tasks", label: "Tasks", icon: ListChecks },
   { href: "/prior-auth", label: "Prior Auth", icon: FileSearch },
+  { href: "/voice", label: "Voice", icon: PhoneCall },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/analytics/evals", label: "Evals", icon: Gauge },
   { href: "/settings", label: "Settings", icon: Settings },

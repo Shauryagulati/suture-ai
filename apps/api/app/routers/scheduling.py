@@ -127,6 +127,33 @@ async def book_slot(
                 "appointment_id": str(appt.id),
             }
 
+        # If this booking is against a discharge, advance the discharge
+        # state machine. Tolerate a race where some other path already
+        # moved it past patient_contacted — booking still succeeds.
+        if claims.get("discharge_summary_id"):
+            from app.models.discharge_summary import (
+                DischargeStatus,
+                DischargeSummary,
+            )
+            from app.services.workflow.state_machine import (
+                InvalidTransitionError,
+                apply_discharge_transition,
+            )
+
+            discharge = await db.get(
+                DischargeSummary, UUID(claims["discharge_summary_id"])
+            )
+            if discharge is not None and discharge.status == DischargeStatus.patient_contacted:
+                try:
+                    await apply_discharge_transition(
+                        db,
+                        discharge=discharge,
+                        target=DischargeStatus.scheduled,
+                    )
+                except InvalidTransitionError:
+                    # Concurrent transition already advanced the workflow.
+                    pass
+
         await db.commit()
         return BookSlotResponse(
             appointment_id=appt.id,

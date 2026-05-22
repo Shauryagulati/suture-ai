@@ -220,6 +220,114 @@ async def test_book_slot_falls_back_to_first_internal_provider_when_no_referral(
         assert appt.provider_id == provider.id
 
 
+async def test_book_slot_against_discharge_advances_to_scheduled(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+) -> None:
+    """When the booking token carries a discharge_summary_id and the
+    discharge is in patient_contacted, booking advances it to scheduled."""
+    from datetime import date
+
+    from app.models.discharge_summary import (
+        DischargeStatus,
+        DischargeSummary,
+        UrgencyTier,
+    )
+
+    clinic_a_id, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
+        patient, provider, attempt, _ = await _seed_patient_provider_attempt(
+            db_session, clinic_a_id, with_referral=False
+        )
+        discharge = DischargeSummary(
+            id=uuid4(),
+            clinic_id=clinic_a_id,
+            patient_id=patient.id,
+            status=DischargeStatus.patient_contacted,
+            urgency_tier=UrgencyTier.high,
+            discharge_date=date(2026, 5, 20),
+        )
+        # Re-point the attempt at the discharge so the token claims line up.
+        attempt.discharge_summary_id = discharge.id
+        attempt.referral_id = None
+        db_session.add(discharge)
+        await db_session.commit()
+
+    token, _ = encode_scheduling_token(
+        patient_id=patient.id,
+        clinic_id=clinic_a_id,
+        outreach_attempt_id=attempt.id,
+        discharge_summary_id=discharge.id,
+    )
+    slot = datetime(2026, 6, 3, 11, 0, 0, tzinfo=UTC).isoformat()
+    r = await client.post(
+        f"/api/schedule/{token}/book",
+        json={"slot": slot, "appointment_type": "cardiology_followup"},
+    )
+    assert r.status_code == 200, r.text
+
+    with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
+        # Expire the in-session cache so the get hits the DB and sees
+        # the booking session's committed update.
+        await db_session.refresh(discharge)
+        assert discharge.status == DischargeStatus.scheduled
+
+
+async def test_book_slot_against_already_scheduled_discharge_tolerates_race(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+) -> None:
+    """If something else already advanced the discharge past patient_contacted,
+    booking still succeeds — the patient's request is not the place to fail."""
+    from datetime import date
+
+    from app.models.discharge_summary import (
+        DischargeStatus,
+        DischargeSummary,
+        UrgencyTier,
+    )
+
+    clinic_a_id, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
+        patient, provider, attempt, _ = await _seed_patient_provider_attempt(
+            db_session, clinic_a_id, with_referral=False
+        )
+        discharge = DischargeSummary(
+            id=uuid4(),
+            clinic_id=clinic_a_id,
+            patient_id=patient.id,
+            status=DischargeStatus.scheduled,  # already moved on
+            urgency_tier=UrgencyTier.medium,
+            discharge_date=date(2026, 5, 20),
+        )
+        attempt.discharge_summary_id = discharge.id
+        attempt.referral_id = None
+        db_session.add(discharge)
+        await db_session.commit()
+
+    token, _ = encode_scheduling_token(
+        patient_id=patient.id,
+        clinic_id=clinic_a_id,
+        outreach_attempt_id=attempt.id,
+        discharge_summary_id=discharge.id,
+    )
+    r = await client.post(
+        f"/api/schedule/{token}/book",
+        json={"slot": datetime(2026, 6, 4, 10, 0, 0, tzinfo=UTC).isoformat()},
+    )
+    assert r.status_code == 200, r.text
+
+    with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
+        await db_session.refresh(discharge)
+        assert discharge.status == DischargeStatus.scheduled  # unchanged
+
+
 async def test_book_slot_garbage_token_returns_401(client: AsyncClient) -> None:
     r = await client.post(
         "/api/schedule/garbage/book",

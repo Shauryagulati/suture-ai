@@ -155,6 +155,12 @@ async def apply_discharge_transition(
         from app.services.outreach.orchestrator import schedule_outreach_sequence
 
         await schedule_outreach_sequence(session, discharge=discharge)
+    elif target == DischargeStatus.confirmation_sent:
+        # Late import: state_machine -> discharge.confirmation -> ... could
+        # close a cycle at module load. Mirrors the outreach import pattern.
+        from app.services.discharge.confirmation import send_confirmation_fax
+
+        await send_confirmation_fax(session, discharge)
     return discharge
 
 

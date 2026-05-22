@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { AtRiskSidebarBadge } from "@/components/analytics/at-risk-sidebar-badge";
 import { Badge } from "@/components/ui/badge";
 import { listExtractions } from "@/lib/extractions";
 
@@ -56,6 +57,7 @@ export async function Sidebar(): Promise<React.ReactElement> {
                 {needsReviewCount}
               </Badge>
             ) : null}
+            {href === "/analytics" ? <AtRiskSidebarBadge /> : null}
           </Link>
         ))}
       </nav>

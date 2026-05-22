@@ -8,6 +8,7 @@ application calls under the BYOK abstraction.
 from __future__ import annotations
 
 import os
+from collections.abc import AsyncIterator
 
 from app.services.llm.base import LLMProvider
 
@@ -57,3 +58,21 @@ class AnthropicProvider(LLMProvider):
             if text is not None:
                 parts.append(str(text))
         return "".join(parts)
+
+    async def stream(
+        self,
+        *,
+        system: str,
+        prompt: str,
+        max_tokens: int = 500,
+    ) -> AsyncIterator[str]:
+        """Stream text deltas via Anthropic's messages.stream()."""
+        async with self._client.messages.stream(
+            model=self.model,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": prompt}],
+        ) as stream:
+            async for text in stream.text_stream:
+                if text:
+                    yield text

@@ -71,6 +71,18 @@ class Settings(BaseSettings):
     max_upload_bytes: int = 25 * 1024 * 1024  # 25 MB
     allowed_mime_types: tuple[str, ...] = ("application/pdf",)
 
+    # Voice agent (Module 6 / Ember). LiveKit is the local SFU; faster-whisper
+    # + Piper models lazily download to voice_model_cache_dir on first use.
+    livekit_url: str = "ws://localhost:7880"
+    livekit_api_key: str = ""
+    livekit_api_secret: str = ""
+    voice_model_cache_dir: Path = Path("./data/voice-models")
+    # Whisper STT model name (faster-whisper). Smaller = faster but less accurate.
+    # Options include tiny.en, base.en, small.en, medium.en.
+    whisper_model: str = "base.en"
+    # Piper voice ONNX model identifier (e.g. "en_US-amy-medium").
+    piper_voice: str = "en_US-amy-medium"
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

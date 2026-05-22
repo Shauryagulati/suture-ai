@@ -32,6 +32,13 @@ dependencies = [
     "docling>=2.0.0",
     "aiofiles>=24.1.0",
     "pypdf>=4.3.0",
+    # Voice (Module 6 / Ember). The STT/TTS wrappers live under
+    # app/services/voice/ so the existing pytest harness can exercise them;
+    # the voice-agent worker process re-imports them via an editable path
+    # dep. livekit-api covers token mint + room CRUD.
+    "livekit-api>=1.0.0",
+    "faster-whisper>=1.0.0",
+    "piper-tts>=1.2.0",
 ]
 
 [dependency-groups]
@@ -97,4 +104,7 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 testpaths = ["tests"]
 python_files = "test_*.py"
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m 'not slow'"
+markers = [
+    "slow: integration tests that download models or hit external services; skipped by default, run via `pytest -m slow` or `make eval-voice`",
+]

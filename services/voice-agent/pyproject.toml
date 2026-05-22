@@ -43,6 +43,18 @@ ignore = ["E501"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
+# Follow the editable suture-api dep so app.* imports resolve.
+mypy_path = ["../../apps/api"]
+explicit_package_bases = true
+# apps/api carries its own strict mypy config; here we only care about the
+# worker code. Treat the API package as a typed dependency and don't
+# re-validate its internals.
+files = ["ember"]
+follow_imports = "silent"
+
+[[tool.mypy.overrides]]
+module = ["faster_whisper.*", "piper.*", "anthropic.*", "openai.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

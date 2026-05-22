@@ -59,7 +59,14 @@ dev = [
 ]
 
 [tool.uv]
-package = false
+# Build as an editable package so services/voice-agent (and any other
+# downstream worker) can depend on `suture-api` via a path dep.
+package = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+namespaces = false
 
 [tool.ruff]
 line-length = 100

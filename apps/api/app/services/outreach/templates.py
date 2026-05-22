@@ -1,0 +1,89 @@
+"""Per-urgency message templates for SMS / email / voice greeting."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+from app.models.discharge_summary import UrgencyTier
+from app.models.document import UrgencyLevel
+
+# Urgency labels are patient-friendly (no clinical terms).
+URGENCY_LABEL: dict[UrgencyTier | UrgencyLevel, str] = {
+    UrgencyTier.critical: "urgent",
+    UrgencyLevel.stat: "urgent",
+    UrgencyTier.high: "soon",
+    UrgencyLevel.urgent: "soon",
+    UrgencyTier.medium: "follow-up",
+    UrgencyTier.routine: "routine",
+    UrgencyLevel.routine: "routine",
+    UrgencyLevel.unclassified: "follow-up",
+}
+
+
+def urgency_label(urgency: UrgencyTier | UrgencyLevel) -> str:
+    """Patient-friendly urgency label. Raises ValueError for unknown enums."""
+    if urgency not in URGENCY_LABEL:
+        raise ValueError(f"unknown urgency: {urgency!r}")
+    return URGENCY_LABEL[urgency]
+
+
+@dataclass
+class RenderedMessage:
+    body: str
+    subject: str | None = None
+
+
+def render_sms(
+    *,
+    patient_first_name: str,
+    scheduling_link_url: str,
+    urgency: UrgencyTier | UrgencyLevel,
+) -> RenderedMessage:
+    label = urgency_label(urgency)
+    return RenderedMessage(
+        body=(
+            f"Hi {patient_first_name}, this is your cardiology clinic. "
+            f"Please schedule your {label} follow-up here: {scheduling_link_url} "
+            "Reply STOP to opt out."
+        )
+    )
+
+
+def render_email(
+    *,
+    patient_first_name: str,
+    scheduling_link_url: str,
+    urgency: UrgencyTier | UrgencyLevel,
+    clinic_name: str,
+) -> RenderedMessage:
+    label = urgency_label(urgency)
+    return RenderedMessage(
+        subject=f"Schedule your {label} follow-up with {clinic_name}",
+        body=(
+            f"Hi {patient_first_name},\n\n"
+            f"Your provider has requested a {label} cardiology follow-up.\n\n"
+            f"Pick a time that works for you: {scheduling_link_url}\n\n"
+            f"Thank you,\n{clinic_name}"
+        ),
+    )
+
+
+def render_voice_script_context(
+    *,
+    patient_first_name: str,
+    urgency: UrgencyTier | UrgencyLevel,
+    clinic_name: str,
+) -> dict[str, str]:
+    """Context dict consumed by the voice agent (Module 6) to drive
+    LiveKit + Claude Haiku dialogue. v1 stores it in Call.outcome and
+    OutreachAttempt.metadata so the agent can pick it up later."""
+    label = urgency_label(urgency)
+    return {
+        "first_name": patient_first_name,
+        "urgency_label": label,
+        "clinic_name": clinic_name,
+        "greeting": (
+            f"Hello, this is calling from {clinic_name} for {patient_first_name}. "
+            f"We need to schedule a {label} cardiology follow-up."
+        ),
+    }

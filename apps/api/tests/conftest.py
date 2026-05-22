@@ -132,6 +132,8 @@ async def db_session() -> AsyncIterator[AsyncSession]:
                 await cleanup.execute(Base.metadata.tables["ai_invocations"].delete())
                 await cleanup.execute(Base.metadata.tables["prior_auth_events"].delete())
                 await cleanup.execute(Base.metadata.tables["prior_auths"].delete())
+                await cleanup.execute(Base.metadata.tables["call_transcripts"].delete())
+                await cleanup.execute(Base.metadata.tables["calls"].delete())
                 await cleanup.execute(Base.metadata.tables["document_extractions"].delete())
                 await cleanup.execute(Base.metadata.tables["referral_tasks"].delete())
                 await cleanup.execute(Base.metadata.tables["referrals"].delete())

@@ -2,9 +2,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.models.discharge_summary import DischargeStatus
 from app.models.referral import ReferralStatus
@@ -30,6 +31,9 @@ class TimelineEvent(BaseModel):
     resource_type: str
     resource_id: UUID
     changed_columns: list[str]
+    # Optional channel + outcome summary for outreach_* events. Empty
+    # dict for audit-derived events.
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class TimelineResponse(BaseModel):

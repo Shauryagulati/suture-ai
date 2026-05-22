@@ -1,4 +1,4 @@
-.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic ingest-payer-rules api web dev worker beat test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c verify-gate-module2 eval-extraction
+.PHONY: help infra-up infra-down obs-up obs-down migrate migrate-down seed seed-synthetic verify-synthetic ingest-payer-rules api web dev worker beat test lint typecheck gen-phi-key gen-jwt-keys precommit-install verify-gate-0 verify-gate-a verify-gate-b1 verify-gate-b2 verify-gate-c verify-gate-module2 verify-gate-outreach eval-extraction
 
 # Use bash for recipe lines (consistent shell semantics)
 SHELL := /bin/bash
@@ -48,6 +48,7 @@ help:
 	@echo "    verify-gate-b1  Tenant guard + audit + encryption tests"
 	@echo "    verify-gate-b2  Auth E2E"
 	@echo "    verify-gate-c   Full schema + seed + observability"
+	@echo "    verify-gate-outreach  Patient outreach module (cadence, sends, scheduling, backfill, tenant isolation)"
 
 # ─── Infra ─────────────────────────────────────────────────────────────
 
@@ -197,3 +198,23 @@ verify-gate-module2:
 	@echo "\n→ eval-extraction smoke (--limit 5)"
 	PYTHONPATH=apps/api:. uv --project apps/api run python -m ai.evals.eval_extraction --limit 5
 	@echo "\nModule 2 gate: PASS"
+
+verify-gate-outreach:
+	cd apps/api && uv run pytest -v \
+	    tests/test_outreach_cadence.py \
+	    tests/test_outreach_provider_stub.py \
+	    tests/test_outreach_templates.py \
+	    tests/test_outreach_sms.py \
+	    tests/test_outreach_email.py \
+	    tests/test_outreach_voice.py \
+	    tests/test_outreach_sequence.py \
+	    tests/test_outreach_worker.py \
+	    tests/test_state_machine_outreach_hooks.py \
+	    tests/test_outreach_endpoints.py \
+	    tests/test_outreach_patient_history.py \
+	    tests/test_scheduling_service.py \
+	    tests/test_scheduling_token.py \
+	    tests/test_scheduling_link.py \
+	    tests/test_waitlist_backfill.py \
+	    tests/test_timeline_outreach.py \
+	    tests/test_outreach_tenant_isolation.py

@@ -19,14 +19,17 @@ from app import __version__
 from app.config import get_settings
 from app.routers import (
     analytics,
+    appointments,
     auth,
     discharges,
     documents,
     evals,
     extractions,
     health,
+    outreach,
     prior_auth,
     referrals,
+    scheduling,
     tasks,
 )
 from app.utils.logging import configure_logging, get_logger
@@ -104,3 +107,6 @@ app.include_router(referrals.router)
 app.include_router(discharges.router)
 app.include_router(prior_auth.router)
 app.include_router(analytics.router)
+app.include_router(scheduling.router)
+app.include_router(outreach.router)
+app.include_router(appointments.router)

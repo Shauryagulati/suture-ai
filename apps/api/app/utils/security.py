@@ -77,3 +77,47 @@ def decode_token(token: str) -> dict[str, Any]:
     except JWTError as e:
         raise JwtError(f"invalid token: {e}") from e
     return decoded
+
+
+# ─── Scheduling links ──────────────────────────────────────────────────
+
+
+def encode_scheduling_token(
+    *,
+    patient_id: UUID,
+    clinic_id: UUID,
+    outreach_attempt_id: UUID,
+    referral_id: UUID | None = None,
+    discharge_summary_id: UUID | None = None,
+) -> tuple[str, datetime]:
+    """Sign a public scheduling-link token (HS256).
+
+    The patient receives this in SMS/email; the unauthed scheduling
+    endpoint decodes it and uses the embedded clinic_id to scope DB
+    access. Type-tagged so it cannot be confused with an access token.
+    """
+    settings = get_settings()
+    expires = _now() + timedelta(seconds=settings.scheduling_token_ttl_seconds)
+    payload: dict[str, Any] = {
+        "patient_id": str(patient_id),
+        "clinic_id": str(clinic_id),
+        "outreach_attempt_id": str(outreach_attempt_id),
+        "referral_id": str(referral_id) if referral_id is not None else None,
+        "discharge_summary_id": (
+            str(discharge_summary_id) if discharge_summary_id is not None else None
+        ),
+        "type": "scheduling",
+        "iat": int(_now().timestamp()),
+        "exp": int(expires.timestamp()),
+    }
+    token = jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+    return token, expires
+
+
+def decode_scheduling_token(token: str) -> dict[str, Any]:
+    """Decode + verify a scheduling token. Raises JwtError if invalid,
+    expired, or not type=scheduling."""
+    decoded = decode_token(token)
+    if decoded.get("type") != "scheduling":
+        raise JwtError("token type is not 'scheduling'")
+    return decoded

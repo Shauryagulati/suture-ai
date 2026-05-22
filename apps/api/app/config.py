@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     jwt_access_token_ttl_seconds: int = 3600
     jwt_refresh_token_ttl_seconds: int = 2_592_000  # 30 days
 
+    # Scheduling links — public patient-facing token TTL (7 days default)
+    scheduling_token_ttl_seconds: int = 7 * 24 * 3600
+    web_base_url: str = "http://localhost:3000"
+
     # PHI encryption — empty by default; Gate B1 enforces presence in tests
     phi_encryption_key: str = ""
 

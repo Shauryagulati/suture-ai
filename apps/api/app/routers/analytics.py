@@ -11,7 +11,7 @@ Mounted at /api/analytics:
 
 from __future__ import annotations
 
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -34,7 +34,9 @@ router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 
 def _default_window() -> tuple[date, date]:
-    today = date.today()
+    # UTC-anchored: roi.py interprets the bounds as UTC days, so use UTC `now()`
+    # to avoid excluding rows whose created_at is on today's UTC date but yesterday locally.
+    today = datetime.now(UTC).date()
     return today - timedelta(days=30), today
 
 

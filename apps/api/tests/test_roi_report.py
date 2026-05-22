@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import pytest
@@ -45,8 +45,8 @@ async def test_documents_processed_and_hours_saved(
         await db_session.commit()
         report = await compute_roi_report(
             db_session,
-            from_date=date.today() - timedelta(days=30),
-            to_date=date.today(),
+            from_date=datetime.now(UTC).date() - timedelta(days=30),
+            to_date=datetime.now(UTC).date(),
         )
     assert report.documents_processed == 5
     assert report.hours_saved == pytest.approx(5 * MANUAL_MINUTES_PER_DOC / 60)
@@ -75,8 +75,8 @@ async def test_revenue_recovered_proportional_to_at_risk(
         await db_session.commit()
         report = await compute_roi_report(
             db_session,
-            from_date=date.today() - timedelta(days=30),
-            to_date=date.today(),
+            from_date=datetime.now(UTC).date() - timedelta(days=30),
+            to_date=datetime.now(UTC).date(),
         )
     assert report.referrals_at_risk == 3
     assert report.projected_revenue_recovered_cents == 3 * AVG_VISIT_VALUE_CENTS
@@ -124,8 +124,8 @@ async def test_approval_rate_only_counts_decided_within_window(
         await db_session.commit()
         report = await compute_roi_report(
             db_session,
-            from_date=date.today() - timedelta(days=30),
-            to_date=date.today(),
+            from_date=datetime.now(UTC).date() - timedelta(days=30),
+            to_date=datetime.now(UTC).date(),
         )
     assert report.prior_auth_approval_rate == pytest.approx(0.5)
 
@@ -157,8 +157,8 @@ async def test_avg_days_referral_to_appointment(
         await db_session.commit()
         report = await compute_roi_report(
             db_session,
-            from_date=date.today() - timedelta(days=30),
-            to_date=date.today(),
+            from_date=datetime.now(UTC).date() - timedelta(days=30),
+            to_date=datetime.now(UTC).date(),
         )
     assert report.avg_days_referral_to_appointment is not None
     assert 9 <= report.avg_days_referral_to_appointment <= 11

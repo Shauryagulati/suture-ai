@@ -10,11 +10,12 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from alembic import op
+import pgvector.sqlalchemy.vector
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
-import pgvector.sqlalchemy.vector  # noqa: F401  — referenced by VECTOR column type
-import app.utils.encryption  # noqa: F401  — referenced by EncryptedString column type
+
+import app.utils.encryption
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "0002"

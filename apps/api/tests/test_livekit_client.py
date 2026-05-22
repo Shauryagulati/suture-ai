@@ -21,7 +21,6 @@ from app.services.voice.livekit_client import (
     room_name_for_call,
 )
 
-
 # ── Helpers ───────────────────────────────────────────────────────────
 
 

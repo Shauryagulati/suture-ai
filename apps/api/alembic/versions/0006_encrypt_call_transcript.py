@@ -26,9 +26,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from alembic import op
 
-import app.utils.encryption  # noqa: F401 — EncryptedString resolution
+import app.utils.encryption
+from alembic import op
 
 revision: str = "0006"
 down_revision: str | None = "0005"

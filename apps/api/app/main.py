@@ -31,6 +31,7 @@ from app.routers import (
     referrals,
     scheduling,
     tasks,
+    voice,
 )
 from app.utils.logging import configure_logging, get_logger
 
@@ -110,3 +111,4 @@ app.include_router(analytics.router)
 app.include_router(scheduling.router)
 app.include_router(outreach.router)
 app.include_router(appointments.router)
+app.include_router(voice.router)

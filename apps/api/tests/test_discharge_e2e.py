@@ -18,21 +18,15 @@ from httpx import AsyncClient
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.appointment import Appointment
-from app.models.discharge_summary import (
-    DischargeStatus,
-    DischargeSummary,
-)
 from app.models.document_extraction import DocumentExtraction
 from app.models.fax import Fax, FaxStatus
-from app.models.outreach_attempt import OutreachAttempt, OutreachStatus
-from app.models.patient import Patient
+from app.models.outreach_attempt import OutreachAttempt
 from app.models.provider import Provider, ProviderType
 from app.models.referral_task import ReferralTask
 from app.services.discharge import confirmation as confirmation_mod
 from app.services.fax import factory as fax_factory
 from app.services.fax import stub as fax_stub_mod
-from app.utils.context import current_clinic_id, current_user_id
+from app.utils.context import current_clinic_id
 from app.utils.security import encode_scheduling_token
 from tests._doc_helpers import (
     auth_headers,

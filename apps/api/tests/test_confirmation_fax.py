@@ -8,31 +8,30 @@ tests verify orchestrator persistence + idempotency + Fax-row creation.
 from __future__ import annotations
 
 import io
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
 from pypdf import PdfReader
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.appointment import Appointment, AppointmentStatus
-from app.models.discharge_summary import DischargeStatus, DischargeSummary, UrgencyTier
+from app.models.discharge_summary import DischargeSummary
+from app.models.fax import Fax, FaxDirection, FaxStatus, FaxType
 from app.models.outreach_attempt import (
     OutreachAttempt,
     OutreachChannel,
     OutreachStatus,
 )
-from app.models.patient import Patient
 from app.models.provider import Provider, ProviderType
-from app.models.fax import Fax, FaxDirection, FaxStatus, FaxType
-from app.services.discharge.confirmation_pdf import generate_confirmation_pdf
 from app.services.discharge import confirmation as confirmation_mod
 from app.services.discharge.confirmation import send_confirmation_fax
+from app.services.discharge.confirmation_pdf import generate_confirmation_pdf
 from app.services.fax import factory as fax_factory
 from app.services.fax import stub as fax_stub_mod
 from app.services.fax.base import FaxResult
 from app.services.fax.stub import StubFaxProvider
-from sqlalchemy import select
 
 pytestmark = pytest.mark.asyncio
 

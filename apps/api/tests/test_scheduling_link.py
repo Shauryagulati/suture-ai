@@ -239,7 +239,7 @@ async def test_book_slot_against_discharge_advances_to_scheduled(
 
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        patient, provider, attempt, _ = await _seed_patient_provider_attempt(
+        patient, _provider, attempt, _ = await _seed_patient_provider_attempt(
             db_session, clinic_a_id, with_referral=False
         )
         discharge = DischargeSummary(
@@ -295,7 +295,7 @@ async def test_book_slot_against_already_scheduled_discharge_tolerates_race(
 
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        patient, provider, attempt, _ = await _seed_patient_provider_attempt(
+        patient, _provider, attempt, _ = await _seed_patient_provider_attempt(
             db_session, clinic_a_id, with_referral=False
         )
         discharge = DischargeSummary(

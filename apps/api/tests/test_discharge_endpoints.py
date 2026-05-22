@@ -164,7 +164,7 @@ async def test_get_discharge_returns_detail_and_audits_view(
 ) -> None:
     clinic_a, _ = two_clinics
     headers, user_id = await _login(client, db_session, clinic_a, "a")
-    discharge, patient, _ = await _seed_discharge(
+    discharge, _patient, _ = await _seed_discharge(
         db_session, clinic_id=clinic_a, user_id=user_id, status=DischargeStatus.new
     )
 

@@ -527,11 +527,16 @@ async def test_approve_referral_reuses_existing_patient_by_mrn(
 # ---------------------------- APPROVE — discharge ----------------------------
 
 
-async def test_approve_discharge_creates_summary_at_new(
+async def test_approve_discharge_creates_summary_and_advances_to_patient_contacted(
     client: AsyncClient,
     db_session: AsyncSession,
     two_clinics: tuple[UUID, UUID],
 ) -> None:
+    """Approval auto-engages the workflow: the new DischargeSummary
+    transitions to patient_contacted, which spawns tasks + outreach."""
+    from app.models.outreach_attempt import OutreachAttempt
+    from app.models.referral_task import ReferralTask
+
     clinic_a, _ = two_clinics
     headers, user_id = await _login_clinic_user(client, db_session, clinic_a)
     ext, _ = await _seed_extraction(
@@ -553,14 +558,29 @@ async def test_approve_discharge_creates_summary_at_new(
     tok = current_clinic_id.set(clinic_a)
     try:
         discharges = (await db_session.execute(select(DischargeSummary))).scalars().all()
+        assert len(discharges) == 1
+        dis = discharges[0]
+        assert dis.status == DischargeStatus.patient_contacted
+        assert dis.urgent_flags == ["recent_MI"]
+        assert dis.urgency_tier.value == "critical"
+
+        tasks = (
+            await db_session.execute(
+                select(ReferralTask).where(ReferralTask.discharge_summary_id == dis.id)
+            )
+        ).scalars().all()
+        assert len(tasks) == 4
+
+        attempts = (
+            await db_session.execute(
+                select(OutreachAttempt).where(
+                    OutreachAttempt.discharge_summary_id == dis.id
+                )
+            )
+        ).scalars().all()
+        assert len(attempts) == 3
     finally:
         current_clinic_id.reset(tok)
-    assert len(discharges) == 1
-    dis = discharges[0]
-    # Discharge state machine has no needs_review — stays at new.
-    assert dis.status == DischargeStatus.new
-    assert dis.urgent_flags == ["recent_MI"]
-    assert dis.urgency_tier.value == "critical"
 
 
 async def test_approve_already_approved_returns_409(

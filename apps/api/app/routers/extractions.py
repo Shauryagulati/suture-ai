@@ -49,6 +49,7 @@ from app.services.extraction.resolvers import (
 )
 from app.services.workflow.state_machine import (
     InvalidTransitionError,
+    apply_discharge_transition,
     apply_referral_transition,
 )
 from app.utils.audit import track_view
@@ -404,6 +405,17 @@ async def _approve_discharge(
     )
     db.add(discharge)
     await db.flush()
+
+    # Auto-engage the workflow on approval, mirroring referrals at L358.
+    # apply_discharge_transition emits tasks + outreach as side-effects.
+    try:
+        await apply_discharge_transition(
+            db, discharge=discharge, target=DischargeStatus.patient_contacted
+        )
+    except InvalidTransitionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
 
     return ExtractionApproveResponse(
         discharge_summary_id=discharge.id,

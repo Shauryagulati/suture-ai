@@ -48,6 +48,7 @@ def register_audited_models() -> None:
         DischargeSummary,
         Document,
         DocumentExtraction,
+        Fax,
         InsurancePolicy,
         OutreachAttempt,
         Patient,
@@ -69,6 +70,7 @@ def register_audited_models() -> None:
             CallTranscript,
             InsurancePolicy,
             ReferralTask,
+            Fax,
         ]
     )
 

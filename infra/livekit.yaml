@@ -1,0 +1,20 @@
+# LiveKit server config — local dev only.
+# Production deployments must mint fresh keys (>=12-byte api_key,
+# >=32-byte api_secret) and rotate via secret-store, not yaml.
+
+port: 7880
+
+rtc:
+  tcp_port: 7881
+  udp_port: 7882
+  use_external_ip: false
+
+# devkey/devsecret are well-known dev credentials. Mirror these into
+# apps/api/.env as LIVEKIT_API_KEY / LIVEKIT_API_SECRET so the API
+# can mint tokens against this server.
+keys:
+  devkey: devsecret
+
+logging:
+  level: info
+  json: false

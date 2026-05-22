@@ -28,5 +28,23 @@ services:
       timeout: 3s
       retries: 10
 
+  # LiveKit Selective Forwarding Unit for Ember (Module 6 — voice agent).
+  # Dev-only keys live in ./livekit.yaml; rotate before any non-local use.
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: suture-livekit
+    command: --config /etc/livekit.yaml --dev
+    ports:
+      - "7880:7880"      # signaling (WebSocket) + HTTP
+      - "7881:7881"      # RTC TCP fallback
+      - "7882:7882/udp"  # RTC UDP (primary media)
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7880"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
 volumes:
   pgdata:

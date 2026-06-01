@@ -93,3 +93,30 @@ async def test_ollama_extract_json_raises_on_invalid() -> None:
     provider = _ollama_with_mock(_fake_response("not json at all, just prose"))
     with pytest.raises(JSONExtractionError):
         await provider.extract_json(system="s", prompt="p", max_tokens=100)
+
+
+async def test_ollama_extract_json_requests_constrained_format() -> None:
+    # extract_json must use Ollama's `format: json` constrained decoding so small
+    # local models can't emit JSON with unescaped newlines. generate() must NOT.
+    captured: dict[str, Any] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"response": '{"ok": true}'})
+
+    provider = _ollama_with_mock(handler)
+    result = await provider.extract_json(system="s", prompt="p", max_tokens=100)
+    assert result == {"ok": True}
+    assert captured["body"]["format"] == "json"
+
+
+async def test_ollama_generate_omits_constrained_format() -> None:
+    captured: dict[str, Any] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"response": "plain text"})
+
+    provider = _ollama_with_mock(handler)
+    await provider.generate(system="s", prompt="p", max_tokens=100)
+    assert "format" not in captured["body"]

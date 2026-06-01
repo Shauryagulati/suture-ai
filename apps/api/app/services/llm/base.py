@@ -52,6 +52,26 @@ def _strip_to_json(text: str) -> str:
     return cleaned[start : end + 1]
 
 
+def parse_json_or_raise(raw: str) -> dict[str, Any]:
+    """Strip wrappers from `raw` and parse it as a JSON object.
+
+    Shared by every provider's `extract_json` so the strip + parse + dict-check
+    behaviour is identical regardless of how the raw text was produced (plain
+    generation, or constrained-decoding modes like Ollama `format: json`).
+    Raises JSONExtractionError on malformed JSON or a non-object top level.
+    """
+    candidate = _strip_to_json(raw)
+    try:
+        parsed = json.loads(candidate)
+    except json.JSONDecodeError as e:
+        raise JSONExtractionError(raw, cause=e) from e
+    if not isinstance(parsed, dict):
+        raise JSONExtractionError(
+            raw, cause=TypeError(f"expected dict, got {type(parsed).__name__}")
+        )
+    return parsed
+
+
 class LLMProvider(ABC):
     """Abstract LLM interface. Concrete providers implement `generate`."""
 
@@ -94,13 +114,4 @@ class LLMProvider(ABC):
     ) -> dict[str, Any]:
         """Call `generate`, strip wrappers, parse JSON. Raise JSONExtractionError on failure."""
         raw = await self.generate(system=system, prompt=prompt, max_tokens=max_tokens)
-        candidate = _strip_to_json(raw)
-        try:
-            parsed = json.loads(candidate)
-        except json.JSONDecodeError as e:
-            raise JSONExtractionError(raw, cause=e) from e
-        if not isinstance(parsed, dict):
-            raise JSONExtractionError(
-                raw, cause=TypeError(f"expected dict, got {type(parsed).__name__}")
-            )
-        return parsed
+        return parse_json_or_raise(raw)

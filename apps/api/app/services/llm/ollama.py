@@ -15,7 +15,7 @@ from typing import Any
 
 import httpx
 
-from app.services.llm.base import LLMProvider
+from app.services.llm.base import LLMProvider, parse_json_or_raise
 
 _DEFAULT_MODEL = "medgemma1.5"
 _DEFAULT_BASE_URL = "http://localhost:11434"
@@ -45,12 +45,13 @@ class OllamaProvider(LLMProvider):
     def _maybe_strip_thinking(self, text: str) -> str:
         return _THINK_BLOCK_RE.sub("", text) if self._is_qwen() else text
 
-    async def generate(
+    async def _post_generate(
         self,
         *,
         system: str,
         prompt: str,
-        max_tokens: int = 1500,
+        max_tokens: int,
+        fmt: str | None = None,
     ) -> str:
         payload: dict[str, Any] = {
             "model": self.model,
@@ -59,11 +60,47 @@ class OllamaProvider(LLMProvider):
             "stream": False,
             "options": {"num_predict": max_tokens},
         }
+        if fmt is not None:
+            # Ollama constrained decoding: `"format": "json"` guarantees the
+            # response is syntactically valid JSON. Small local models (e.g.
+            # MedGemma 4B) otherwise emit JSON with unescaped newlines inside
+            # string values, which breaks `json.loads`. See extract_json.
+            payload["format"] = fmt
         response = await self._client.post("/api/generate", json=payload)
         response.raise_for_status()
         data = response.json()
         text: str = data.get("response", "")
         return self._maybe_strip_thinking(text)
+
+    async def generate(
+        self,
+        *,
+        system: str,
+        prompt: str,
+        max_tokens: int = 1500,
+    ) -> str:
+        return await self._post_generate(
+            system=system, prompt=prompt, max_tokens=max_tokens
+        )
+
+    async def extract_json(
+        self,
+        *,
+        system: str,
+        prompt: str,
+        max_tokens: int = 2000,
+    ) -> dict[str, Any]:
+        """Extract JSON using Ollama's constrained `format: json` decoding.
+
+        Overrides the base (which calls plain `generate`) so structured
+        extraction is reliable on small local models. Parsing is still the
+        shared `parse_json_or_raise` so fence/thinking-block stripping and the
+        dict-check behave identically to every other provider.
+        """
+        raw = await self._post_generate(
+            system=system, prompt=prompt, max_tokens=max_tokens, fmt="json"
+        )
+        return parse_json_or_raise(raw)
 
     async def stream(
         self,

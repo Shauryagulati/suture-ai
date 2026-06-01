@@ -24,6 +24,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session_maker
 from app.models import (
+    AiInvocation,
+    AuditLog,
     Clinic,
     ClinicMembership,
     MembershipRole,
@@ -220,6 +222,19 @@ async def _clear_seed(db: AsyncSession) -> None:
     seed_clinic_ids = [c.id for c in seed_clinics]
     if seed_clinic_ids:
         # Core deletes via __table__ bypass the do_orm_execute listener.
+        # Audit logs + AI invocations FK clinics with ondelete=RESTRICT, and
+        # the audit listener writes rows during seeding — clear them before
+        # clinics or the clinic delete trips the FK constraint.
+        await db.execute(
+            AuditLog.__table__.delete().where(
+                AuditLog.__table__.c.clinic_id.in_(seed_clinic_ids)
+            )
+        )
+        await db.execute(
+            AiInvocation.__table__.delete().where(
+                AiInvocation.__table__.c.clinic_id.in_(seed_clinic_ids)
+            )
+        )
         await db.execute(
             Patient.__table__.delete().where(
                 Patient.__table__.c.clinic_id.in_(seed_clinic_ids)

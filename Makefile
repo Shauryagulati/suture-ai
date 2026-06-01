@@ -111,6 +111,12 @@ migrate-down:
 seed:
 	PYTHONPATH=apps/api uv --project apps/api run python -m seeds.scripts.seed_dev
 
+# Push synthetic PDFs through the real API pipeline (upload -> classify ->
+# extract -> approve -> workflow) so the inbox, review queue, tasks, outreach,
+# and analytics are populated. Requires the API + Ollama running.
+seed-documents:
+	PYTHONPATH=apps/api uv --project apps/api run python -m seeds.scripts.seed_documents
+
 # Run structured-extraction eval against the synthetic corpus.
 eval-extraction:
 	PYTHONPATH=apps/api:. uv --project apps/api run python -m ai.evals.eval_extraction --limit 50

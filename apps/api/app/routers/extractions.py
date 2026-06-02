@@ -353,8 +353,17 @@ async def _approve_referral(
     db.add(referral)
     await db.flush()
 
+    # Approval IS the human review, so engage the workflow the same way
+    # discharge approval does (_approve_discharge → patient_contacted):
+    # advance to ready_to_schedule, which is the transition that generates
+    # tasks + schedules outreach (state_machine.apply_referral_transition).
+    # The FSM forbids new → ready_to_schedule directly, so step through the
+    # mandatory needs_review waypoint first.
     try:
         await apply_referral_transition(db, referral=referral, target=ReferralStatus.needs_review)
+        await apply_referral_transition(
+            db, referral=referral, target=ReferralStatus.ready_to_schedule
+        )
     except InvalidTransitionError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 

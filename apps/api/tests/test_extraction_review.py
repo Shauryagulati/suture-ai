@@ -449,15 +449,40 @@ async def test_approve_referral_creates_referral_and_patient(
     assert body["patient_created"] is True
     assert body["provider_created"] is True
 
+    from app.models.outreach_attempt import OutreachAttempt
+    from app.models.referral_task import ReferralTask
+
     tok = current_clinic_id.set(clinic_a)
     try:
         referrals = (await db_session.execute(select(Referral))).scalars().all()
         patients = (await db_session.execute(select(Patient))).scalars().all()
+        ref = referrals[0]
+        tasks = (
+            (
+                await db_session.execute(
+                    select(ReferralTask).where(ReferralTask.referral_id == ref.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
+        outreach = (
+            (
+                await db_session.execute(
+                    select(OutreachAttempt).where(OutreachAttempt.referral_id == ref.id)
+                )
+            )
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(tok)
     assert len(referrals) == 1
-    ref = referrals[0]
-    assert ref.status == ReferralStatus.needs_review
+    # Approval engages the workflow: advance through needs_review to
+    # ready_to_schedule, which generates tasks and schedules outreach.
+    assert ref.status == ReferralStatus.ready_to_schedule
+    assert len(tasks) > 0, "referral approval should generate tasks"
+    assert len(outreach) > 0, "referral approval should schedule outreach"
     assert ref.diagnosis_codes == ["R07.9"]
     assert ref.procedure_codes == ["93015"]
 

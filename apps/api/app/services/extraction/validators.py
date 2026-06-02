@@ -13,6 +13,64 @@ _ICD10_RE = re.compile(r"^[A-Z]\d{2}(\.\d{1,4})?$")
 _CPT_RE = re.compile(r"^\d{5}$")
 _ZIP_RE = re.compile(r"^\d{5}(-\d{4})?$")
 
+# Canonical US states + DC. The extractor emits either the USPS two-letter
+# code ("PA") or the full name ("Pennsylvania"); both are valid.
+_US_STATES: dict[str, str] = {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "DC": "District of Columbia",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PA": "Pennsylvania",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming",
+}
+_STATE_ABBREVS: frozenset[str] = frozenset(_US_STATES)
+_STATE_NAMES: frozenset[str] = frozenset(name.upper() for name in _US_STATES.values())
+
 
 def is_valid_icd10(code: str) -> bool:
     if not isinstance(code, str):
@@ -84,6 +142,11 @@ def is_valid_date(s: str) -> bool:
 
 
 def is_valid_state(s: str) -> bool:
+    """Accept a real USPS two-letter code ("PA") or a full state name
+    ("Pennsylvania"), case-insensitively. Rejects bogus two-letter strings
+    like "ZZ" that the old length/uppercase-only check let through.
+    """
     if not isinstance(s, str):
         return False
-    return len(s) == 2 and s.isupper() and s.isalpha()
+    candidate = s.strip()
+    return candidate.upper() in _STATE_ABBREVS or candidate.upper() in _STATE_NAMES

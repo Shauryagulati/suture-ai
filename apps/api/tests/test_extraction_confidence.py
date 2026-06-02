@@ -111,13 +111,26 @@ def test_date_rejects_non_iso(date: object) -> None:
     assert is_valid_date(date) is False  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize("state", ["PA", "NY", "CA"])
-def test_state_accepts_two_letter_uppercase(state: str) -> None:
+@pytest.mark.parametrize(
+    "state",
+    [
+        "PA",
+        "NY",
+        "CA",
+        "pa",  # case-insensitive abbreviation
+        "Pennsylvania",  # full name
+        "pennsylvania",  # full name, lowercase
+        "New York",  # multi-word full name
+        " PA ",  # surrounding whitespace
+    ],
+)
+def test_state_accepts_codes_and_names(state: str) -> None:
     assert is_valid_state(state) is True
 
 
-@pytest.mark.parametrize("state", ["pa", "PAA", "P", "Pennsylvania", "", None, "P1"])
+@pytest.mark.parametrize("state", ["ZZ", "XX", "PAA", "P", "Pennsylvanai", "", None, "P1"])
 def test_state_rejects_non_canonical(state: object) -> None:
+    # "ZZ"/"XX" are the regression the old length-only check let through.
     assert is_valid_state(state) is False  # type: ignore[arg-type]
 
 

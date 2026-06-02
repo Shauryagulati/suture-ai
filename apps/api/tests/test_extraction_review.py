@@ -449,6 +449,7 @@ async def test_approve_referral_creates_referral_and_patient(
     assert body["patient_created"] is True
     assert body["provider_created"] is True
 
+    from app.models.insurance_policy import InsurancePolicy
     from app.models.outreach_attempt import OutreachAttempt
     from app.models.referral_task import ReferralTask
 
@@ -475,6 +476,15 @@ async def test_approve_referral_creates_referral_and_patient(
             .scalars()
             .all()
         )
+        policies = (
+            (
+                await db_session.execute(
+                    select(InsurancePolicy).where(InsurancePolicy.patient_id == ref.patient_id)
+                )
+            )
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(tok)
     assert len(referrals) == 1
@@ -483,6 +493,11 @@ async def test_approve_referral_creates_referral_and_patient(
     assert ref.status == ReferralStatus.ready_to_schedule
     assert len(tasks) > 0, "referral approval should generate tasks"
     assert len(outreach) > 0, "referral approval should schedule outreach"
+    # Extracted primary insurance is persisted so prior-auth packets work.
+    assert len(policies) == 1
+    assert policies[0].is_primary is True
+    assert policies[0].payer_name == "Highmark BCBS PA"
+    assert policies[0].member_id == "LBC104332181"  # decrypts via EncryptedString
     assert ref.diagnosis_codes == ["R07.9"]
     assert ref.procedure_codes == ["93015"]
 

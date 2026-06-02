@@ -45,6 +45,7 @@ from app.services.extraction.confidence import compute_field_confidences
 from app.services.extraction.resolvers import (
     ExtractionResolverError,
     resolve_or_create_patient,
+    resolve_or_create_primary_insurance,
     resolve_or_create_referring_provider,
 )
 from app.services.workflow.state_machine import (
@@ -338,6 +339,9 @@ async def _approve_referral(
 
     patient, patient_created = await resolve_or_create_patient(db, patient_dict)
     provider, provider_created = await resolve_or_create_referring_provider(db, provider_dict)
+    # Persist extracted primary insurance so the prior-auth packet has a
+    # policy on file. Optional — never blocks approval if absent.
+    await resolve_or_create_primary_insurance(db, patient, data.get("insurance"))
 
     referral = Referral(
         document_id=doc.id,

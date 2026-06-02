@@ -58,7 +58,12 @@ class OllamaProvider(LLMProvider):
             "system": system,
             "prompt": self._maybe_no_think(prompt),
             "stream": False,
-            "options": {"num_predict": max_tokens},
+            # temperature=0 makes non-streaming generation reproducible. Without
+            # it, MedGemma occasionally derails into prose or truncated JSON for
+            # the same prompt — fine for chat, fatal for an eval harness that
+            # needs comparable runs across prompt versions. The streaming/voice
+            # path deliberately omits this.
+            "options": {"num_predict": max_tokens, "temperature": 0},
         }
         if fmt is not None:
             # Ollama constrained decoding: `"format": "json"` guarantees the
@@ -79,9 +84,7 @@ class OllamaProvider(LLMProvider):
         prompt: str,
         max_tokens: int = 1500,
     ) -> str:
-        return await self._post_generate(
-            system=system, prompt=prompt, max_tokens=max_tokens
-        )
+        return await self._post_generate(system=system, prompt=prompt, max_tokens=max_tokens)
 
     async def extract_json(
         self,

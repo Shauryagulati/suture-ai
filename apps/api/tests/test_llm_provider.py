@@ -120,3 +120,20 @@ async def test_ollama_generate_omits_constrained_format() -> None:
     provider = _ollama_with_mock(handler)
     await provider.generate(system="s", prompt="p", max_tokens=100)
     assert "format" not in captured["body"]
+
+
+async def test_ollama_non_streaming_is_deterministic() -> None:
+    # Both generate() and extract_json() go through _post_generate, which must
+    # request temperature=0 so eval runs are reproducible across prompt versions.
+    captured: dict[str, Any] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"response": '{"ok": true}'})
+
+    provider = _ollama_with_mock(handler)
+    await provider.generate(system="s", prompt="p", max_tokens=100)
+    assert captured["body"]["options"]["temperature"] == 0
+
+    await provider.extract_json(system="s", prompt="p", max_tokens=100)
+    assert captured["body"]["options"]["temperature"] == 0

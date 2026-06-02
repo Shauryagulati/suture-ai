@@ -85,13 +85,9 @@ async def _load_context(
     return discharge, patient, clinic, appt, provider, contact
 
 
-async def generate_confirmation_pdf(
-    db: AsyncSession, discharge_id: UUID
-) -> bytes:
+async def generate_confirmation_pdf(db: AsyncSession, discharge_id: UUID) -> bytes:
     """Render the confirmation-fax PDF for `discharge_id`. Returns bytes."""
-    discharge, patient, clinic, appt, provider, contact = await _load_context(
-        db, discharge_id
-    )
+    discharge, patient, clinic, appt, provider, contact = await _load_context(db, discharge_id)
 
     buf = io.BytesIO()
     doc = SimpleDocTemplate(
@@ -162,8 +158,7 @@ async def generate_confirmation_pdf(
     elements.append(Paragraph("Follow-Up Appointment", s["h2"]))
     if appt is not None:
         provider_line = (
-            f"{provider.first_name} {provider.last_name}, "
-            f"{provider.specialty or 'Cardiology'}"
+            f"{provider.first_name} {provider.last_name}, {provider.specialty or 'Cardiology'}"
             if provider is not None
             else "—"
         )
@@ -190,7 +185,11 @@ async def generate_confirmation_pdf(
             [
                 (
                     "Practice",
-                    (provider.practice_name if provider and provider.practice_name else clinic.name),
+                    (
+                        provider.practice_name
+                        if provider and provider.practice_name
+                        else clinic.name
+                    ),
                 ),
                 (
                     "Phone",

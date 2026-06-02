@@ -1,4 +1,5 @@
 """Phase 7 — Celery worker runs process_document_workflow in eager mode."""
+
 from __future__ import annotations
 
 import pytest
@@ -12,6 +13,7 @@ async def test_process_document_workflow_eagerly_runs_transition(
     db_session, seeded_referral_a, two_clinics, test_user, set_clinic_context
 ):
     from services.workers.app import celery_app
+
     celery_app.conf.task_always_eager = True
     celery_app.conf.task_eager_propagates = True
 
@@ -33,9 +35,7 @@ async def test_process_document_workflow_eagerly_runs_transition(
         tasks = (
             (
                 await db_session.execute(
-                    select(ReferralTask).where(
-                        ReferralTask.referral_id == seeded_referral_a.id
-                    )
+                    select(ReferralTask).where(ReferralTask.referral_id == seeded_referral_a.id)
                 )
             )
             .scalars()

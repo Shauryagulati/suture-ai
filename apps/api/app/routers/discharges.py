@@ -1,4 +1,5 @@
 """DischargeSummary endpoints — detail, transition, timeline, confirm, fax download."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -32,9 +33,7 @@ router = APIRouter(prefix="/api/discharges", tags=["discharges"])
 
 async def _get_discharge_or_404(session: AsyncSession, discharge_id: UUID) -> DischargeSummary:
     ds = (
-        await session.execute(
-            select(DischargeSummary).where(DischargeSummary.id == discharge_id)
-        )
+        await session.execute(select(DischargeSummary).where(DischargeSummary.id == discharge_id))
     ).scalar_one_or_none()
     if ds is None:
         raise HTTPException(
@@ -55,9 +54,7 @@ async def get_discharge(
     ).scalar_one_or_none()
     if patient is None:
         # Patient FK is RESTRICT — should never happen, but fail loud if it does.
-        raise HTTPException(
-            status_code=http_status.HTTP_404_NOT_FOUND, detail="patient not found"
-        )
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="patient not found")
     await db.run_sync(
         lambda sync_session: track_view(
             sync_session.connection(),
@@ -96,9 +93,7 @@ async def transition_discharge(
     try:
         await apply_discharge_transition(db, discharge=ds, target=body.target)
     except InvalidTransitionError as exc:
-        raise HTTPException(
-            status_code=http_status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+        raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     await db.commit()
     await db.refresh(ds)
     return TransitionResponse(id=ds.id, status=ds.status.value)
@@ -116,18 +111,13 @@ async def confirm_discharge(
         raise HTTPException(
             status_code=http_status.HTTP_409_CONFLICT,
             detail=(
-                f"can only confirm a discharge in status=seen; "
-                f"current status={ds.status.value}"
+                f"can only confirm a discharge in status=seen; current status={ds.status.value}"
             ),
         )
     try:
-        await apply_discharge_transition(
-            db, discharge=ds, target=DischargeStatus.confirmation_sent
-        )
+        await apply_discharge_transition(db, discharge=ds, target=DischargeStatus.confirmation_sent)
     except InvalidTransitionError as exc:
-        raise HTTPException(
-            status_code=http_status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+        raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     await db.commit()
     await db.refresh(ds)
     return ConfirmDischargeResponse(
@@ -169,9 +159,7 @@ async def download_confirmation_fax(
         content=path.read_bytes(),
         media_type="application/pdf",
         headers={
-            "Content-Disposition": (
-                f'attachment; filename="discharge-{ds.id}-confirmation.pdf"'
-            ),
+            "Content-Disposition": (f'attachment; filename="discharge-{ds.id}-confirmation.pdf"'),
         },
     )
 

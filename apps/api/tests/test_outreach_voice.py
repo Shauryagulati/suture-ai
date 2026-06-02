@@ -82,9 +82,7 @@ async def test_initiate_voice_creates_call_placeholder(
         await db_session.commit()
 
         call = (
-            await db_session.execute(
-                select(Call).where(Call.outreach_attempt_id == attempt.id)
-            )
+            await db_session.execute(select(Call).where(Call.outreach_attempt_id == attempt.id))
         ).scalar_one()
 
     assert result.delivered is True
@@ -132,9 +130,7 @@ async def test_initiate_voice_rejects_non_voice_attempt(
         scheduled_at=datetime.now(UTC),
         outcome={},
     )
-    patient = Patient(
-        first_name="Pat", last_name="X", dob="1970-01-01", phone="412-555-0000"
-    )
+    patient = Patient(first_name="Pat", last_name="X", dob="1970-01-01", phone="412-555-0000")
     with pytest.raises(ValueError, match="channel=voice"):
         await initiate_voice_call(
             db_session,

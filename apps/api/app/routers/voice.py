@@ -142,9 +142,7 @@ async def get_patient_token(
         raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="call not found")
     patient = await db.get(Patient, call.patient_id)
     if patient is None:
-        raise HTTPException(
-            status_code=http_status.HTTP_404_NOT_FOUND, detail="patient not found"
-        )
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="patient not found")
     settings = get_settings()
     client = _livekit_client()
     try:
@@ -251,7 +249,9 @@ async def stream_transcript(
     """
     await websocket.accept()
     try:
-        user = await get_current_user_ws(websocket=websocket, token=websocket.query_params.get("token"))
+        user = await get_current_user_ws(
+            websocket=websocket, token=websocket.query_params.get("token")
+        )
     except WebSocketAuthError as e:
         await websocket.close(code=e.code, reason=e.reason)
         return

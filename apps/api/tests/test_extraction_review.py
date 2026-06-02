@@ -269,13 +269,17 @@ async def test_detail_returns_full_payload_and_writes_audit(
     tok = current_clinic_id.set(clinic_a)
     try:
         rows = (
-            await db_session.execute(
-                select(AuditLog).where(
-                    AuditLog.resource_type == "document_extractions",
-                    AuditLog.action == "view",
+            (
+                await db_session.execute(
+                    select(AuditLog).where(
+                        AuditLog.resource_type == "document_extractions",
+                        AuditLog.action == "view",
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(tok)
     assert len(rows) == 1
@@ -447,9 +451,7 @@ async def test_approve_referral_creates_referral_and_patient(
 
     tok = current_clinic_id.set(clinic_a)
     try:
-        referrals = (
-            await db_session.execute(select(Referral))
-        ).scalars().all()
+        referrals = (await db_session.execute(select(Referral))).scalars().all()
         patients = (await db_session.execute(select(Patient))).scalars().all()
     finally:
         current_clinic_id.reset(tok)
@@ -565,19 +567,25 @@ async def test_approve_discharge_creates_summary_and_advances_to_patient_contact
         assert dis.urgency_tier.value == "critical"
 
         tasks = (
-            await db_session.execute(
-                select(ReferralTask).where(ReferralTask.discharge_summary_id == dis.id)
+            (
+                await db_session.execute(
+                    select(ReferralTask).where(ReferralTask.discharge_summary_id == dis.id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(tasks) == 4
 
         attempts = (
-            await db_session.execute(
-                select(OutreachAttempt).where(
-                    OutreachAttempt.discharge_summary_id == dis.id
+            (
+                await db_session.execute(
+                    select(OutreachAttempt).where(OutreachAttempt.discharge_summary_id == dis.id)
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(attempts) == 3
     finally:
         current_clinic_id.reset(tok)
@@ -675,14 +683,18 @@ async def test_patch_writes_update_audit_row(
     tok = current_clinic_id.set(clinic_a)
     try:
         rows = (
-            await db_session.execute(
-                select(AuditLog).where(
-                    AuditLog.resource_type == "document_extractions",
-                    AuditLog.action == "update",
-                    AuditLog.resource_id == ext.id,
+            (
+                await db_session.execute(
+                    select(AuditLog).where(
+                        AuditLog.resource_type == "document_extractions",
+                        AuditLog.action == "update",
+                        AuditLog.resource_id == ext.id,
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(tok)
     assert len(rows) >= 1

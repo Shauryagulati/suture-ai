@@ -1,5 +1,6 @@
 """Aggregate audit_logs rows for a workflow item (referral or discharge)
 and its child tasks into a chronological event list."""
+
 from __future__ import annotations
 
 from typing import Any
@@ -37,16 +38,13 @@ async def _events_for_resource(
     ]
     if task_ids:
         conditions.append(
-            (AuditLog.resource_type == "referral_tasks")
-            & (AuditLog.resource_id.in_(task_ids))
+            (AuditLog.resource_type == "referral_tasks") & (AuditLog.resource_id.in_(task_ids))
         )
 
     rows = (
         (
             await session.execute(
-                select(AuditLog)
-                .where(or_(*conditions))
-                .order_by(AuditLog.timestamp.asc())
+                select(AuditLog).where(or_(*conditions)).order_by(AuditLog.timestamp.asc())
             )
         )
         .scalars()
@@ -101,9 +99,7 @@ async def _outreach_events_for_parent(
                 metadata={
                     "channel": r.channel.value,
                     "attempt_number": r.attempt_number,
-                    "scheduling_link_clicked": bool(
-                        outcome.get("scheduling_link_clicked", False)
-                    ),
+                    "scheduling_link_clicked": bool(outcome.get("scheduling_link_clicked", False)),
                     "backfill_offered": bool(outcome.get("backfill_offered", False)),
                 },
             )

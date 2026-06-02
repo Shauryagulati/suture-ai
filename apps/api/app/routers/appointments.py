@@ -60,9 +60,7 @@ async def cancel_appointment(
     )
 
 
-@router.post(
-    "/{appointment_id}/complete", response_model=AppointmentCompleteResponse
-)
+@router.post("/{appointment_id}/complete", response_model=AppointmentCompleteResponse)
 async def complete_appointment(
     appointment_id: UUID,
     user: CurrentUser = Depends(get_current_user),
@@ -86,9 +84,7 @@ async def complete_appointment(
         if appt.discharge_summary_id is not None:
             d = (
                 await db.execute(
-                    select(DischargeSummary).where(
-                        DischargeSummary.id == appt.discharge_summary_id
-                    )
+                    select(DischargeSummary).where(DischargeSummary.id == appt.discharge_summary_id)
                 )
             ).scalar_one_or_none()
             if d is not None:
@@ -104,15 +100,10 @@ async def complete_appointment(
     if appt.discharge_summary_id is not None:
         discharge = (
             await db.execute(
-                select(DischargeSummary).where(
-                    DischargeSummary.id == appt.discharge_summary_id
-                )
+                select(DischargeSummary).where(DischargeSummary.id == appt.discharge_summary_id)
             )
         ).scalar_one_or_none()
-        if (
-            discharge is not None
-            and discharge.status == DischargeStatus.scheduled
-        ):
+        if discharge is not None and discharge.status == DischargeStatus.scheduled:
             try:
                 await apply_discharge_transition(
                     db, discharge=discharge, target=DischargeStatus.seen

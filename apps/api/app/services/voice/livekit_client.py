@@ -47,8 +47,7 @@ class LiveKitClient:
     def __init__(self, *, url: str, api_key: str, api_secret: str) -> None:
         if not (url and api_key and api_secret):
             raise ValueError(
-                "LiveKitClient requires url, api_key, api_secret — "
-                "run `make gen-livekit-keys`."
+                "LiveKitClient requires url, api_key, api_secret — run `make gen-livekit-keys`."
             )
         self.url = url
         self.api_key = api_key

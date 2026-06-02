@@ -1,4 +1,5 @@
 """Referral transition + timeline endpoints."""
+
 from __future__ import annotations
 
 from uuid import UUID
@@ -30,9 +31,7 @@ async def _get_referral_or_404(session: AsyncSession, referral_id: UUID) -> Refe
         await session.execute(select(Referral).where(Referral.id == referral_id))
     ).scalar_one_or_none()
     if referral is None:
-        raise HTTPException(
-            status_code=http_status.HTTP_404_NOT_FOUND, detail="referral not found"
-        )
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="referral not found")
     return referral
 
 
@@ -47,9 +46,7 @@ async def transition_referral(
     try:
         await apply_referral_transition(db, referral=referral, target=body.target)
     except InvalidTransitionError as exc:
-        raise HTTPException(
-            status_code=http_status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+        raise HTTPException(status_code=http_status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     await db.commit()
     await db.refresh(referral)
     return TransitionResponse(id=referral.id, status=referral.status.value)

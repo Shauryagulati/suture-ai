@@ -1,4 +1,5 @@
 """Phase 0 — ReferralTask must be in AUDITED_MODELS and emit audit rows."""
+
 from __future__ import annotations
 
 from uuid import uuid4

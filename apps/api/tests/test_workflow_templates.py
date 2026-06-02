@@ -1,4 +1,5 @@
 """Phase 2 — Referral and discharge task templates."""
+
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError

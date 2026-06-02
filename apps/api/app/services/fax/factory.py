@@ -24,9 +24,7 @@ def get_fax_provider() -> FaxProvider:
     if name == "stub":
         return StubFaxProvider()
 
-    raise ValueError(
-        f"Unknown FAX_PROVIDER={name!r}; expected one of: stub"
-    )
+    raise ValueError(f"Unknown FAX_PROVIDER={name!r}; expected one of: stub")
 
 
 def reset_fax_provider_cache() -> None:

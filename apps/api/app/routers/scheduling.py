@@ -42,9 +42,7 @@ def _decode_or_401(token: str) -> dict[str, str | None]:
     try:
         return decode_scheduling_token(token)
     except JwtError as exc:
-        raise HTTPException(
-            status_code=http_status.HTTP_401_UNAUTHORIZED, detail=str(exc)
-        ) from exc
+        raise HTTPException(status_code=http_status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
 
 
 @router.get("/{token}", response_model=AvailableSlotsResponse)
@@ -58,9 +56,7 @@ async def get_available_slots(
     cid_token = current_clinic_id.set(clinic_id)
     try:
         patient = (
-            await db.execute(
-                select(Patient).where(Patient.id == UUID(claims["patient_id"]))
-            )
+            await db.execute(select(Patient).where(Patient.id == UUID(claims["patient_id"])))
         ).scalar_one_or_none()
         if patient is None:
             raise HTTPException(
@@ -72,9 +68,7 @@ async def get_available_slots(
             outreach_attempt_id=UUID(claims["outreach_attempt_id"]),
             referral_id=UUID(claims["referral_id"]) if claims.get("referral_id") else None,
             discharge_summary_id=(
-                UUID(claims["discharge_summary_id"])
-                if claims.get("discharge_summary_id")
-                else None
+                UUID(claims["discharge_summary_id"]) if claims.get("discharge_summary_id") else None
             ),
         )
     finally:
@@ -100,9 +94,7 @@ async def book_slot(
             provider_id=provider_id,
             referral_id=UUID(claims["referral_id"]) if claims.get("referral_id") else None,
             discharge_summary_id=(
-                UUID(claims["discharge_summary_id"])
-                if claims.get("discharge_summary_id")
-                else None
+                UUID(claims["discharge_summary_id"]) if claims.get("discharge_summary_id") else None
             ),
             appointment_at=body.slot,
             appointment_type=body.appointment_type,
@@ -140,9 +132,7 @@ async def book_slot(
                 apply_discharge_transition,
             )
 
-            discharge = await db.get(
-                DischargeSummary, UUID(claims["discharge_summary_id"])
-            )
+            discharge = await db.get(DischargeSummary, UUID(claims["discharge_summary_id"]))
             if discharge is not None and discharge.status == DischargeStatus.patient_contacted:
                 try:
                     await apply_discharge_transition(
@@ -172,9 +162,7 @@ async def _pick_provider(db: AsyncSession, claims: dict[str, str | None]) -> UUI
     providers configured."""
     if claims.get("referral_id"):
         referral = (
-            await db.execute(
-                select(Referral).where(Referral.id == UUID(claims["referral_id"]))
-            )
+            await db.execute(select(Referral).where(Referral.id == UUID(claims["referral_id"])))
         ).scalar_one_or_none()
         if referral is not None and referral.assigned_provider_id is not None:
             return referral.assigned_provider_id

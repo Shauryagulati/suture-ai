@@ -97,9 +97,7 @@ async def test_patient_creates_when_mrn_missing(
 ) -> None:
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        patient, created = await resolve_or_create_patient(
-            db_session, _patient_dict(mrn=None)
-        )
+        patient, created = await resolve_or_create_patient(db_session, _patient_dict(mrn=None))
         assert created is True
         assert patient.mrn is None
         await db_session.commit()
@@ -151,9 +149,7 @@ async def test_provider_creates_when_npi_not_found(
 ) -> None:
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        provider, created = await resolve_or_create_referring_provider(
-            db_session, _provider_dict()
-        )
+        provider, created = await resolve_or_create_referring_provider(db_session, _provider_dict())
         assert created is True
         assert provider is not None
         assert provider.npi == "2423884966"
@@ -171,9 +167,7 @@ async def test_provider_returns_existing_match(
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
         first, _ = await resolve_or_create_referring_provider(db_session, _provider_dict())
         await db_session.commit()
-        second, created = await resolve_or_create_referring_provider(
-            db_session, _provider_dict()
-        )
+        second, created = await resolve_or_create_referring_provider(db_session, _provider_dict())
         assert created is False
         assert second is not None
         assert second.id == first.id
@@ -229,9 +223,7 @@ async def test_provider_lookup_filtered_by_referring_type(
         )
         await db_session.commit()
 
-        provider, created = await resolve_or_create_referring_provider(
-            db_session, _provider_dict()
-        )
+        provider, created = await resolve_or_create_referring_provider(db_session, _provider_dict())
         assert created is True
         assert provider is not None
         assert provider.provider_type == ProviderType.referring

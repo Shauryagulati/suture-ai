@@ -100,9 +100,7 @@ async def _seed_ready_to_schedule_referral(
     await db.flush()
     if created_at_offset_minutes:
         # created_at is server_default=now() — override via direct SQL update.
-        referral.created_at = datetime.now(UTC) - timedelta(
-            minutes=abs(created_at_offset_minutes)
-        )
+        referral.created_at = datetime.now(UTC) - timedelta(minutes=abs(created_at_offset_minutes))
         await db.flush()
     return referral
 
@@ -115,9 +113,7 @@ async def test_offer_cancelled_slot_creates_backfill_sms_for_oldest_referral(
 ) -> None:
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        patient, provider = await _seed_patient_and_provider(
-            db_session, clinic_a_id, suffix="10"
-        )
+        patient, provider = await _seed_patient_and_provider(db_session, clinic_a_id, suffix="10")
         appt = await _seed_appointment(db_session, clinic_a_id, patient, provider)
         # Three at-risk patients with different created_at ages.
         for i, age_minutes in enumerate([300, 200, 100]):
@@ -149,9 +145,7 @@ async def test_offer_cancelled_slot_excludes_appointment_patient(
 ) -> None:
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        patient, provider = await _seed_patient_and_provider(
-            db_session, clinic_a_id, suffix="11"
-        )
+        patient, provider = await _seed_patient_and_provider(db_session, clinic_a_id, suffix="11")
         appt = await _seed_appointment(db_session, clinic_a_id, patient, provider)
         # The cancelled appointment's patient is ALSO ready_to_schedule
         # (perhaps they have a separate active referral).
@@ -164,9 +158,7 @@ async def test_offer_cancelled_slot_excludes_appointment_patient(
         )
         db_session.add(self_referral)
         # Plus one other at-risk patient.
-        other_ref = await _seed_ready_to_schedule_referral(
-            db_session, clinic_a_id, suffix="12"
-        )
+        other_ref = await _seed_ready_to_schedule_referral(db_session, clinic_a_id, suffix="12")
         await db_session.commit()
 
         offers = await offer_cancelled_slot(db_session, appointment_id=appt.id)
@@ -184,14 +176,10 @@ async def test_offer_cancelled_slot_respects_top_n(
 ) -> None:
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        patient, provider = await _seed_patient_and_provider(
-            db_session, clinic_a_id, suffix="13"
-        )
+        patient, provider = await _seed_patient_and_provider(db_session, clinic_a_id, suffix="13")
         appt = await _seed_appointment(db_session, clinic_a_id, patient, provider)
         for i in range(6):
-            await _seed_ready_to_schedule_referral(
-                db_session, clinic_a_id, suffix=f"2{i:02d}"
-            )
+            await _seed_ready_to_schedule_referral(db_session, clinic_a_id, suffix=f"2{i:02d}")
         await db_session.commit()
 
         offers = await offer_cancelled_slot(db_session, appointment_id=appt.id, top_n=2)
@@ -209,9 +197,7 @@ async def test_cancel_appointment_endpoint_triggers_backfill(
 ) -> None:
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        patient, provider = await _seed_patient_and_provider(
-            db_session, clinic_a_id, suffix="14"
-        )
+        patient, provider = await _seed_patient_and_provider(db_session, clinic_a_id, suffix="14")
         appt = await _seed_appointment(db_session, clinic_a_id, patient, provider)
         await _seed_ready_to_schedule_referral(db_session, clinic_a_id, suffix="33")
         await db_session.commit()
@@ -229,9 +215,7 @@ async def test_cancel_appointment_endpoint_triggers_backfill(
             (
                 await db_session.execute(
                     select(OutreachAttempt).where(
-                        OutreachAttempt.id.in_(
-                            [UUID(s) for s in body["backfill_attempt_ids"]]
-                        )
+                        OutreachAttempt.id.in_([UUID(s) for s in body["backfill_attempt_ids"]])
                     )
                 )
             )
@@ -251,9 +235,7 @@ async def test_cancel_appointment_cross_clinic_returns_404(
 ) -> None:
     clinic_a_id, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
-        patient, provider = await _seed_patient_and_provider(
-            db_session, clinic_a_id, suffix="15"
-        )
+        patient, provider = await _seed_patient_and_provider(db_session, clinic_a_id, suffix="15")
         appt = await _seed_appointment(db_session, clinic_a_id, patient, provider)
         await db_session.commit()
 

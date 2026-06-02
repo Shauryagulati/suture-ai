@@ -1,4 +1,5 @@
 """Task management endpoints."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -65,10 +66,14 @@ async def list_tasks(
         )
     count_result = await db.execute(count_stmt)
     total = int(count_result.scalar_one())
-    stmt = stmt.order_by(
-        ReferralTask.due_at.asc().nulls_last(),
-        ReferralTask.created_at.desc(),
-    ).limit(limit).offset(offset)
+    stmt = (
+        stmt.order_by(
+            ReferralTask.due_at.asc().nulls_last(),
+            ReferralTask.created_at.desc(),
+        )
+        .limit(limit)
+        .offset(offset)
+    )
 
     rows = (await db.execute(stmt)).scalars().all()
     return TaskListResponse(

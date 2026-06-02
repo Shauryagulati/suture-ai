@@ -75,9 +75,7 @@ async def test_concurrent_streams_share_loaded_voice(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(PiperTTS, "_ensure_model_files", lambda self: (Path("x"), Path("y")))
     fake_pv = type("FakePV", (), {"load": staticmethod(fake_load)})
     monkeypatch.setattr(tts_module, "PiperVoice", fake_pv)
-    monkeypatch.setattr(
-        PiperTTS, "_synthesize_all", staticmethod(lambda voice, text: [b"chunk"])
-    )
+    monkeypatch.setattr(PiperTTS, "_synthesize_all", staticmethod(lambda voice, text: [b"chunk"]))
 
     t = PiperTTS()
     await asyncio.gather(

@@ -97,21 +97,15 @@ async def test_schedule_sequence_creates_three_attempts_for_routine(
     now = datetime(2026, 6, 1, 9, 0, 0, tzinfo=UTC)
     with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
         referral = await _seed_referral(db_session, clinic_a_id, urgency=UrgencyLevel.routine)
-        attempts = await schedule_outreach_sequence(
-            db_session, referral=referral, now=now
-        )
+        attempts = await schedule_outreach_sequence(db_session, referral=referral, now=now)
         await db_session.commit()
 
     assert len(attempts) == 3
     by_channel = {a.channel: a for a in attempts}
     assert by_channel[OutreachChannel.sms].scheduled_at == now
     # Routine: SMS@0, email@+24h, voice@+48h
-    delta_email = (
-        by_channel[OutreachChannel.email].scheduled_at - now
-    ).total_seconds() / 3600
-    delta_voice = (
-        by_channel[OutreachChannel.voice].scheduled_at - now
-    ).total_seconds() / 3600
+    delta_email = (by_channel[OutreachChannel.email].scheduled_at - now).total_seconds() / 3600
+    delta_voice = (by_channel[OutreachChannel.voice].scheduled_at - now).total_seconds() / 3600
     assert delta_email == 24
     assert delta_voice == 48
 
@@ -128,19 +122,13 @@ async def test_schedule_sequence_compresses_for_critical_discharge(
         discharge = await _seed_discharge(
             db_session, clinic_a_id, urgency_tier=UrgencyTier.critical
         )
-        attempts = await schedule_outreach_sequence(
-            db_session, discharge=discharge, now=now
-        )
+        attempts = await schedule_outreach_sequence(db_session, discharge=discharge, now=now)
         await db_session.commit()
 
     by_channel = {a.channel: a for a in attempts}
     # Critical: SMS@0, email@+4h, voice@+8h
-    delta_email = (
-        by_channel[OutreachChannel.email].scheduled_at - now
-    ).total_seconds() / 3600
-    delta_voice = (
-        by_channel[OutreachChannel.voice].scheduled_at - now
-    ).total_seconds() / 3600
+    delta_email = (by_channel[OutreachChannel.email].scheduled_at - now).total_seconds() / 3600
+    delta_voice = (by_channel[OutreachChannel.voice].scheduled_at - now).total_seconds() / 3600
     assert delta_email == 4
     assert delta_voice == 8
 
@@ -182,9 +170,7 @@ async def test_schedule_sequence_idempotent_at_attempt_one(
         rows = (
             (
                 await db_session.execute(
-                    select(OutreachAttempt).where(
-                        OutreachAttempt.referral_id == referral.id
-                    )
+                    select(OutreachAttempt).where(OutreachAttempt.referral_id == referral.id)
                 )
             )
             .scalars()
@@ -209,22 +195,16 @@ async def test_schedule_sequence_re_trigger_with_higher_attempt_number(
         await schedule_outreach_sequence(db_session, referral=referral)
         await db_session.commit()
 
-        next_n = await next_attempt_number_for_referral(
-            db_session, referral_id=referral.id
-        )
+        next_n = await next_attempt_number_for_referral(db_session, referral_id=referral.id)
         assert next_n == 2
 
-        await schedule_outreach_sequence(
-            db_session, referral=referral, attempt_number=next_n
-        )
+        await schedule_outreach_sequence(db_session, referral=referral, attempt_number=next_n)
         await db_session.commit()
 
         rows = (
             (
                 await db_session.execute(
-                    select(OutreachAttempt).where(
-                        OutreachAttempt.referral_id == referral.id
-                    )
+                    select(OutreachAttempt).where(OutreachAttempt.referral_id == referral.id)
                 )
             )
             .scalars()

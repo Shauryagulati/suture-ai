@@ -32,9 +32,7 @@ def get_outreach_provider() -> OutreachProvider:
 
         return LiveKitOutreachProvider()
 
-    raise ValueError(
-        f"Unknown OUTREACH_PROVIDER={name!r}; expected one of: stub, livekit"
-    )
+    raise ValueError(f"Unknown OUTREACH_PROVIDER={name!r}; expected one of: stub, livekit")
 
 
 def reset_outreach_provider_cache() -> None:

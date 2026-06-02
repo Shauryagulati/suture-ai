@@ -75,9 +75,7 @@ async def schedule_outreach_sequence(
             existing_q = existing_q.where(OutreachAttempt.referral_id == referral.id)
         else:
             assert discharge is not None
-            existing_q = existing_q.where(
-                OutreachAttempt.discharge_summary_id == discharge.id
-            )
+            existing_q = existing_q.where(OutreachAttempt.discharge_summary_id == discharge.id)
         existing = (await session.execute(existing_q)).scalars().all()
         if existing:
             return list(existing)
@@ -112,18 +110,14 @@ async def schedule_outreach_sequence(
     return created
 
 
-async def execute_outreach_attempt(
-    session: AsyncSession, *, attempt_id: UUID
-) -> OutreachResult:
+async def execute_outreach_attempt(session: AsyncSession, *, attempt_id: UUID) -> OutreachResult:
     """Dispatch the attempt to the matching per-channel send service.
 
     Skips (returns delivered=False, error="not pending") if the attempt
     has already been sent or responded to — defensive against double
     delivery if the beat task fires twice."""
     attempt = (
-        await session.execute(
-            select(OutreachAttempt).where(OutreachAttempt.id == attempt_id)
-        )
+        await session.execute(select(OutreachAttempt).where(OutreachAttempt.id == attempt_id))
     ).scalar_one()
     if attempt.status != OutreachStatus.pending:
         log.info(
@@ -191,18 +185,14 @@ async def _resolve_urgency(
     config has a sensible default for that case."""
     if attempt.referral_id is not None:
         ref = (
-            await session.execute(
-                select(Referral).where(Referral.id == attempt.referral_id)
-            )
+            await session.execute(select(Referral).where(Referral.id == attempt.referral_id))
         ).scalar_one_or_none()
         if ref is not None:
             return ref.urgency
     if attempt.discharge_summary_id is not None:
         disc = (
             await session.execute(
-                select(DischargeSummary).where(
-                    DischargeSummary.id == attempt.discharge_summary_id
-                )
+                select(DischargeSummary).where(DischargeSummary.id == attempt.discharge_summary_id)
             )
         ).scalar_one_or_none()
         if disc is not None:
@@ -210,9 +200,7 @@ async def _resolve_urgency(
     return UrgencyLevel.unclassified
 
 
-async def next_attempt_number_for_referral(
-    session: AsyncSession, *, referral_id: UUID
-) -> int:
+async def next_attempt_number_for_referral(session: AsyncSession, *, referral_id: UUID) -> int:
     """Return the next attempt_number to use for re-triggering outreach
     on the given referral. Used by the manual trigger endpoint."""
     rows = (
@@ -229,9 +217,7 @@ async def next_attempt_number_for_referral(
     return (max(rows) + 1) if rows else 1
 
 
-async def next_attempt_number_for_discharge(
-    session: AsyncSession, *, discharge_id: UUID
-) -> int:
+async def next_attempt_number_for_discharge(session: AsyncSession, *, discharge_id: UUID) -> int:
     rows = (
         (
             await session.execute(

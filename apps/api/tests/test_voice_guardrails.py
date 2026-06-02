@@ -53,9 +53,7 @@ def test_emergency_phrases_trip_emergency(rails: Guardrails, utterance: str) -> 
         "Can I adjust my warfarin if I forget a dose?",
     ],
 )
-def test_medical_advice_questions_trip_medical_advice(
-    rails: Guardrails, utterance: str
-) -> None:
+def test_medical_advice_questions_trip_medical_advice(rails: Guardrails, utterance: str) -> None:
     verdict = rails.evaluate(utterance)
     assert verdict is not None
     assert verdict.kind is GuardrailKind.MEDICAL_ADVICE

@@ -26,7 +26,9 @@ def _required(extracted: dict[str, Any], key: str, *, parent: str) -> str:
     if value is None or (isinstance(value, str) and not value.strip()):
         raise ExtractionResolverError(f"{parent}.{key} is required to create a row")
     if not isinstance(value, str):
-        raise ExtractionResolverError(f"{parent}.{key} must be a string, got {type(value).__name__}")
+        raise ExtractionResolverError(
+            f"{parent}.{key} must be a string, got {type(value).__name__}"
+        )
     return value.strip()
 
 

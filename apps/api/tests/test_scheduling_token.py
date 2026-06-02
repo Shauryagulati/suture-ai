@@ -80,9 +80,7 @@ async def test_decode_rejects_expired_token(monkeypatch: pytest.MonkeyPatch) -> 
         with pytest.raises(JwtError):
             decode_scheduling_token(token)
     finally:
-        monkeypatch.setattr(
-            settings, "scheduling_token_ttl_seconds", original_ttl, raising=False
-        )
+        monkeypatch.setattr(settings, "scheduling_token_ttl_seconds", original_ttl, raising=False)
 
 
 async def test_scheduling_token_carries_iat_and_exp_in_correct_order() -> None:

@@ -24,9 +24,7 @@ async def send_sms(
     """Send an SMS for the given attempt. Mutates `attempt` (status,
     sent_at, outcome) in place; caller commits."""
     if attempt.channel != OutreachChannel.sms:
-        raise ValueError(
-            f"send_sms expected channel=sms, got channel={attempt.channel.value!r}"
-        )
+        raise ValueError(f"send_sms expected channel=sms, got channel={attempt.channel.value!r}")
     provider = get_outreach_provider()
     rendered = render_sms(
         patient_first_name=patient.first_name,

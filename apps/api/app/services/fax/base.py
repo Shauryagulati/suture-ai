@@ -40,5 +40,4 @@ class FaxProvider(ABC):
     failures — return FaxResult(delivered=False, error=...) instead."""
 
     @abstractmethod
-    async def send_fax(self, request: FaxRequest) -> FaxResult:
-        ...
+    async def send_fax(self, request: FaxRequest) -> FaxResult: ...

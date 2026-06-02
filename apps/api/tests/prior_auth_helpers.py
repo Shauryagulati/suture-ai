@@ -25,7 +25,9 @@ VECTOR_DIM = 1024
 class FakeLLMProvider(LLMProvider):
     """Returns a fixed JSON string for every call. Records call args."""
 
-    response_text: str = '{"reasoning": "test reasoning", "confidence": 0.85, "supports_structured_result": true}'
+    response_text: str = (
+        '{"reasoning": "test reasoning", "confidence": 0.85, "supports_structured_result": true}'
+    )
     model: str = "fake-llm-v0"  # type: ignore[assignment]
     calls: list[dict[str, Any]] = field(default_factory=list)
 

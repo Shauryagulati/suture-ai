@@ -135,9 +135,7 @@ async def test_full_discharge_loop_walks_every_seam(
     try:
         ext = (
             await db_session.execute(
-                select(DocumentExtraction).where(
-                    DocumentExtraction.document_id == document_id
-                )
+                select(DocumentExtraction).where(DocumentExtraction.document_id == document_id)
             )
         ).scalar_one()
         extraction_id = ext.id
@@ -145,9 +143,7 @@ async def test_full_discharge_loop_walks_every_seam(
         current_clinic_id.reset(cid)
 
     # 3. Approve the extraction → discharge auto-transitions to patient_contacted.
-    r = await client.post(
-        f"/api/extractions/{extraction_id}/approve", headers=headers
-    )
+    r = await client.post(f"/api/extractions/{extraction_id}/approve", headers=headers)
     assert r.status_code == 200, r.text
     discharge_id = UUID(r.json()["discharge_summary_id"])
 
@@ -159,19 +155,25 @@ async def test_full_discharge_loop_walks_every_seam(
     cid = current_clinic_id.set(clinic_a)
     try:
         tasks = (
-            await db_session.execute(
-                select(ReferralTask).where(
-                    ReferralTask.discharge_summary_id == discharge_id
+            (
+                await db_session.execute(
+                    select(ReferralTask).where(ReferralTask.discharge_summary_id == discharge_id)
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         attempts = (
-            await db_session.execute(
-                select(OutreachAttempt)
-                .where(OutreachAttempt.discharge_summary_id == discharge_id)
-                .order_by(OutreachAttempt.attempt_number)
+            (
+                await db_session.execute(
+                    select(OutreachAttempt)
+                    .where(OutreachAttempt.discharge_summary_id == discharge_id)
+                    .order_by(OutreachAttempt.attempt_number)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(cid)
     assert len(tasks) == 4
@@ -202,16 +204,12 @@ async def test_full_discharge_loop_walks_every_seam(
     assert r.json()["status"] == "scheduled"
 
     # 7. Staff marks the appointment completed → discharge → seen.
-    r = await client.post(
-        f"/api/appointments/{appointment_id}/complete", headers=headers
-    )
+    r = await client.post(f"/api/appointments/{appointment_id}/complete", headers=headers)
     assert r.status_code == 200, r.text
     assert r.json()["discharge_status"] == "seen"
 
     # 8. Confirm the discharge → fires fax.
-    r = await client.post(
-        f"/api/discharges/{discharge_id}/confirm", headers=headers
-    )
+    r = await client.post(f"/api/discharges/{discharge_id}/confirm", headers=headers)
     assert r.status_code == 200, r.text
     assert r.json()["status"] == "confirmation_sent"
     assert r.json()["confirmation_fax_sent_at"] is not None
@@ -226,19 +224,17 @@ async def test_full_discharge_loop_walks_every_seam(
 
     # 10. Stub fax provider recorded exactly one send for this discharge.
     provider_inst = fax_factory.get_fax_provider()
-    matching = [
-        req for req in provider_inst.sent if req.discharge_summary_id == discharge_id
-    ]
+    matching = [req for req in provider_inst.sent if req.discharge_summary_id == discharge_id]
     assert len(matching) == 1
 
     # 11. Auditable Fax row at status=sent.
     cid = current_clinic_id.set(clinic_a)
     try:
         fax_rows = (
-            await db_session.execute(
-                select(Fax).where(Fax.patient_id == patient_id)
-            )
-        ).scalars().all()
+            (await db_session.execute(select(Fax).where(Fax.patient_id == patient_id)))
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(cid)
     assert len(fax_rows) == 1

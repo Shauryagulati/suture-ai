@@ -47,9 +47,7 @@ async def test_classification_writes_ai_invocation_row(
     patch_ocr(monkeypatch, text="some text")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "referral", "confidence": 0.8, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "referral", "confidence": 0.8, "reasoning": "r"}'),
         model="medgemma1.5",
     )
     token = await make_user_and_login(
@@ -96,9 +94,7 @@ async def test_ai_invocation_is_tenant_isolated(
     patch_ocr(monkeypatch, text="x")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "other", "confidence": 0.5, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "other", "confidence": 0.5, "reasoning": "r"}'),
     )
 
     token_a = await make_user_and_login(

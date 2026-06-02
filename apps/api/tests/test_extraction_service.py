@@ -219,10 +219,14 @@ async def test_extract_referral_writes_extraction_and_invocation(
 
         # AiInvocation row written with invocation_type=extraction.
         inv_rows = (
-            await db_session.execute(
-                select(AiInvocation).where(AiInvocation.document_id == doc.id)
+            (
+                await db_session.execute(
+                    select(AiInvocation).where(AiInvocation.document_id == doc.id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(inv_rows) == 1
         inv = inv_rows[0]
         assert inv.invocation_type == InvocationType.extraction
@@ -259,10 +263,14 @@ async def test_extract_invalid_json_writes_parse_failure_row(
         assert extraction.human_review_required is True
 
         inv_rows = (
-            await db_session.execute(
-                select(AiInvocation).where(AiInvocation.document_id == doc.id)
+            (
+                await db_session.execute(
+                    select(AiInvocation).where(AiInvocation.document_id == doc.id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(inv_rows) == 1
         assert inv_rows[0].invocation_type == InvocationType.extraction
         assert inv_rows[0].confidence_scores.get("parse_failed") is True
@@ -379,10 +387,14 @@ async def test_upload_auto_triggers_extraction_for_referral(
     tok = current_clinic_id.set(clinic_a)
     try:
         rows = (
-            await db_session.execute(
-                select(DocumentExtraction).where(DocumentExtraction.document_id == doc_id)
+            (
+                await db_session.execute(
+                    select(DocumentExtraction).where(DocumentExtraction.document_id == doc_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(tok)
 
@@ -408,9 +420,7 @@ async def test_upload_extraction_failure_keeps_doc_at_classified(
     # Wire classification normally — patch extraction to RAISE.
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "referral", "confidence": 0.9, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "referral", "confidence": 0.9, "reasoning": "r"}'),
     )
     _install_recording_extraction_mock(
         monkeypatch,
@@ -439,10 +449,14 @@ async def test_upload_extraction_failure_keeps_doc_at_classified(
     tok = current_clinic_id.set(clinic_a)
     try:
         extractions = (
-            await db_session.execute(
-                select(DocumentExtraction).where(DocumentExtraction.document_id == doc_id)
+            (
+                await db_session.execute(
+                    select(DocumentExtraction).where(DocumentExtraction.document_id == doc_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(tok)
     assert extractions == []  # nothing was persisted
@@ -461,9 +475,7 @@ async def test_extraction_is_tenant_isolated(
     patch_ocr(monkeypatch, text="Referral text body.")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "referral", "confidence": 0.9, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "referral", "confidence": 0.9, "reasoning": "r"}'),
         extraction_response_text=_REFERRAL_EXTRACTION_JSON,
     )
 
@@ -483,9 +495,7 @@ async def test_extraction_is_tenant_isolated(
 
     tok_a = current_clinic_id.set(clinic_a)
     try:
-        a_rows = (
-            await db_session.execute(select(DocumentExtraction))
-        ).scalars().all()
+        a_rows = (await db_session.execute(select(DocumentExtraction))).scalars().all()
     finally:
         current_clinic_id.reset(tok_a)
     assert len(a_rows) == 1
@@ -493,9 +503,7 @@ async def test_extraction_is_tenant_isolated(
 
     tok_b = current_clinic_id.set(clinic_b)
     try:
-        b_rows = (
-            await db_session.execute(select(DocumentExtraction))
-        ).scalars().all()
+        b_rows = (await db_session.execute(select(DocumentExtraction))).scalars().all()
     finally:
         current_clinic_id.reset(tok_b)
     assert b_rows == []

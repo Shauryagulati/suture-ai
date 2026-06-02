@@ -176,9 +176,7 @@ def _write_pair(
     sub = base / classification
     sub.mkdir(parents=True, exist_ok=True)
     (sub / f"{name}.pdf").write_bytes(b"%PDF-1.4\nfixture\n")
-    (sub / f"{name}.ground-truth.json").write_text(
-        json.dumps(truth), encoding="utf-8"
-    )
+    (sub / f"{name}.ground-truth.json").write_text(json.dumps(truth), encoding="utf-8")
 
 
 @pytest.mark.asyncio
@@ -233,10 +231,14 @@ async def test_driver_writes_eval_run_and_results_file(
     tok = current_clinic_id.set(eval_extraction.EVAL_CLINIC_ID)
     try:
         runs = (
-            await db_session.execute(
-                select(EvalRun).where(EvalRun.eval_type == EvalType.extraction)
+            (
+                await db_session.execute(
+                    select(EvalRun).where(EvalRun.eval_type == EvalType.extraction)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(tok)
     assert len(runs) == 1
@@ -250,12 +252,16 @@ async def test_driver_writes_eval_run_and_results_file(
     tok = current_clinic_id.set(eval_extraction.EVAL_CLINIC_ID)
     try:
         invs = (
-            await db_session.execute(
-                select(AiInvocation).where(
-                    AiInvocation.invocation_type == InvocationType.extraction
+            (
+                await db_session.execute(
+                    select(AiInvocation).where(
+                        AiInvocation.invocation_type == InvocationType.extraction
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(tok)
     assert len(invs) == 3

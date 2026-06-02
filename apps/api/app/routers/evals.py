@@ -63,12 +63,7 @@ async def list_eval_runs(
     user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> EvalRunListResponse:
-    stmt = (
-        select(EvalRun)
-        .order_by(desc(EvalRun.created_at))
-        .limit(limit)
-        .offset(offset)
-    )
+    stmt = select(EvalRun).order_by(desc(EvalRun.created_at)).limit(limit).offset(offset)
     rows = (await db.execute(stmt)).scalars().all()
     total = (await db.execute(select(func.count(EvalRun.id)))).scalar_one()
     return EvalRunListResponse(
@@ -87,9 +82,7 @@ async def compare_eval_runs(
     a = await db.get(EvalRun, run_a)
     b = await db.get(EvalRun, run_b)
     if a is None or b is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="run not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="run not found")
 
     a_per = (a.metrics or {}).get("per_field", {}) if isinstance(a.metrics, dict) else {}
     b_per = (b.metrics or {}).get("per_field", {}) if isinstance(b.metrics, dict) else {}
@@ -104,9 +97,7 @@ async def compare_eval_runs(
         mb = b_per.get(key) if isinstance(b_per.get(key), dict) else None
         acc_a = float(ma["accuracy"]) if ma and "accuracy" in ma else 0.0
         acc_b = float(mb["accuracy"]) if mb and "accuracy" in mb else 0.0
-        fields.append(
-            EvalFieldComparison(field=key, run_a=ma, run_b=mb, delta=acc_b - acc_a)
-        )
+        fields.append(EvalFieldComparison(field=key, run_a=ma, run_b=mb, delta=acc_b - acc_a))
 
     agg_delta = _aggregate_metric(b.metrics, "exact_match_rate") - _aggregate_metric(
         a.metrics, "exact_match_rate"
@@ -124,7 +115,5 @@ async def get_eval_run(
 ) -> EvalRunDetail:
     run = await db.get(EvalRun, run_id)
     if run is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="eval run not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="eval run not found")
     return EvalRunDetail.model_validate(run)

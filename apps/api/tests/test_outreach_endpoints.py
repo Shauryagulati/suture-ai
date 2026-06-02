@@ -187,9 +187,7 @@ async def test_trigger_referral_creates_three_attempts_with_next_number(
         referral, _ = await _seed_referral_with_outreach(db_session, clinic_a_id)
 
     client_a, headers_a, _ = await authed_client_factory("a")
-    r = await client_a.post(
-        f"/api/outreach/trigger/referral/{referral.id}", headers=headers_a
-    )
+    r = await client_a.post(f"/api/outreach/trigger/referral/{referral.id}", headers=headers_a)
     assert r.status_code == 200, r.text
     body = r.json()
     assert len(body["attempt_ids"]) == 3
@@ -199,9 +197,7 @@ async def test_trigger_referral_creates_three_attempts_with_next_number(
         rows = (
             (
                 await db_session.execute(
-                    select(OutreachAttempt).where(
-                        OutreachAttempt.referral_id == referral.id
-                    )
+                    select(OutreachAttempt).where(OutreachAttempt.referral_id == referral.id)
                 )
             )
             .scalars()
@@ -215,9 +211,7 @@ async def test_trigger_referral_unknown_returns_404(
     authed_client_factory,
 ) -> None:
     client_a, headers_a, _ = await authed_client_factory("a")
-    r = await client_a.post(
-        f"/api/outreach/trigger/referral/{uuid4()}", headers=headers_a
-    )
+    r = await client_a.post(f"/api/outreach/trigger/referral/{uuid4()}", headers=headers_a)
     assert r.status_code == 404
 
 

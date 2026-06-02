@@ -62,9 +62,7 @@ def _stub_bus(monkeypatch: pytest.MonkeyPatch) -> None:
 # ── Seed helpers ─────────────────────────────────────────────────────
 
 
-async def _seed_call(
-    db: AsyncSession, clinic_id: UUID
-) -> Call:
+async def _seed_call(db: AsyncSession, clinic_id: UUID) -> Call:
     p = Patient(
         clinic_id=clinic_id,
         first_name="Sarah",
@@ -139,9 +137,7 @@ async def test_ws_rejects_call_from_other_clinic(
 
     with TestClient(app) as tc:
         with pytest.raises(WebSocketDisconnect) as exc:
-            with tc.websocket_connect(
-                f"/api/voice/calls/{call_b.id}/stream?token={token}"
-            ) as ws:
+            with tc.websocket_connect(f"/api/voice/calls/{call_b.id}/stream?token={token}") as ws:
                 ws.receive_json()
         assert exc.value.code == 4404
 
@@ -179,9 +175,7 @@ async def test_ws_streams_transcript_chunks_in_order(
 
     received: list[dict[str, Any]] = []
     with TestClient(app) as tc:
-        with tc.websocket_connect(
-            f"/api/voice/calls/{call.id}/stream?token={token}"
-        ) as ws:
+        with tc.websocket_connect(f"/api/voice/calls/{call.id}/stream?token={token}") as ws:
             # Drain until disconnect.
             try:
                 while True:

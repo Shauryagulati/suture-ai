@@ -107,8 +107,7 @@ _OUT_OF_SCOPE_PHRASES: frozenset[str] = frozenset(
 )
 
 _OUT_OF_SCOPE_REPLY = (
-    "That's something our front desk handles — let me transfer you. One "
-    "moment please."
+    "That's something our front desk handles — let me transfer you. One moment please."
 )
 
 

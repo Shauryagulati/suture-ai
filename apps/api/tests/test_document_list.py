@@ -52,9 +52,7 @@ async def test_list_is_tenant_isolated(
     patch_ocr(monkeypatch, text="content")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "referral", "confidence": 0.7, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "referral", "confidence": 0.7, "reasoning": "r"}'),
     )
 
     token_a = await make_user_and_login(
@@ -113,9 +111,7 @@ async def test_list_filters_by_classification(
     # First upload — referral.
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "referral", "confidence": 0.8, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "referral", "confidence": 0.8, "reasoning": "r"}'),
     )
     token = await make_user_and_login(
         client=client,
@@ -158,9 +154,7 @@ async def test_list_pagination(
     patch_ocr(monkeypatch, text="content")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "other", "confidence": 0.5, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "other", "confidence": 0.5, "reasoning": "r"}'),
     )
     token = await make_user_and_login(
         client=client,

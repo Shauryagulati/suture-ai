@@ -105,9 +105,7 @@ async def generate_packet(
         )
     ).scalar_one_or_none()
     if primary is None:
-        raise HTTPException(
-            status_code=409, detail="no primary insurance on file for this patient"
-        )
+        raise HTTPException(status_code=409, detail="no primary insurance on file for this patient")
 
     summary = body.clinical_summary or referral.notes
     determination = await check_prior_auth(
@@ -183,8 +181,8 @@ async def list_prior_auths(
 ) -> list[PriorAuthRead]:
     """List the current clinic's prior auths. Tenant guard scopes the query."""
     rows = (
-        await db.execute(select(PriorAuth).order_by(PriorAuth.created_at.desc()))
-    ).scalars().all()
+        (await db.execute(select(PriorAuth).order_by(PriorAuth.created_at.desc()))).scalars().all()
+    )
 
     # Audit the list view at the connection level. List endpoint returns
     # PHI-adjacent metadata so we record an unspecified-resource view.
@@ -255,13 +253,17 @@ async def _typical_turnaround(db: AsyncSession, payer_name: str, cpts: list[str]
     from app.models import PayerRule
 
     rows = (
-        await db.execute(
-            select(PayerRule.typical_turnaround_days).where(
-                PayerRule.payer_name == payer_name,
-                PayerRule.procedure_code.in_(cpts),
+        (
+            await db.execute(
+                select(PayerRule.typical_turnaround_days).where(
+                    PayerRule.payer_name == payer_name,
+                    PayerRule.procedure_code.in_(cpts),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     days = [d for d in rows if d is not None]
     return max(days) if days else None
 

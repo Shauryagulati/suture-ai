@@ -93,9 +93,7 @@ async def test_full_transcript_read_decrypted(
     with set_clinic_context(clinic_id=clinic_a):  # type: ignore[operator]
         patient = await _make_patient(db_session, clinic_a)
         call = await _make_call(db_session, clinic_a, patient.id)
-        db_session.add(
-            CallTranscript(clinic_id=clinic_a, call_id=call.id, full_transcript=payload)
-        )
+        db_session.add(CallTranscript(clinic_id=clinic_a, call_id=call.id, full_transcript=payload))
         await db_session.commit()
 
         result = await db_session.execute(select(CallTranscript))
@@ -122,9 +120,9 @@ async def test_ciphertext_differs_for_same_transcript(
         await db_session.commit()
 
         raw = await db_session.execute(
-            text("SELECT id, full_transcript FROM call_transcripts WHERE id IN (:a, :b)").bindparams(
-                a=t1.id, b=t2.id
-            )
+            text(
+                "SELECT id, full_transcript FROM call_transcripts WHERE id IN (:a, :b)"
+            ).bindparams(a=t1.id, b=t2.id)
         )
         ciphertexts = {row.id: row.full_transcript for row in raw}
 

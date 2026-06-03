@@ -120,9 +120,7 @@ async def test_get_slots_garbage_token_returns_401(client: AsyncClient) -> None:
 
 
 async def test_get_slots_access_token_rejected_as_wrong_type(client: AsyncClient) -> None:
-    access, _ = encode_access_token(
-        user_id=uuid4(), clinic_id=uuid4(), role="admin"
-    )
+    access, _ = encode_access_token(user_id=uuid4(), clinic_id=uuid4(), role="admin")
     r = await client.get(f"/api/schedule/{access}")
     assert r.status_code == 401
     assert "scheduling" in r.json()["detail"]
@@ -362,6 +360,8 @@ async def test_book_slot_clinic_scoping_appointment_belongs_to_token_clinic(
     # Under clinic-B context the tenant guard hides the row.
     with set_clinic_context(clinic_id=clinic_b_id, user_id=test_user):
         rows = (
-            await db_session.execute(select(Appointment).where(Appointment.id == appt_id))
-        ).scalars().all()
+            (await db_session.execute(select(Appointment).where(Appointment.id == appt_id)))
+            .scalars()
+            .all()
+        )
         assert rows == []

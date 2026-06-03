@@ -1,4 +1,5 @@
 """Phase 5 — tasks REST endpoints + tenant isolation."""
+
 from __future__ import annotations
 
 from uuid import uuid4
@@ -9,23 +10,33 @@ from app.models.patient import Patient
 from app.models.referral_task import ReferralTask, TaskPriority, TaskStatus, TaskType
 
 
-async def _insert_task(db_session, clinic_id, *, title="t", status=TaskStatus.pending,
-                       priority=TaskPriority.medium):
+async def _insert_task(
+    db_session, clinic_id, *, title="t", status=TaskStatus.pending, priority=TaskPriority.medium
+):
     patient_id = uuid4()
     task_id = uuid4()
-    db_session.add_all([
-        Patient(
-            id=patient_id, clinic_id=clinic_id,
-            mrn=f"MRN-{uuid4().hex[:6]}",
-            first_name="X", last_name="Y",
-            dob="1980-01-01", phone="412-555-0000",
-        ),
-        ReferralTask(
-            id=task_id, clinic_id=clinic_id, patient_id=patient_id,
-            task_type=TaskType.call_patient, title=title,
-            status=status, priority=priority,
-        ),
-    ])
+    db_session.add_all(
+        [
+            Patient(
+                id=patient_id,
+                clinic_id=clinic_id,
+                mrn=f"MRN-{uuid4().hex[:6]}",
+                first_name="X",
+                last_name="Y",
+                dob="1980-01-01",
+                phone="412-555-0000",
+            ),
+            ReferralTask(
+                id=task_id,
+                clinic_id=clinic_id,
+                patient_id=patient_id,
+                task_type=TaskType.call_patient,
+                title=title,
+                status=status,
+                priority=priority,
+            ),
+        ]
+    )
     await db_session.commit()
     return task_id
 
@@ -75,7 +86,8 @@ async def test_patch_task_updates_status_and_stamps_completion(
         task_id = await _insert_task(db_session, clinic_a_id, title="patch-me")
 
     resp = await client_a.patch(
-        f"/api/tasks/{task_id}", headers=headers_a,
+        f"/api/tasks/{task_id}",
+        headers=headers_a,
         json={"status": "completed"},
     )
     assert resp.status_code == 200, resp.text

@@ -81,9 +81,7 @@ async def test_appeal_pdf_parses_and_quotes_denial_reason(
         response_text='{"reasoning": "Procedure meets coverage criteria.", "confidence": 0.85, "supports_structured_result": true}'
     )
     fake_emb = FakeEmbeddingProvider(vector_fn=lambda _i, _t: unit_vector(0))
-    monkeypatch.setattr(
-        "app.services.prior_auth.determine.get_llm_provider", lambda: fake_llm
-    )
+    monkeypatch.setattr("app.services.prior_auth.determine.get_llm_provider", lambda: fake_llm)
     monkeypatch.setattr(
         "app.services.prior_auth.determine.get_embedding_provider", lambda: fake_emb
     )

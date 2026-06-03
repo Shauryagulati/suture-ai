@@ -188,9 +188,7 @@ async def test_pipeline_greeting_then_immediate_disconnect_publishes_minimal_eve
     agent = EmberAgent(llm=_StubLLM(), script_context={"first_name": "Sarah", "clinic_name": "X"})
     publisher = _StubPublisher()
     outcome = await run_call_pipeline(
-        CallMetadata(
-            call_id=uuid4(), clinic_id=uuid4(), patient_id=uuid4(), script_context={}
-        ),
+        CallMetadata(call_id=uuid4(), clinic_id=uuid4(), patient_id=uuid4(), script_context={}),
         agent=agent,
         stt=_StubSTT(),
         tts=_StubTTS(),
@@ -282,7 +280,9 @@ async def test_persist_call_end_writes_encrypted_transcript_and_updates_call(
             {"role": "agent", "text": "Booked!"},
         ],
     )
-    await persist_call_end(call.id, outcome=outcome, started_at=started, status=CallStatus.completed)
+    await persist_call_end(
+        call.id, outcome=outcome, started_at=started, status=CallStatus.completed
+    )
 
     # persist_call_end committed in its own session; open a fresh one to
     # avoid identity-map staleness on the test's session.
@@ -316,9 +316,7 @@ async def test_persist_call_end_writes_encrypted_transcript_and_updates_call(
 
         attempt = (
             await verify.execute(
-                select(OutreachAttempt).where(
-                    OutreachAttempt.id == call.outreach_attempt_id
-                )
+                select(OutreachAttempt).where(OutreachAttempt.id == call.outreach_attempt_id)
             )
         ).scalar_one()
         assert attempt.status == OutreachStatus.responded
@@ -346,9 +344,7 @@ async def test_persist_call_end_no_slot_leaves_attempt_as_sent(
 
     async with async_session_maker() as verify:
         reloaded_attempt = (
-            await verify.execute(
-                select(OutreachAttempt).where(OutreachAttempt.id == attempt.id)
-            )
+            await verify.execute(select(OutreachAttempt).where(OutreachAttempt.id == attempt.id))
         ).scalar_one()
         assert reloaded_attempt.status == OutreachStatus.sent
         assert "booked_slot" not in reloaded_attempt.outcome
@@ -374,8 +370,6 @@ async def test_persist_call_end_writes_under_correct_clinic(
 
     async with async_session_maker() as verify:
         transcript = (
-            await verify.execute(
-                select(CallTranscript).where(CallTranscript.call_id == call.id)
-            )
+            await verify.execute(select(CallTranscript).where(CallTranscript.call_id == call.id))
         ).scalar_one()
         assert transcript.clinic_id == clinic_a

@@ -180,9 +180,7 @@ def _build_query_text(request: AuthCheckRequest) -> str:
 
 async def check_prior_auth(db: AsyncSession, request: AuthCheckRequest) -> AuthDetermination:
     """Run the three-step pipeline and return the determination."""
-    matched, _missing = await _structured_lookup(
-        db, request.payer_name, request.procedure_codes
-    )
+    matched, _missing = await _structured_lookup(db, request.payer_name, request.procedure_codes)
     structured = _aggregate_structured(matched)
 
     query_text = _build_query_text(request)

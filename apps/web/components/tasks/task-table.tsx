@@ -28,7 +28,11 @@ export function TaskTable() {
   const [filters, setFilters] = useState<TaskFilters>({});
   const [openTask, setOpenTask] = useState<Task | null>(null);
   const { data, isLoading, error } = useTasksQuery(filters);
-  const rows = data?.items ?? [];
+  // Stabilize the array reference. `data?.items ?? []` returns a brand-new
+  // array every render; TanStack Table's auto-reset logic reads that as "new
+  // data" each time, fires a state update, re-renders, and loops infinitely
+  // ("Maximum update depth exceeded") — which froze the whole tab.
+  const rows = useMemo<Task[]>(() => data?.items ?? [], [data]);
 
   const columns = useMemo<ColumnDef<Task>[]>(
     () => [
@@ -66,6 +70,7 @@ export function TaskTable() {
   const table = useReactTable({
     data: rows,
     columns,
+    getRowId: (row) => row.id,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });

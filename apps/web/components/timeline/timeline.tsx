@@ -5,6 +5,7 @@ import { Calendar, Edit2, Eye, MessageCircle, Plus, Trash2 } from "lucide-react"
 import { ChannelIcon } from "@/components/outreach/channel-icon";
 import type { TimelineEvent } from "@/lib/queries/timeline";
 import { useReferralTimeline } from "@/lib/queries/timeline";
+import { formatResourceType, formatTimelineAction } from "@/lib/timeline-format";
 
 type IconType = React.ComponentType<{ className?: string }>;
 
@@ -30,7 +31,7 @@ function renderAction(e: TimelineEvent): React.ReactNode {
     <span className="inline-flex items-center gap-2">
       {Icon ? <Icon className="h-3.5 w-3.5 text-muted-foreground" /> : null}
       <span>
-        {cfg?.label ?? `${e.action} on ${e.resource_type}`}
+        {cfg?.label ?? `${formatTimelineAction(e.action)} · ${formatResourceType(e.resource_type)}`}
         {isOutreach && channel ? (
           <span className="ml-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
             <ChannelIcon channel={channel} className="h-3 w-3" />

@@ -1,4 +1,5 @@
 """Phase 4 — apply_referral_transition with idempotent task generation."""
+
 from __future__ import annotations
 
 import pytest

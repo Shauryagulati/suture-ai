@@ -3,6 +3,7 @@
 Pure functions — no DB writes. The state-machine layer is responsible for
 persisting `ReferralTask` rows from these specs.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

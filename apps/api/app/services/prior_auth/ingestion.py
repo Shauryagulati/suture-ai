@@ -67,9 +67,7 @@ async def ingest_payer(
 
     missing = [p.cpt_code for p in seed.procedures if p.cpt_code not in chunks]
     if missing:
-        raise ValueError(
-            f"{payer_slug}.md missing markdown sections for CPTs: {missing}"
-        )
+        raise ValueError(f"{payer_slug}.md missing markdown sections for CPTs: {missing}")
 
     chunk_texts = [chunks[p.cpt_code] for p in seed.procedures]
     embeddings = await get_embedding_provider().embed(chunk_texts)

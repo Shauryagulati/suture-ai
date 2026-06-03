@@ -55,9 +55,7 @@ def stub_providers(monkeypatch: pytest.MonkeyPatch) -> FakeLLMProvider:
         response_text='{"reasoning": "PA required for LHC.", "confidence": 0.9, "supports_structured_result": true}'
     )
     fake_emb = FakeEmbeddingProvider(vector_fn=lambda _i, _t: unit_vector(0))
-    monkeypatch.setattr(
-        "app.services.prior_auth.determine.get_llm_provider", lambda: fake_llm
-    )
+    monkeypatch.setattr("app.services.prior_auth.determine.get_llm_provider", lambda: fake_llm)
     monkeypatch.setattr(
         "app.services.prior_auth.determine.get_embedding_provider", lambda: fake_emb
     )
@@ -65,9 +63,7 @@ def stub_providers(monkeypatch: pytest.MonkeyPatch) -> FakeLLMProvider:
 
 
 async def _login(client: AsyncClient, email: str) -> str:
-    resp = await client.post(
-        "/api/auth/login", json={"email": email, "password": _PASSWORD}
-    )
+    resp = await client.post("/api/auth/login", json={"email": email, "password": _PASSWORD})
     assert resp.status_code == 200, resp.text
     return resp.json()["access_token"]
 
@@ -217,10 +213,14 @@ async def test_packet_creates_prior_auth_row_and_event(
     # Confirm the PriorAuthEvent.created row was emitted.
     with set_clinic_context(clinic_id=clinic_a):  # type: ignore[operator]
         events = (
-            await db_session.execute(
-                select(PriorAuthEvent).where(PriorAuthEvent.prior_auth_id == UUID(body["id"]))
+            (
+                await db_session.execute(
+                    select(PriorAuthEvent).where(PriorAuthEvent.prior_auth_id == UUID(body["id"]))
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     assert len(events) == 1
     assert events[0].event_type == PriorAuthEventType.created
 
@@ -244,9 +244,7 @@ async def test_list_only_returns_current_clinic(
     with set_clinic_context(clinic_id=clinic_a):  # type: ignore[operator]
         pa_a = PriorAuth(
             clinic_id=clinic_a,
-            patient_id=(
-                await _insert_patient(db_session, clinic_a, "A", "AA")
-            ),
+            patient_id=(await _insert_patient(db_session, clinic_a, "A", "AA")),
             payer_name="Highmark BCBS PA",
             procedure_codes=["93458"],
             diagnosis_codes=["I25.10"],
@@ -258,9 +256,7 @@ async def test_list_only_returns_current_clinic(
     with set_clinic_context(clinic_id=clinic_b):  # type: ignore[operator]
         pa_b = PriorAuth(
             clinic_id=clinic_b,
-            patient_id=(
-                await _insert_patient(db_session, clinic_b, "B", "BB")
-            ),
+            patient_id=(await _insert_patient(db_session, clinic_b, "B", "BB")),
             payer_name="UPMC Health Plan",
             procedure_codes=["93620"],
             diagnosis_codes=["I47.2"],
@@ -271,9 +267,7 @@ async def test_list_only_returns_current_clinic(
         await db_session.commit()
 
     token_a = await _login(client, "a@x.example.com")
-    resp = await client.get(
-        "/api/prior-auth/", headers={"Authorization": f"Bearer {token_a}"}
-    )
+    resp = await client.get("/api/prior-auth/", headers={"Authorization": f"Bearer {token_a}"})
     assert resp.status_code == 200, resp.text
     rows = resp.json()
     assert len(rows) == 1
@@ -296,9 +290,7 @@ async def test_tenant_isolation_get_by_id_returns_404(
     with set_clinic_context(clinic_id=clinic_b):  # type: ignore[operator]
         pa_b = PriorAuth(
             clinic_id=clinic_b,
-            patient_id=(
-                await _insert_patient(db_session, clinic_b, "B", "BB")
-            ),
+            patient_id=(await _insert_patient(db_session, clinic_b, "B", "BB")),
             payer_name="UPMC Health Plan",
             procedure_codes=["93458"],
             diagnosis_codes=["I25.10"],
@@ -356,10 +348,14 @@ async def test_patch_status_submitted_sets_follow_up_at(
     # Verify a submitted event was appended.
     with set_clinic_context(clinic_id=clinic_a):  # type: ignore[operator]
         events = (
-            await db_session.execute(
-                select(PriorAuthEvent).where(PriorAuthEvent.prior_auth_id == UUID(pa_id))
+            (
+                await db_session.execute(
+                    select(PriorAuthEvent).where(PriorAuthEvent.prior_auth_id == UUID(pa_id))
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     event_types = {e.event_type for e in events}
     assert PriorAuthEventType.created in event_types
     assert PriorAuthEventType.submitted in event_types

@@ -119,6 +119,4 @@ def test_all_concrete_providers_implement_stream() -> None:
     from app.services.llm.openai import OpenAIProvider
 
     for cls in (_Oll, AnthropicProvider, OpenAIProvider):
-        assert "stream" not in cls.__abstractmethods__, (
-            f"{cls.__name__} did not override stream()"
-        )
+        assert "stream" not in cls.__abstractmethods__, f"{cls.__name__} did not override stream()"

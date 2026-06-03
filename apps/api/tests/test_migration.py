@@ -144,8 +144,7 @@ async def test_migration_004_adds_document_inbox_fields(
         engine = create_async_engine(MIGRATION_URL)
         async with engine.connect() as conn:
             rows = await conn.exec_driver_sql(
-                "SELECT column_name FROM information_schema.columns "
-                "WHERE table_name = 'documents'"
+                "SELECT column_name FROM information_schema.columns WHERE table_name = 'documents'"
             )
             cols = {str(r[0]) for r in rows.fetchall()}
         await engine.dispose()

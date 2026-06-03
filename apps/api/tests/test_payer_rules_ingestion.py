@@ -88,7 +88,9 @@ async def test_ingest_all_inserts_25_rows(
 
     # Every row has an embedding of the configured dim.
     for row in rows:
-        assert row.embedding is not None, f"missing embedding on {row.payer_name}/{row.procedure_code}"
+        assert row.embedding is not None, (
+            f"missing embedding on {row.payer_name}/{row.procedure_code}"
+        )
         assert len(row.embedding) == VECTOR_DIM
 
     # Every (payer, CPT) cell is present.

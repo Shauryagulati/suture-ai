@@ -45,9 +45,7 @@ def _patch_providers(
 ) -> tuple[FakeLLMProvider, FakeEmbeddingProvider]:
     fake_llm = FakeLLMProvider(response_text=llm_response)
     fake_emb = FakeEmbeddingProvider(vector_fn=embedding_fn)  # type: ignore[arg-type]
-    monkeypatch.setattr(
-        "app.services.prior_auth.determine.get_llm_provider", lambda: fake_llm
-    )
+    monkeypatch.setattr("app.services.prior_auth.determine.get_llm_provider", lambda: fake_llm)
     monkeypatch.setattr(
         "app.services.prior_auth.determine.get_embedding_provider", lambda: fake_emb
     )
@@ -169,12 +167,16 @@ async def test_check_logs_ai_invocation_row(
         )
 
         rows = (
-            await db_session.execute(
-                select(AiInvocation).where(
-                    AiInvocation.invocation_type == InvocationType.auth_check
+            (
+                await db_session.execute(
+                    select(AiInvocation).where(
+                        AiInvocation.invocation_type == InvocationType.auth_check
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
     assert len(rows) == 1
     row = rows[0]

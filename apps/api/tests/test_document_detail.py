@@ -51,9 +51,7 @@ async def test_detail_returns_full_payload(
     patch_ocr(monkeypatch, text="extracted body text")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "lab", "confidence": 0.8, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "lab", "confidence": 0.8, "reasoning": "r"}'),
     )
     token = await make_user_and_login(
         client=client,
@@ -85,9 +83,7 @@ async def test_patch_updates_status_and_notes(
     patch_ocr(monkeypatch, text="x")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "other", "confidence": 0.5, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "other", "confidence": 0.5, "reasoning": "r"}'),
     )
     token = await make_user_and_login(
         client=client,
@@ -121,9 +117,7 @@ async def test_get_file_streams_pdf_bytes(
     patch_ocr(monkeypatch, text="x")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "other", "confidence": 0.5, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "other", "confidence": 0.5, "reasoning": "r"}'),
     )
     token = await make_user_and_login(
         client=client,
@@ -156,9 +150,7 @@ async def test_detail_view_writes_audit_row(
     patch_ocr(monkeypatch, text="x")
     patch_llm_provider(
         monkeypatch,
-        response_text=(
-            '{"classification": "other", "confidence": 0.5, "reasoning": "r"}'
-        ),
+        response_text=('{"classification": "other", "confidence": 0.5, "reasoning": "r"}'),
     )
     token = await make_user_and_login(
         client=client,

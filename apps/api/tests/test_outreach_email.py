@@ -153,9 +153,7 @@ async def test_send_email_rejects_non_email_attempt() -> None:
         scheduled_at=datetime.now(UTC),
         outcome={},
     )
-    patient = Patient(
-        first_name="Pat", last_name="X", dob="1970-01-01", phone="412-555-0000"
-    )
+    patient = Patient(first_name="Pat", last_name="X", dob="1970-01-01", phone="412-555-0000")
     with pytest.raises(ValueError, match="channel=email"):
         await send_email(
             attempt=attempt,

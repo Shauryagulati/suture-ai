@@ -81,7 +81,9 @@ def test_open_falls_back_when_context_missing_name() -> None:
 
 @pytest.mark.asyncio
 async def test_first_turn_advances_to_scheduling() -> None:
-    llm = _StubLLM(responses=[{"intent": "ask_clarification", "reply": "Sure! Here are some times."}])
+    llm = _StubLLM(
+        responses=[{"intent": "ask_clarification", "reply": "Sure! Here are some times."}]
+    )
     agent = EmberAgent(llm=llm, script_context=_ctx())
     agent.open()
     out = await agent.turn(TurnInput("Yes, go ahead.", _slots()))
@@ -116,9 +118,7 @@ async def test_pick_slot_advances_to_confirmation_and_records_pending() -> None:
 @pytest.mark.asyncio
 async def test_pick_slot_with_bogus_index_stays_in_scheduling() -> None:
     llm = _StubLLM(
-        responses=[
-            {"intent": "pick_slot", "slot_index": 99, "reply": "Hmm let me try again."}
-        ]
+        responses=[{"intent": "pick_slot", "slot_index": 99, "reply": "Hmm let me try again."}]
     )
     agent = EmberAgent(llm=llm, script_context=_ctx(), state=ConversationState.SCHEDULING)
     out = await agent.turn(TurnInput("uh, some time", _slots()))
@@ -128,9 +128,7 @@ async def test_pick_slot_with_bogus_index_stays_in_scheduling() -> None:
 
 @pytest.mark.asyncio
 async def test_ask_clarification_stays_in_scheduling() -> None:
-    llm = _StubLLM(
-        responses=[{"intent": "ask_clarification", "reply": "Any evenings open?"}]
-    )
+    llm = _StubLLM(responses=[{"intent": "ask_clarification", "reply": "Any evenings open?"}])
     agent = EmberAgent(llm=llm, script_context=_ctx(), state=ConversationState.SCHEDULING)
     out = await agent.turn(TurnInput("What about evenings?", _slots()))
     assert out.next_state is ConversationState.SCHEDULING
@@ -197,9 +195,7 @@ async def test_emergency_keyword_escalates_with_911_script() -> None:
 
 @pytest.mark.asyncio
 async def test_off_topic_in_scheduling_escalates() -> None:
-    llm = _StubLLM(
-        responses=[{"intent": "off_topic", "reply": "I can't help with that."}]
-    )
+    llm = _StubLLM(responses=[{"intent": "off_topic", "reply": "I can't help with that."}])
     agent = EmberAgent(llm=llm, script_context=_ctx(), state=ConversationState.SCHEDULING)
     out = await agent.turn(TurnInput("Tell me about cardiology fellowships.", _slots()))
     assert out.next_state is ConversationState.ESCALATED
@@ -218,9 +214,7 @@ async def test_turn_after_farewell_raises() -> None:
 
 @pytest.mark.asyncio
 async def test_turn_after_escalated_raises() -> None:
-    agent = EmberAgent(
-        llm=_StubLLM(), script_context=_ctx(), state=ConversationState.ESCALATED
-    )
+    agent = EmberAgent(llm=_StubLLM(), script_context=_ctx(), state=ConversationState.ESCALATED)
     with pytest.raises(ConversationFinishedError):
         await agent.turn(TurnInput("Hi?", _slots()))
 
@@ -244,9 +238,7 @@ async def test_garbled_llm_response_treated_as_offtopic_and_escalates() -> None:
         ) -> AsyncIterator[str]:
             yield "not json"
 
-    agent = EmberAgent(
-        llm=_BrokenLLM(), script_context=_ctx(), state=ConversationState.SCHEDULING
-    )
+    agent = EmberAgent(llm=_BrokenLLM(), script_context=_ctx(), state=ConversationState.SCHEDULING)
     out = await agent.turn(TurnInput("what times do you have?", _slots()))
     assert out.next_state is ConversationState.ESCALATED
     assert out.needs_human is True

@@ -66,9 +66,7 @@ async def list_attempts(
     if status is not None:
         q = q.where(OutreachAttempt.status == status)
     rows = (await db.execute(q)).scalars().all()
-    return OutreachAttemptListResponse(
-        items=[OutreachAttemptResponse.from_model(r) for r in rows]
-    )
+    return OutreachAttemptListResponse(items=[OutreachAttemptResponse.from_model(r) for r in rows])
 
 
 @router.get("/patient/{patient_id}", response_model=OutreachAttemptListResponse)
@@ -88,9 +86,7 @@ async def patient_history(
         .scalars()
         .all()
     )
-    return OutreachAttemptListResponse(
-        items=[OutreachAttemptResponse.from_model(r) for r in rows]
-    )
+    return OutreachAttemptListResponse(items=[OutreachAttemptResponse.from_model(r) for r in rows])
 
 
 @router.get("/{attempt_id}", response_model=OutreachAttemptResponse)
@@ -100,9 +96,7 @@ async def get_attempt(
     db: AsyncSession = Depends(get_db),
 ) -> OutreachAttemptResponse:
     attempt = (
-        await db.execute(
-            select(OutreachAttempt).where(OutreachAttempt.id == attempt_id)
-        )
+        await db.execute(select(OutreachAttempt).where(OutreachAttempt.id == attempt_id))
     ).scalar_one_or_none()
     if attempt is None:
         raise HTTPException(
@@ -123,41 +117,27 @@ async def trigger_for_referral(
         await db.execute(select(Referral).where(Referral.id == referral_id))
     ).scalar_one_or_none()
     if referral is None:
-        raise HTTPException(
-            status_code=http_status.HTTP_404_NOT_FOUND, detail="referral not found"
-        )
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="referral not found")
     next_num = await next_attempt_number_for_referral(db, referral_id=referral.id)
-    attempts = await schedule_outreach_sequence(
-        db, referral=referral, attempt_number=next_num
-    )
+    attempts = await schedule_outreach_sequence(db, referral=referral, attempt_number=next_num)
     await db.commit()
-    return TriggerOutreachResponse(
-        attempt_ids=[a.id for a in attempts], attempt_number=next_num
-    )
+    return TriggerOutreachResponse(attempt_ids=[a.id for a in attempts], attempt_number=next_num)
 
 
-@router.post(
-    "/trigger/discharge/{discharge_id}", response_model=TriggerOutreachResponse
-)
+@router.post("/trigger/discharge/{discharge_id}", response_model=TriggerOutreachResponse)
 async def trigger_for_discharge(
     discharge_id: UUID,
     user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> TriggerOutreachResponse:
     discharge = (
-        await db.execute(
-            select(DischargeSummary).where(DischargeSummary.id == discharge_id)
-        )
+        await db.execute(select(DischargeSummary).where(DischargeSummary.id == discharge_id))
     ).scalar_one_or_none()
     if discharge is None:
         raise HTTPException(
             status_code=http_status.HTTP_404_NOT_FOUND, detail="discharge not found"
         )
     next_num = await next_attempt_number_for_discharge(db, discharge_id=discharge.id)
-    attempts = await schedule_outreach_sequence(
-        db, discharge=discharge, attempt_number=next_num
-    )
+    attempts = await schedule_outreach_sequence(db, discharge=discharge, attempt_number=next_num)
     await db.commit()
-    return TriggerOutreachResponse(
-        attempt_ids=[a.id for a in attempts], attempt_number=next_num
-    )
+    return TriggerOutreachResponse(attempt_ids=[a.id for a in attempts], attempt_number=next_num)

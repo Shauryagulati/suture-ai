@@ -199,8 +199,7 @@ class EmberAgent:
         self.state = ConversationState.ESCALATED
         return TurnOutput(
             agent_utterance=(
-                "Let me have someone from the clinic call you back to help "
-                "find a time that works."
+                "Let me have someone from the clinic call you back to help find a time that works."
             ),
             next_state=self.state,
             needs_human=True,

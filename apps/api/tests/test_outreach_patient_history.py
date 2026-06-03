@@ -65,8 +65,7 @@ async def test_patient_history_aggregates_across_referrals(
                         referral_id=referral.id,
                         channel=channel,
                         status=OutreachStatus.pending,
-                        scheduled_at=now
-                        - timedelta(days=ref_offset_days, hours=ch_offset),
+                        scheduled_at=now - timedelta(days=ref_offset_days, hours=ch_offset),
                         outcome={},
                         attempt_number=1,
                     )
@@ -74,9 +73,7 @@ async def test_patient_history_aggregates_across_referrals(
         await db_session.commit()
 
     client_a, headers_a, _ = await authed_client_factory("a")
-    r = await client_a.get(
-        f"/api/outreach/patient/{patient.id}", headers=headers_a
-    )
+    r = await client_a.get(f"/api/outreach/patient/{patient.id}", headers=headers_a)
     assert r.status_code == 200, r.text
     body = r.json()
     assert len(body["items"]) == 6
@@ -89,9 +86,7 @@ async def test_patient_history_empty_for_unknown_patient(
     authed_client_factory,
 ) -> None:
     client_a, headers_a, _ = await authed_client_factory("a")
-    r = await client_a.get(
-        f"/api/outreach/patient/{uuid4()}", headers=headers_a
-    )
+    r = await client_a.get(f"/api/outreach/patient/{uuid4()}", headers=headers_a)
     assert r.status_code == 200
     assert r.json()["items"] == []
 
@@ -132,8 +127,6 @@ async def test_patient_history_isolated_to_clinic(
         await db_session.commit()
 
     client_b, headers_b, _ = await authed_client_factory("b")
-    r = await client_b.get(
-        f"/api/outreach/patient/{patient.id}", headers=headers_b
-    )
+    r = await client_b.get(f"/api/outreach/patient/{patient.id}", headers=headers_b)
     assert r.status_code == 200
     assert r.json()["items"] == []

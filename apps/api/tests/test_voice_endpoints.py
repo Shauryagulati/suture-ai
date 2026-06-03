@@ -208,9 +208,7 @@ async def test_get_transcript_404_for_other_clinic_call(
     with set_clinic_context(clinic_id=clinic_a, user_id=user_id_a):
         patient = await _seed_patient(db_session, clinic_a)
         call = await _seed_call(db_session, clinic_a, patient.id, status=CallStatus.completed)
-        db_session.add(
-            CallTranscript(clinic_id=clinic_a, call_id=call.id, full_transcript="phi-x")
-        )
+        db_session.add(CallTranscript(clinic_id=clinic_a, call_id=call.id, full_transcript="phi-x"))
         await db_session.commit()
 
     resp = await client.get(f"/api/voice/calls/{call.id}/transcript", headers=headers_b)
@@ -230,9 +228,7 @@ async def test_get_transcript_audited_without_phi_in_details(
     with set_clinic_context(clinic_id=clinic_a, user_id=user_id_a):
         patient = await _seed_patient(db_session, clinic_a)
         call = await _seed_call(db_session, clinic_a, patient.id, status=CallStatus.completed)
-        db_session.add(
-            CallTranscript(clinic_id=clinic_a, call_id=call.id, full_transcript=phi)
-        )
+        db_session.add(CallTranscript(clinic_id=clinic_a, call_id=call.id, full_transcript=phi))
         await db_session.commit()
 
     resp = await client.get(f"/api/voice/calls/{call.id}/transcript", headers=headers_a)

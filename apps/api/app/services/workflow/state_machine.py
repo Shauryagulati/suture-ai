@@ -7,6 +7,7 @@ map a current status to the set of statuses it may move to. The
 The DB-coupled `apply_*_transition` functions live alongside these in a
 later phase; this file only owns validation today.
 """
+
 from __future__ import annotations
 
 from app.models.discharge_summary import DischargeStatus
@@ -18,9 +19,7 @@ class InvalidTransitionError(ValueError):
 
 
 REFERRAL_TRANSITIONS: dict[ReferralStatus, frozenset[ReferralStatus]] = {
-    ReferralStatus.new: frozenset(
-        {ReferralStatus.needs_review, ReferralStatus.cancelled}
-    ),
+    ReferralStatus.new: frozenset({ReferralStatus.needs_review, ReferralStatus.cancelled}),
     ReferralStatus.needs_review: frozenset(
         {
             ReferralStatus.missing_info,
@@ -56,33 +55,25 @@ REFERRAL_TRANSITIONS: dict[ReferralStatus, frozenset[ReferralStatus]] = {
             ReferralStatus.cancelled,
         }
     ),
-    ReferralStatus.at_risk: frozenset(
-        {ReferralStatus.scheduled, ReferralStatus.cancelled}
-    ),
+    ReferralStatus.at_risk: frozenset({ReferralStatus.scheduled, ReferralStatus.cancelled}),
     ReferralStatus.completed: frozenset(),
     ReferralStatus.cancelled: frozenset(),
 }
 
 
 DISCHARGE_TRANSITIONS: dict[DischargeStatus, frozenset[DischargeStatus]] = {
-    DischargeStatus.new: frozenset(
-        {DischargeStatus.patient_contacted, DischargeStatus.at_risk}
-    ),
+    DischargeStatus.new: frozenset({DischargeStatus.patient_contacted, DischargeStatus.at_risk}),
     DischargeStatus.patient_contacted: frozenset(
         {DischargeStatus.scheduled, DischargeStatus.at_risk}
     ),
-    DischargeStatus.scheduled: frozenset(
-        {DischargeStatus.seen, DischargeStatus.at_risk}
-    ),
+    DischargeStatus.scheduled: frozenset({DischargeStatus.seen, DischargeStatus.at_risk}),
     DischargeStatus.seen: frozenset({DischargeStatus.confirmation_sent}),
     DischargeStatus.at_risk: frozenset({DischargeStatus.scheduled}),
     DischargeStatus.confirmation_sent: frozenset(),
 }
 
 
-def validate_referral_transition(
-    current: ReferralStatus, target: ReferralStatus
-) -> None:
+def validate_referral_transition(current: ReferralStatus, target: ReferralStatus) -> None:
     allowed = REFERRAL_TRANSITIONS.get(current, frozenset())
     if target not in allowed:
         raise InvalidTransitionError(
@@ -90,9 +81,7 @@ def validate_referral_transition(
         )
 
 
-def validate_discharge_transition(
-    current: DischargeStatus, target: DischargeStatus
-) -> None:
+def validate_discharge_transition(current: DischargeStatus, target: DischargeStatus) -> None:
     allowed = DISCHARGE_TRANSITIONS.get(current, frozenset())
     if target not in allowed:
         raise InvalidTransitionError(
@@ -164,9 +153,7 @@ async def apply_discharge_transition(
     return discharge
 
 
-async def _existing_task_count_for_referral(
-    session: AsyncSession, referral_id: UUID
-) -> int:
+async def _existing_task_count_for_referral(session: AsyncSession, referral_id: UUID) -> int:
     rows = (
         (
             await session.execute(
@@ -182,9 +169,7 @@ async def _existing_task_count_for_referral(
     return len(rows)
 
 
-async def _existing_task_count_for_discharge(
-    session: AsyncSession, discharge_id: UUID
-) -> int:
+async def _existing_task_count_for_discharge(session: AsyncSession, discharge_id: UUID) -> int:
     rows = (
         (
             await session.execute(
@@ -200,30 +185,22 @@ async def _existing_task_count_for_discharge(
     return len(rows)
 
 
-async def _generate_tasks_for_referral(
-    session: AsyncSession, referral: Referral
-) -> None:
+async def _generate_tasks_for_referral(session: AsyncSession, referral: Referral) -> None:
     if await _existing_task_count_for_referral(session, referral.id) > 0:
         return
     due_at = calculate_due_at(referral.urgency)
     sla_hours = business_days_for_urgency(referral.urgency) * 24
     for spec in referral_task_specs(referral):
-        session.add(
-            _spec_to_task(spec, referral=referral, due_at=due_at, sla_hours=sla_hours)
-        )
+        session.add(_spec_to_task(spec, referral=referral, due_at=due_at, sla_hours=sla_hours))
 
 
-async def _generate_tasks_for_discharge(
-    session: AsyncSession, discharge: DischargeSummary
-) -> None:
+async def _generate_tasks_for_discharge(session: AsyncSession, discharge: DischargeSummary) -> None:
     if await _existing_task_count_for_discharge(session, discharge.id) > 0:
         return
     due_at = calculate_due_at(discharge.urgency_tier)
     sla_hours = business_days_for_urgency(discharge.urgency_tier) * 24
     for spec in discharge_task_specs(discharge):
-        session.add(
-            _spec_to_task(spec, discharge=discharge, due_at=due_at, sla_hours=sla_hours)
-        )
+        session.add(_spec_to_task(spec, discharge=discharge, due_at=due_at, sla_hours=sla_hours))
 
 
 def _spec_to_task(

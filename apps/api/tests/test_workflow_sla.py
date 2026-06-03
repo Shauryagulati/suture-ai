@@ -1,4 +1,5 @@
 """Phase 1 — SLA business-day calculator."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime

@@ -192,9 +192,7 @@ async def test_confirmation_pdf_handles_missing_appointment_and_outreach(
         pdf_bytes = await generate_confirmation_pdf(db_session, seeded_discharge_a.id)
 
     assert pdf_bytes.startswith(b"%PDF-")
-    text = "\n".join(
-        (p.extract_text() or "") for p in PdfReader(io.BytesIO(pdf_bytes)).pages
-    )
+    text = "\n".join((p.extract_text() or "") for p in PdfReader(io.BytesIO(pdf_bytes)).pages)
     # Still has all four section headings.
     assert "Patient" in text
     assert "Patient Contact" in text
@@ -242,14 +240,18 @@ async def test_send_confirmation_fax_persists_logs_fax_and_updates_discharge(
 
         # Auditable Fax row inserted.
         fax_rows = (
-            await db_session.execute(
-                select(Fax).where(
-                    Fax.direction == FaxDirection.outbound,
-                    Fax.fax_type == FaxType.confirmation,
-                    Fax.patient_id == seeded_discharge_a.patient_id,
+            (
+                await db_session.execute(
+                    select(Fax).where(
+                        Fax.direction == FaxDirection.outbound,
+                        Fax.fax_type == FaxType.confirmation,
+                        Fax.patient_id == seeded_discharge_a.patient_id,
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(fax_rows) == 1
         assert fax_rows[0].status == FaxStatus.sent
         assert fax_rows[0].sent_at is not None
@@ -285,13 +287,19 @@ async def test_send_confirmation_fax_is_idempotent(
         assert seeded_discharge_a.confirmation_fax_sent_at == first_sent_at
         # Stub recorded only one send.
         provider = fax_factory.get_fax_provider()
-        assert len([r for r in provider.sent if r.discharge_summary_id == seeded_discharge_a.id]) == 1
+        assert (
+            len([r for r in provider.sent if r.discharge_summary_id == seeded_discharge_a.id]) == 1
+        )
         # Only one Fax row exists for this discharge.
         fax_rows = (
-            await db_session.execute(
-                select(Fax).where(Fax.patient_id == seeded_discharge_a.patient_id)
+            (
+                await db_session.execute(
+                    select(Fax).where(Fax.patient_id == seeded_discharge_a.patient_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(fax_rows) == 1
 
 
@@ -311,9 +319,7 @@ async def test_send_confirmation_fax_records_failed_send(
             return FaxResult(delivered=False, error="upstream timeout")
 
     # Patch at the import site (confirmation_mod imported the symbol).
-    monkeypatch.setattr(
-        confirmation_mod, "get_fax_provider", lambda: FailingProvider()
-    )
+    monkeypatch.setattr(confirmation_mod, "get_fax_provider", lambda: FailingProvider())
 
     clinic_a, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a, user_id=test_user):
@@ -321,10 +327,14 @@ async def test_send_confirmation_fax_records_failed_send(
         await db_session.commit()
 
         fax_rows = (
-            await db_session.execute(
-                select(Fax).where(Fax.patient_id == seeded_discharge_a.patient_id)
+            (
+                await db_session.execute(
+                    select(Fax).where(Fax.patient_id == seeded_discharge_a.patient_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assert len(fax_rows) == 1
         assert fax_rows[0].status == FaxStatus.failed
         assert fax_rows[0].sent_at is None

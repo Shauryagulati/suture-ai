@@ -33,8 +33,7 @@ log = get_logger(__name__)
 # Confirmations live alongside the document storage root, not inside it,
 # so a docs-bucket sync doesn't accidentally pick them up.
 _PERSIST_ROOT = (
-    Path(get_settings().document_storage_path).resolve().parent
-    / "discharge_confirmations"
+    Path(get_settings().document_storage_path).resolve().parent / "discharge_confirmations"
 )
 
 # v2 gap: the discharging hospital's fax number is not yet captured during
@@ -43,9 +42,7 @@ _PERSIST_ROOT = (
 _PLACEHOLDER_RECIPIENT_FAX = "555-000-0000"
 
 
-async def send_confirmation_fax(
-    db: AsyncSession, discharge: DischargeSummary
-) -> Path:
+async def send_confirmation_fax(db: AsyncSession, discharge: DischargeSummary) -> Path:
     """Generate, persist, and send the confirmation fax. Returns the local
     PDF path. Idempotent on `discharge.confirmation_fax_path`. Caller commits."""
     if discharge.confirmation_fax_path:

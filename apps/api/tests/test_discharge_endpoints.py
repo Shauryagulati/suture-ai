@@ -66,9 +66,7 @@ async def _login(
         password="discharge-pw-1234",
         clinic_id=clinic_id,
     )
-    user = (
-        await db.execute(select(User).where(User.email == email))
-    ).scalar_one()
+    user = (await db.execute(select(User).where(User.email == email))).scalar_one()
     return auth_headers(token), user.id
 
 
@@ -181,14 +179,18 @@ async def test_get_discharge_returns_detail_and_audits_view(
     cid = current_clinic_id.set(clinic_a)
     try:
         views = (
-            await db_session.execute(
-                select(AuditLog).where(
-                    AuditLog.resource_type == "discharge_summaries",
-                    AuditLog.resource_id == discharge.id,
-                    AuditLog.action == "view",
+            (
+                await db_session.execute(
+                    select(AuditLog).where(
+                        AuditLog.resource_type == "discharge_summaries",
+                        AuditLog.resource_id == discharge.id,
+                        AuditLog.action == "view",
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(cid)
     assert len(views) == 1
@@ -232,10 +234,10 @@ async def test_confirm_on_seen_advances_to_confirmation_sent_and_fires_fax(
     cid = current_clinic_id.set(clinic_a)
     try:
         faxes = (
-            await db_session.execute(
-                select(Fax).where(Fax.patient_id == discharge.patient_id)
-            )
-        ).scalars().all()
+            (await db_session.execute(select(Fax).where(Fax.patient_id == discharge.patient_id)))
+            .scalars()
+            .all()
+        )
     finally:
         current_clinic_id.reset(cid)
     assert len(faxes) == 1
@@ -372,9 +374,7 @@ async def test_complete_appointment_advances_linked_discharge_to_seen(
         discharge_id=discharge.id,
     )
 
-    r = await client.post(
-        f"/api/appointments/{appt.id}/complete", headers=headers
-    )
+    r = await client.post(f"/api/appointments/{appt.id}/complete", headers=headers)
     assert r.status_code == 200, r.text
     body = r.json()
     assert body["appointment_status"] == "completed"

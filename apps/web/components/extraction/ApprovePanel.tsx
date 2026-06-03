@@ -31,7 +31,9 @@ export function ApprovePanel({ extraction }: ApprovePanelProps): React.ReactElem
       }
       const body = (await resp.json()) as ExtractionApproveResponse;
       if (body.referral_id) {
-        router.push(`/referrals/${body.referral_id}`);
+        // Referral approval generates tasks; send the reviewer to the queue
+        // to see them. (There is no standalone /referrals/[id] route.)
+        router.push("/tasks");
       } else if (body.discharge_summary_id) {
         router.push(`/discharges/${body.discharge_summary_id}`);
       } else {

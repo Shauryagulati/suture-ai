@@ -36,7 +36,13 @@ def _metrics_payload(
         "per_field": per_field
         or {
             "patient.mrn": {"accuracy": 0.9, "precision": 0.9, "recall": 0.9, "f1": 0.9, "n": 5},
-            "diagnosis_codes": {"accuracy": 0.8, "precision": 0.85, "recall": 0.8, "f1": 0.82, "n": 5},
+            "diagnosis_codes": {
+                "accuracy": 0.8,
+                "precision": 0.85,
+                "recall": 0.8,
+                "f1": 0.82,
+                "n": 5,
+            },
         },
     }
 
@@ -176,7 +182,13 @@ async def test_compare_two_runs_yields_per_field_deltas(
             exact_match=0.70,
             f1=0.72,
             per_field={
-                "patient.mrn": {"accuracy": 0.7, "precision": 0.7, "recall": 0.7, "f1": 0.7, "n": 5},
+                "patient.mrn": {
+                    "accuracy": 0.7,
+                    "precision": 0.7,
+                    "recall": 0.7,
+                    "f1": 0.7,
+                    "n": 5,
+                },
                 "diagnosis_codes": {
                     "accuracy": 0.6,
                     "precision": 0.7,
@@ -196,7 +208,13 @@ async def test_compare_two_runs_yields_per_field_deltas(
             exact_match=0.85,
             f1=0.87,
             per_field={
-                "patient.mrn": {"accuracy": 0.9, "precision": 0.9, "recall": 0.9, "f1": 0.9, "n": 5},
+                "patient.mrn": {
+                    "accuracy": 0.9,
+                    "precision": 0.9,
+                    "recall": 0.9,
+                    "f1": 0.9,
+                    "n": 5,
+                },
                 "diagnosis_codes": {
                     "accuracy": 0.85,
                     "precision": 0.9,

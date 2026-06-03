@@ -6,6 +6,7 @@ adds that many business days to a datetime to produce the task `due_at`.
 Holidays are not modelled in v1 — the practice operates US business days
 and a holiday-aware calendar belongs in a later module.
 """
+
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta

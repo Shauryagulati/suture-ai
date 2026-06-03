@@ -45,6 +45,7 @@ from app.services.extraction.confidence import compute_field_confidences
 from app.services.extraction.resolvers import (
     ExtractionResolverError,
     resolve_or_create_patient,
+    resolve_or_create_primary_insurance,
     resolve_or_create_referring_provider,
 )
 from app.services.workflow.state_machine import (
@@ -97,17 +98,19 @@ async def list_extractions(
     if needs_review is not None:
         stmt = stmt.where(DocumentExtraction.human_review_required.is_(needs_review))
 
-    stmt = stmt.order_by(
-        desc(DocumentExtraction.human_review_required),
-        desc(DocumentExtraction.created_at),
-    ).limit(limit).offset(offset)
+    stmt = (
+        stmt.order_by(
+            desc(DocumentExtraction.human_review_required),
+            desc(DocumentExtraction.created_at),
+        )
+        .limit(limit)
+        .offset(offset)
+    )
     rows = (await db.execute(stmt)).all()
 
     count_stmt = select(func.count(DocumentExtraction.id))
     if needs_review is not None:
-        count_stmt = count_stmt.where(
-            DocumentExtraction.human_review_required.is_(needs_review)
-        )
+        count_stmt = count_stmt.where(DocumentExtraction.human_review_required.is_(needs_review))
     total = (await db.execute(count_stmt)).scalar_one()
 
     items = [
@@ -140,9 +143,7 @@ async def get_extraction(
         )
     ).first()
     if row is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="extraction not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="extraction not found")
     ext, doc = row
 
     # Pull model + prompt_version from the linked AiInvocation, if any.
@@ -237,9 +238,7 @@ def _set_by_path(data: dict[str, Any], path: str, value: Any) -> None:
 async def _load_extraction_or_404(db: AsyncSession, extraction_id: UUID) -> DocumentExtraction:
     ext = await db.get(DocumentExtraction, extraction_id)
     if ext is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="extraction not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="extraction not found")
     return ext
 
 
@@ -340,6 +339,9 @@ async def _approve_referral(
 
     patient, patient_created = await resolve_or_create_patient(db, patient_dict)
     provider, provider_created = await resolve_or_create_referring_provider(db, provider_dict)
+    # Persist extracted primary insurance so the prior-auth packet has a
+    # policy on file. Optional — never blocks approval if absent.
+    await resolve_or_create_primary_insurance(db, patient, data.get("insurance"))
 
     referral = Referral(
         document_id=doc.id,
@@ -355,14 +357,19 @@ async def _approve_referral(
     db.add(referral)
     await db.flush()
 
+    # Approval IS the human review, so engage the workflow the same way
+    # discharge approval does (_approve_discharge → patient_contacted):
+    # advance to ready_to_schedule, which is the transition that generates
+    # tasks + schedules outreach (state_machine.apply_referral_transition).
+    # The FSM forbids new → ready_to_schedule directly, so step through the
+    # mandatory needs_review waypoint first.
     try:
+        await apply_referral_transition(db, referral=referral, target=ReferralStatus.needs_review)
         await apply_referral_transition(
-            db, referral=referral, target=ReferralStatus.needs_review
+            db, referral=referral, target=ReferralStatus.ready_to_schedule
         )
     except InvalidTransitionError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
     return ExtractionApproveResponse(
         referral_id=referral.id,
@@ -413,9 +420,7 @@ async def _approve_discharge(
             db, discharge=discharge, target=DischargeStatus.patient_contacted
         )
     except InvalidTransitionError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
-        ) from exc
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
     return ExtractionApproveResponse(
         discharge_summary_id=discharge.id,
@@ -457,8 +462,7 @@ async def approve_extraction(
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=(
-                    f"cannot approve a document with classification="
-                    f"{doc.classification.value}"
+                    f"cannot approve a document with classification={doc.classification.value}"
                 ),
             )
     except ExtractionResolverError as exc:

@@ -19,7 +19,9 @@ async def test_build_scheduling_link_url_uses_web_base_from_settings() -> None:
     assert url == "http://localhost:3000/schedule/abc.def.ghi"
 
 
-async def test_build_scheduling_link_url_strips_trailing_slash(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_build_scheduling_link_url_strips_trailing_slash(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from app.config import get_settings
 
     settings = get_settings()

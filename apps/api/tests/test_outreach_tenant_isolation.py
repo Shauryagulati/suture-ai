@@ -117,9 +117,7 @@ async def test_outreach_trigger_404_cross_clinic(
         await db_session.commit()
 
     client_b, headers_b, _ = await authed_client_factory("b")
-    r = await client_b.post(
-        f"/api/outreach/trigger/referral/{ref.id}", headers=headers_b
-    )
+    r = await client_b.post(f"/api/outreach/trigger/referral/{ref.id}", headers=headers_b)
     assert r.status_code == 404
 
 
@@ -135,9 +133,7 @@ async def test_outreach_patient_history_empty_cross_clinic(
         patient, _ = await _seed_attempt(db_session, clinic_a_id)
 
     client_b, headers_b, _ = await authed_client_factory("b")
-    r = await client_b.get(
-        f"/api/outreach/patient/{patient.id}", headers=headers_b
-    )
+    r = await client_b.get(f"/api/outreach/patient/{patient.id}", headers=headers_b)
     assert r.status_code == 200
     assert r.json()["items"] == []
 

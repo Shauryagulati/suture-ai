@@ -40,9 +40,7 @@ async def test_referral_transition_to_ready_to_schedule_auto_schedules_outreach(
         tasks = (
             (
                 await db_session.execute(
-                    select(ReferralTask).where(
-                        ReferralTask.referral_id == seeded_referral_a.id
-                    )
+                    select(ReferralTask).where(ReferralTask.referral_id == seeded_referral_a.id)
                 )
             )
             .scalars()
@@ -204,8 +202,6 @@ async def test_discharge_transition_to_confirmation_sent_fires_fax(
 
         provider = fax_factory.get_fax_provider()
         assert isinstance(provider, StubFaxProvider)
-        matching = [
-            r for r in provider.sent if r.discharge_summary_id == seeded_discharge_a.id
-        ]
+        matching = [r for r in provider.sent if r.discharge_summary_id == seeded_discharge_a.id]
         assert len(matching) == 1
     fax_factory.reset_fax_provider_cache()

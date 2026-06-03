@@ -118,9 +118,7 @@ async def extract_document(
         raw_missing = parsed.pop("missing_fields", []) or []
         missing_fields = [str(m) for m in raw_missing if isinstance(m, str)]
         extraction_data = parsed
-        field_confidences, needs_review = compute_field_confidences(
-            extraction_data, missing_fields
-        )
+        field_confidences, needs_review = compute_field_confidences(extraction_data, missing_fields)
         output_summary = json.dumps(extraction_data)[:_OUTPUT_SUMMARY_CHARS]
 
     invocation = AiInvocation(

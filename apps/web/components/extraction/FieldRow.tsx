@@ -117,7 +117,7 @@ export function FieldRow({
                 }
               }}
               disabled={isSaving}
-              className="mt-1 h-8"
+              className="mt-1"
             />
           )}
           {error ? <div className="mt-1 text-xs text-destructive">{error}</div> : null}

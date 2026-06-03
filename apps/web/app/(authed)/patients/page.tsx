@@ -2,16 +2,16 @@ import Link from "next/link";
 
 export default function PatientsPage(): React.ReactElement {
   return (
-    <main className="flex-1 p-10">
+    <div className="p-10">
       <h1 className="mb-2 text-2xl font-semibold">Patients</h1>
-      <p className="text-sm text-muted-foreground">
-        Open a patient detail page from a referral or the upcoming Module 1 patient registry. For a
-        quick look at outreach history, browse to{" "}
-        <Link href="/outreach" className="underline">
-          Outreach
+      <p className="max-w-prose text-sm text-muted-foreground">
+        Patients are created automatically when you approve a referral or discharge in the{" "}
+        <Link href="/inbox" className="underline">
+          Inbox
         </Link>
-        .
+        . Open a patient from a referral or discharge detail page to see their contact history. A
+        standalone patient registry is a Module 1 enhancement.
       </p>
-    </main>
+    </div>
   );
 }

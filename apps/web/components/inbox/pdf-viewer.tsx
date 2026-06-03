@@ -8,6 +8,11 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 
 // Self-host the worker — no third-party fetch during PDF rendering (HIPAA hygiene).
+// The worker in public/ MUST be byte-identical to the pdfjs version react-pdf
+// runs. react-pdf@9.2.1 hard-pins pdfjs-dist@4.8.69, so apps/web pins the same
+// EXACT version (see package.json) and ships its 4.8.69 worker here. Do not
+// float this to ^4.x or ^5.x without re-syncing public/pdf.worker.min.mjs —
+// a version skew silently breaks PDF rendering ("API X vs Worker Y").
 pdfjs.GlobalWorkerOptions.workerSrc = "/pdf.worker.min.mjs";
 
 interface Props {

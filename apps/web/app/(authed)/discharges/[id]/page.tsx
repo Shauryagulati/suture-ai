@@ -6,6 +6,7 @@ import {
   getDischarge,
   getDischargeTimeline,
 } from "@/lib/discharges";
+import { formatResourceType, formatTimelineAction } from "@/lib/timeline-format";
 import { notFound } from "next/navigation";
 import { ConfirmationPanel } from "./confirmation-panel";
 
@@ -104,8 +105,10 @@ export default async function DischargeDetailPage({
                   className="border-l-2 border-muted pl-3"
                 >
                   <p className="text-sm font-medium">
-                    {evt.action.replace(/_/g, " ")} ·{" "}
-                    <span className="text-muted-foreground font-normal">{evt.resource_type}</span>
+                    {formatTimelineAction(evt.action)} ·{" "}
+                    <span className="text-muted-foreground font-normal">
+                      {formatResourceType(evt.resource_type)}
+                    </span>
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {new Date(evt.at).toLocaleString()}

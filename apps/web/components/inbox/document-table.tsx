@@ -10,7 +10,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { DocumentListItem } from "@/lib/document-types";
+import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 interface Props {
   items: DocumentListItem[];
@@ -33,8 +35,49 @@ function confidence(value: number | null): string {
   return `${Math.round(value * 100)}%`;
 }
 
+type SortKey =
+  | "status"
+  | "classification"
+  | "classification_confidence"
+  | "urgency"
+  | "file_name"
+  | "created_at";
+
+const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: "status", label: "Status" },
+  { key: "classification", label: "Classification" },
+  { key: "classification_confidence", label: "Confidence" },
+  { key: "urgency", label: "Urgency" },
+  { key: "file_name", label: "File" },
+  { key: "created_at", label: "Uploaded" },
+];
+
+function compare(a: DocumentListItem, b: DocumentListItem, key: SortKey): number {
+  if (key === "classification_confidence") {
+    return (a.classification_confidence ?? -1) - (b.classification_confidence ?? -1);
+  }
+  if (key === "created_at") {
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+  }
+  return String(a[key] ?? "").localeCompare(String(b[key] ?? ""));
+}
+
 export function DocumentTable({ items }: Props): React.ReactElement {
   const router = useRouter();
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
+
+  const sorted = useMemo(() => {
+    if (!sort) return items;
+    const next = [...items].sort((a, b) => compare(a, b, sort.key));
+    if (sort.dir === "desc") next.reverse();
+    return next;
+  }, [items, sort]);
+
+  function toggleSort(key: SortKey): void {
+    setSort((prev) =>
+      prev?.key === key ? { key, dir: prev.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" },
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -51,16 +94,28 @@ export function DocumentTable({ items }: Props): React.ReactElement {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Status</TableHead>
-            <TableHead>Classification</TableHead>
-            <TableHead>Confidence</TableHead>
-            <TableHead>Urgency</TableHead>
-            <TableHead>File</TableHead>
-            <TableHead>Uploaded</TableHead>
+            {COLUMNS.map((col) => {
+              const active = sort?.key === col.key;
+              const Icon = active ? (sort.dir === "asc" ? ChevronUp : ChevronDown) : ChevronsUpDown;
+              return (
+                <TableHead key={col.key}>
+                  <button
+                    type="button"
+                    onClick={() => toggleSort(col.key)}
+                    className="-ml-1 inline-flex items-center gap-1 rounded px-1 py-0.5 hover:text-foreground"
+                  >
+                    {col.label}
+                    <Icon
+                      className={`h-3.5 w-3.5 ${active ? "text-foreground" : "text-muted-foreground/50"}`}
+                    />
+                  </button>
+                </TableHead>
+              );
+            })}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((doc) => (
+          {sorted.map((doc) => (
             <TableRow
               key={doc.id}
               className="cursor-pointer"

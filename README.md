@@ -1,67 +1,126 @@
 # Suture
 
-**AI command center for cardiology practices.** Closes the loop from inbound referral/discharge fax → AI extraction → human review → workflow → multi-channel patient outreach → prior-auth packet → confirmation fax-back to the discharging hospital. Built for independent cardiology practices in Western Pennsylvania.
+**AI command center for cardiology practices.** Suture closes the loop from an inbound
+referral or discharge fax all the way to a booked follow-up: **fax/PDF → OCR → AI
+classification → AI field extraction → human review → workflow + SLA tasks → multi-channel
+patient outreach → prior-auth packet → confirmation fax-back to the discharging hospital.**
 
-> ⚠️ Pre-alpha. Local development only.
+Built solo for independent cardiology practices in the Western Pennsylvania / Pittsburgh
+metro. The codebase is also a portfolio artifact demonstrating senior-level engineering
+judgement on a HIPAA-class workload.
+
+> ⚠️ **Local development only (v1).** The only paid dependency is the optional Claude API
+> (BYOK). Everything else — Postgres, Redis, OCR, embeddings, the LLM, and voice STT/TTS —
+> runs locally.
+
+## What's built
+
+Suture is a multi-tenant system with strict clinic isolation, field-level PHI encryption,
+and an append-only audit trail. The major capabilities are in place:
+
+| Area | Capability | Status |
+|---|---|---|
+| Inbox | Upload, OCR (Docling → Tesseract fallback), AI classification, filtering, PDF viewer | ✅ |
+| Extraction | AI field extraction with deterministic per-field confidence + an eval harness | ✅ |
+| Review | Side-by-side PDF + fields, inline edit, approve → creates Patient/Referral/Discharge | ✅ |
+| Workflow | Referral & discharge state machines, SLA-tracked task generation | ✅ |
+| Outreach | Multi-channel cadence (SMS/email/voice), tokenized patient self-scheduling | ✅ |
+| Prior auth | Payer-rules RAG (hybrid structured + vector), auth-required check, packet + appeals | ✅ |
+| Analytics | Leakage, payer friction, referral quality, ROI dashboards | ✅ |
+| Voice | LiveKit voice agent (Ember): Whisper STT + Piper TTS + LLM, live transcript | ✅ |
+
+External delivery channels (fax, SMS, email, PSTN voice) run behind **local stub providers**
+in v1 — the full pipeline executes and is auditable, but nothing leaves the machine. See
+`docs/DECISIONS/` (ADR 010) for the rationale.
+
+## Architecture (load-bearing patterns)
+
+- **Multi-tenant isolation** — a SQLAlchemy `before_execute` listener injects
+  `WHERE clinic_id = :current_clinic_id` for every clinic-scoped query; the clinic id lives
+  in a `ContextVar` set from the JWT. Missing context **fails closed**. Cross-tenant reads
+  return 404, not 403.
+- **PHI encryption** — `EncryptedString` (Fernet `TypeDecorator`) on `patients.dob/phone/ssn`
+  and `insurance_policies.member_id`. App-layer, not pgcrypto (ADR 003).
+- **Audit logging** — `after_insert/update/delete` listeners write to `audit_logs` for every
+  PHI-bearing model; `details` holds **column names and IDs only, never PHI values**.
+- **LLM/embeddings behind providers** — every call goes through `get_llm_provider()` /
+  `get_embedding_provider()`. Default is local **Ollama** (`medgemma1.5` LLM, `bge-m3`
+  embeddings, 1024-dim); **BYOK** Claude/OpenAI via env (ADR 007).
+- **TIMESTAMPTZ everywhere**, Alembic migrations, conventional commits enforced by commitlint.
+
+See [`CLAUDE.md`](./CLAUDE.md) and [`docs/DECISIONS/`](./docs/DECISIONS) for the full rules
+and the ADRs behind each decision.
+
+## Tech stack
+
+| Layer | Choice |
+|---|---|
+| Frontend | Next.js 15 (App Router), TypeScript strict, Tailwind, shadcn/ui, TanStack Query/Table |
+| Backend | FastAPI (Python 3.12), SQLAlchemy 2.0 async, asyncpg |
+| Database | Postgres 16 + pgvector + pgcrypto + uuid-ossp |
+| Auth | NextAuth Credentials → FastAPI JWT (HS256) |
+| Queue | Celery + Redis |
+| AI — LLM | Local Ollama (`medgemma1.5`) by default; BYOK Claude (Sonnet/Opus/Haiku) or OpenAI |
+| AI — OCR | Docling (IBM), Tesseract fallback |
+| AI — Embeddings | Ollama `bge-m3` (1024-dim, local); pgvector RAG |
+| Voice | LiveKit Agents + Whisper.cpp (STT) + Piper (TTS) + local LLM |
+| Observability | structlog, OpenTelemetry → Jaeger, Prometheus + Grafana |
 
 ## Quickstart
 
 ```bash
-# 1. Install toolchain (one-time)
-#    - Node 22+ (see .nvmrc), pnpm 10+
-#    - Python 3.12 (see .python-version), uv 0.11+
-#    - Docker Desktop
+# Toolchain (one-time): Node 22+ (.nvmrc), pnpm 10+, Python 3.12 (.python-version),
+# uv 0.11+, Docker Desktop. Optional: Ollama with medgemma1.5 + bge-m3 pulled.
 
-# 2. Install dependencies
-pnpm install                 # root + workspace
+pnpm install                 # root + workspaces
 cd apps/api && uv sync       # backend deps
-cd ../web && pnpm install    # frontend deps
+cd ../..                     # back to repo root
 
-# 3. Generate local secrets (one-time)
-make gen-phi-key             # PHI_ENCRYPTION_KEY → apps/api/.env
-make gen-jwt-keys            # JWT_SECRET → apps/api/.env
+make gen-phi-key             # PHI_ENCRYPTION_KEY → apps/api/.env  (one-time)
+make gen-jwt-keys            # JWT_SECRET        → apps/api/.env  (one-time)
 
-# 4. Start infra
-make infra-up                # Postgres + Redis
+make infra-up                # Postgres + Redis (Docker)
+make migrate                 # alembic upgrade head
+make seed                    # 2 clinics, 6 users, patients, providers
+make seed-documents          # drive real PDFs through the upload→extract→approve pipeline
 
-# 5. Run migrations + seed (after Gate C ships)
-make migrate
-make seed
-
-# 6. Run the apps
 make dev                     # api on :8000, web on :3000
 ```
 
-## Tech stack
+Then sign in at <http://localhost:3000> with a seeded account:
 
-- **Frontend** — Next.js 15 (App Router) + TypeScript strict, Tailwind, shadcn/ui
-- **Backend** — FastAPI (Python 3.12), SQLAlchemy 2.0 async, asyncpg
-- **Database** — Postgres 16 + pgvector + pgcrypto
-- **Queue** — Celery + Redis
-- **AI** — Claude API (Sonnet/Opus/Haiku), Docling OCR, sentence-transformers, pgvector RAG
-- **Voice (Module 6)** — LiveKit Agents + Whisper.cpp + Piper + Claude Haiku
-- **Observability** — structlog, OpenTelemetry → Jaeger, Prometheus + Grafana
+```
+admin@steel-city-cardiology.example.com  /  suture_dev_123
+```
 
-## Project state
+(Seeded clinics: Steel City Cardiology, Allegheny Valley Heart & Vascular. Each has
+admin / reviewer / readonly users with the same dev password.)
 
-Foundation (Phase 1) is built in five gates:
+## Evaluation
 
-| Gate | Status | Description |
-|---|---|---|
-| 0 | ✅ | Claude Code project context |
-| A | 🔄 | Scaffold + infra + CI |
-| B1 | ⏳ | Tenant guard + audit + encryption + core models |
-| B2 | ⏳ | Auth flow (NextAuth + FastAPI JWT) |
-| C | ⏳ | Full schema + seeds + observability |
+Every Claude-touching feature ships with an eval harness; results are recorded in the
+`eval_runs` table so prompt/model changes are comparable over time. The extraction eval runs
+the real pipeline over the synthetic ground-truth corpus:
 
-After foundation: modules 1–7 ship as separate branches per the build plan.
+```bash
+make eval-extraction         # → per-field accuracy, precision/recall, exact-match, macro-F1
+```
+
+Latest extraction run (synthetic corpus, 50 documents): **0.648 exact-match, 0.725 macro-F1**
+on a local `medgemma1.5` model. See [`docs/EVAL.md`](./docs/EVAL.md) for methodology and how
+to add cases.
+
+## Screenshots
+
+> _TODO: add inbox, review, workflow, prior-auth, and analytics screenshots._
 
 ## Documentation
 
-- [`CLAUDE.md`](./CLAUDE.md) — architectural rules, anti-patterns (loaded by every Claude Code session)
+- [`CLAUDE.md`](./CLAUDE.md) — architectural rules + anti-patterns (loaded by every session)
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
-- [`docs/SECURITY.md`](./docs/SECURITY.md)
+- [`docs/SECURITY.md`](./docs/SECURITY.md) — HIPAA-class controls + what's deferred to v2
 - [`docs/EVAL.md`](./docs/EVAL.md)
+- [`docs/DEMO.md`](./docs/DEMO.md) — 5-minute walkthrough
 - [`docs/DECISIONS/`](./docs/DECISIONS) — ADRs
 
 ## License

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from faker import Faker
@@ -24,16 +25,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session_maker
 from app.models import (
-    AiInvocation,
-    AuditLog,
+    Appointment,
+    AppointmentStatus,
+    Base,
+    Call,
+    CallStatus,
+    CallType,
     Clinic,
     ClinicMembership,
+    EvalRun,
     MembershipRole,
     Patient,
     Provider,
     ProviderType,
     User,
 )
+from app.models.eval_run import EvalType
 from app.utils.context import current_clinic_id
 from app.utils.security import hash_password
 from seeds.scripts._npi import generate_npi
@@ -63,6 +70,31 @@ PROVIDER_KIND = [
     ("ED", ProviderType.referring, "Emergency Medicine"),
     ("Internal Medicine", ProviderType.referring, "Internal Medicine"),
     ("Family Practice", ProviderType.referring, "Family Medicine"),
+]
+
+# Clinic-scoped tables in children-first FK order for idempotent re-seeding.
+# Mirrors the test-harness cleanup order. payer_rules / workflow_runs are
+# omitted on purpose (RAG KB + task bookkeeping aren't part of a dev-data run).
+_CLINIC_SCOPED_DELETE_ORDER = [
+    "audit_logs",
+    "eval_runs",
+    "ai_invocations",
+    "prior_auth_events",
+    "prior_auths",
+    "call_transcripts",
+    "calls",
+    "document_extractions",
+    "referral_tasks",
+    "referrals",
+    "faxes",
+    "discharge_summaries",
+    "appointments",
+    "outreach_attempts",
+    "eligibility_checks",
+    "insurance_policies",
+    "documents",
+    "patients",
+    "providers",
 ]
 
 
@@ -178,6 +210,79 @@ async def seed() -> None:
             finally:
                 current_clinic_id.reset(token)
 
+        # ── Appointments / calls / eval runs (so demo pages aren't empty) ──
+        appointments_created = 0
+        calls_created = 0
+        eval_runs_created = 0
+        now = datetime.now(UTC)
+        for clinic in clinics:
+            token = current_clinic_id.set(clinic.id)
+            try:
+                clinic_patients = (
+                    (await db.execute(select(Patient).where(Patient.clinic_id == clinic.id)))
+                    .scalars()
+                    .all()
+                )
+                clinic_providers = (
+                    (await db.execute(select(Provider).where(Provider.clinic_id == clinic.id)))
+                    .scalars()
+                    .all()
+                )
+                if clinic_patients and clinic_providers:
+                    appt_plan = [
+                        (3, AppointmentStatus.scheduled),
+                        (10, AppointmentStatus.confirmed),
+                        (-7, AppointmentStatus.completed),
+                    ]
+                    for i, (day_offset, status) in enumerate(appt_plan):
+                        db.add(
+                            Appointment(
+                                patient_id=clinic_patients[i % len(clinic_patients)].id,
+                                provider_id=clinic_providers[i % len(clinic_providers)].id,
+                                appointment_at=now + timedelta(days=day_offset, hours=9 + i),
+                                appointment_type="follow_up",
+                                status=status,
+                            )
+                        )
+                        appointments_created += 1
+                    for i in range(2):
+                        started = now - timedelta(days=2, hours=i)
+                        db.add(
+                            Call(
+                                patient_id=clinic_patients[i % len(clinic_patients)].id,
+                                call_type=CallType.outbound_followup,
+                                status=CallStatus.completed,
+                                started_at=started,
+                                ended_at=started + timedelta(minutes=4),
+                                duration_seconds=240,
+                                outcome={
+                                    "resolved": True,
+                                    "summary": "Confirmed follow-up appointment.",
+                                },
+                            )
+                        )
+                        calls_created += 1
+                # Two extraction eval runs so the Evals dashboard + compare view
+                # have history. Metrics mirror the synthetic-corpus baseline.
+                for ver, em, f1 in [("v1", 0.612, 0.701), ("v1", 0.648, 0.725)]:
+                    db.add(
+                        EvalRun(
+                            eval_type=EvalType.extraction,
+                            test_set_version=ver,
+                            metrics={"exact_match_rate": em, "f1_macro": f1, "num_fields": 25},
+                            num_samples=50,
+                            run_duration_seconds=500,
+                            prompt_version="extract_referral_v1",
+                            model="medgemma1.5",
+                            notes="Synthetic corpus baseline.",
+                            run_by="seed",
+                        )
+                    )
+                    eval_runs_created += 1
+                await db.commit()
+            finally:
+                current_clinic_id.reset(token)
+
         # ── Summary ──
         print()
         print("┌────────────────────────────────────────────────────┐")
@@ -185,19 +290,17 @@ async def seed() -> None:
         print("├────────────────────────────────────────────────────┤")
         print(f"│ Clinics:     {len(by_slug):>3}                                  │")
         print(f"│ Users:       {users_created:>3}                                  │")
-        print(
-            f"│ Memberships: {memberships_created:>3}                                  │"
-        )
-        print(
-            f"│ Patients:    {patients_created:>3}                                  │"
-        )
-        print(
-            f"│ Providers:   {providers_created:>3}                                  │"
-        )
+        print(f"│ Memberships: {memberships_created:>3}                                  │")
+        print(f"│ Patients:    {patients_created:>3}                                  │")
+        print(f"│ Providers:   {providers_created:>3}                                  │")
         print("├────────────────────────────────────────────────────┤")
         print("│ Login: admin@<slug>.example.com / suture_dev_123   │")
         print(f"│   slugs: {', '.join(by_slug)}    │")
         print("└────────────────────────────────────────────────────┘")
+        print(
+            f"  + appointments: {appointments_created}, calls: {calls_created}, "
+            f"eval_runs: {eval_runs_created}"
+        )
 
 
 async def _clear_seed(db: AsyncSession) -> None:
@@ -209,42 +312,24 @@ async def _clear_seed(db: AsyncSession) -> None:
     """
     seed_slugs = [s for s, _ in CLINICS]
     seed_emails = [
-        f"{role}@{slug}.example.com"
-        for slug in seed_slugs
-        for role, _ in USERS_PER_CLINIC
+        f"{role}@{slug}.example.com" for slug in seed_slugs for role, _ in USERS_PER_CLINIC
     ]
 
     seed_clinics = (
-        (await db.execute(select(Clinic).where(Clinic.slug.in_(seed_slugs))))
-        .scalars()
-        .all()
+        (await db.execute(select(Clinic).where(Clinic.slug.in_(seed_slugs)))).scalars().all()
     )
     seed_clinic_ids = [c.id for c in seed_clinics]
     if seed_clinic_ids:
-        # Core deletes via __table__ bypass the do_orm_execute listener.
-        # Audit logs + AI invocations FK clinics with ondelete=RESTRICT, and
-        # the audit listener writes rows during seeding — clear them before
-        # clinics or the clinic delete trips the FK constraint.
-        await db.execute(
-            AuditLog.__table__.delete().where(
-                AuditLog.__table__.c.clinic_id.in_(seed_clinic_ids)
-            )
-        )
-        await db.execute(
-            AiInvocation.__table__.delete().where(
-                AiInvocation.__table__.c.clinic_id.in_(seed_clinic_ids)
-            )
-        )
-        await db.execute(
-            Patient.__table__.delete().where(
-                Patient.__table__.c.clinic_id.in_(seed_clinic_ids)
-            )
-        )
-        await db.execute(
-            Provider.__table__.delete().where(
-                Provider.__table__.c.clinic_id.in_(seed_clinic_ids)
-            )
-        )
+        # Core deletes via __table__ bypass the do_orm_execute tenant listener
+        # (admin cleanup spans clinics intentionally). Delete clinic-scoped rows
+        # children-first so RESTRICT FKs don't block — this must stay robust even
+        # after `make seed-documents` has populated referrals/tasks/outreach, so a
+        # re-run of `make seed` doesn't crash on a referrals→patients FK.
+        # payer_rules is intentionally left alone: the RAG KB is seeded separately
+        # and isn't tied to a dev-data run.
+        for table_name in _CLINIC_SCOPED_DELETE_ORDER:
+            table = Base.metadata.tables[table_name]
+            await db.execute(table.delete().where(table.c.clinic_id.in_(seed_clinic_ids)))
     # Users + clinics are GlobalBase tables — direct deletes are fine.
     await db.execute(delete(User).where(User.email.in_(seed_emails)))
     await db.execute(delete(Clinic).where(Clinic.slug.in_(seed_slugs)))

@@ -28,6 +28,7 @@ from app.routers import (
     extractions,
     health,
     outreach,
+    patients,
     prior_auth,
     referrals,
     scheduling,
@@ -112,6 +113,7 @@ app.include_router(tasks.router)
 app.include_router(referrals.router)
 app.include_router(discharges.router)
 app.include_router(prior_auth.router)
+app.include_router(patients.router)
 app.include_router(analytics.router)
 app.include_router(scheduling.router)
 app.include_router(outreach.router)

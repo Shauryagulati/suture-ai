@@ -184,6 +184,10 @@ async def test_check_logs_ai_invocation_row(
     assert row.latency_ms >= 0
     assert row.confidence_scores.get("auth_check") == pytest.approx(0.7, abs=1e-3)
     assert row.output_summary == "auth_required=True"
+    # Tokens are estimated (not left at 0) and flagged as such.
+    assert row.total_tokens > 0
+    assert row.prompt_tokens > 0
+    assert row.confidence_scores.get("tokens_estimated") is True
 
 
 async def test_check_falls_back_when_llm_returns_garbage(

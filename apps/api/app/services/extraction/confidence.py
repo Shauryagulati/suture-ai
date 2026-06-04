@@ -15,6 +15,7 @@ from collections.abc import Callable
 from typing import Any
 
 from app.services.extraction.validators import (
+    is_plausible_name,
     is_valid_cpt,
     is_valid_date,
     is_valid_icd10,
@@ -33,6 +34,8 @@ _NEEDS_REVIEW_THRESHOLD = 0.85
 
 # Validator dispatch by the last segment of the dot-path.
 _SCALAR_VALIDATORS: dict[str, Callable[[Any], bool]] = {
+    "first_name": is_plausible_name,
+    "last_name": is_plausible_name,
     "dob": is_valid_date,
     "admit_date": is_valid_date,
     "discharge_date": is_valid_date,

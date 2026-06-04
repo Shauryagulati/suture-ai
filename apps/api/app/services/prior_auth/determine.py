@@ -17,10 +17,10 @@ Three steps for every check:
    retrieved excerpts agree. The structured rule is authoritative for
    `auth_required`; the LLM does not override it.
 
-Every call logs to `ai_invocations` with model + latency. Token counts
-are left at 0 in v1 because the existing LLM provider abstraction
-returns only the response text — surfacing token counts would expand the
-abstraction beyond this branch's scope.
+Every call logs to `ai_invocations` with model + latency + estimated token
+counts (the LLM provider abstraction returns only response text, so tokens
+are estimated at ~4 chars/token and the row is flagged `tokens_estimated`).
+Surfacing exact provider usage is a follow-up that widens the abstraction.
 """
 
 from __future__ import annotations
@@ -37,7 +37,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import AiInvocation, InvocationType, PayerRule
 from app.services.embedding import get_embedding_provider
 from app.services.llm import get_llm_provider
-from app.services.llm.base import JSONExtractionError
+from app.services.llm.base import JSONExtractionError, estimate_tokens
 
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 _PROMPT_DIR = _REPO_ROOT / "ai" / "prompts" / "prior_auth"
@@ -225,13 +225,23 @@ async def check_prior_auth(db: AsyncSession, request: AuthCheckRequest) -> AuthD
         }
     latency_ms = int((time.monotonic() - start) * 1000)
 
-    # Log the call. tokens left at 0 — see module docstring.
+    # Token counts are estimated (~4 chars/token): the provider interface returns
+    # only text, not exact usage. Flagged `tokens_estimated` so cost reporting can
+    # tell estimates from exact provider usage. See module docstring.
+    prompt_tokens = estimate_tokens(_SYSTEM_PROMPT + user_prompt)
+    completion_tokens = estimate_tokens(json.dumps(llm_out))
     db.add(
         AiInvocation(
             invocation_type=InvocationType.auth_check,
             model=provider.model,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+            total_tokens=prompt_tokens + completion_tokens,
             latency_ms=latency_ms,
-            confidence_scores={"auth_check": float(llm_out.get("confidence", 0.0))},
+            confidence_scores={
+                "auth_check": float(llm_out.get("confidence", 0.0)),
+                "tokens_estimated": True,
+            },
             input_summary=(
                 f"prior_auth_check payer={request.payer_name} "
                 f"cpts={request.procedure_codes} "

@@ -52,6 +52,20 @@ def _strip_to_json(text: str) -> str:
     return cleaned[start : end + 1]
 
 
+def estimate_tokens(text: str) -> int:
+    """Rough token estimate (~4 chars/token).
+
+    Used to populate ``ai_invocations`` token counts when the provider doesn't
+    surface exact usage (the ``generate``/``extract_json`` interface returns only
+    text). Callers that use this MUST flag the row as estimated so cost reporting
+    can distinguish it from exact provider usage. Better than logging 0, which
+    reads as "we don't track cost at all."
+    """
+    if not text:
+        return 0
+    return max(1, len(text) // 4)
+
+
 def parse_json_or_raise(raw: str) -> dict[str, Any]:
     """Strip wrappers from `raw` and parse it as a JSON object.
 

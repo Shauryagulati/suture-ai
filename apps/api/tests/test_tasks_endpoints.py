@@ -58,6 +58,9 @@ async def test_list_tasks_returns_only_current_clinic(
     body = resp.json()
     assert [t["title"] for t in body["items"]] == ["A-task"]
     assert body["total"] == 1
+    # Task is enriched with the patient name for the queue display.
+    assert body["items"][0]["patient_first_name"] == "X"
+    assert body["items"][0]["patient_last_name"] == "Y"
 
 
 @pytest.mark.asyncio

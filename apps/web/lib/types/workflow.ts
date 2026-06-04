@@ -30,6 +30,8 @@ export interface Task {
   sla_hours: number | null;
   created_at: string;
   updated_at: string;
+  patient_first_name: string | null;
+  patient_last_name: string | null;
 }
 
 export interface TaskListResponse {

@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
 from app.dependencies import CurrentUser, get_current_user
+from app.models.patient import Patient
 from app.models.referral_task import ReferralTask, TaskPriority, TaskStatus
 from app.schemas.tasks import TaskListResponse, TaskOut, TaskPatch
 from app.utils.audit import track_view
@@ -76,12 +77,28 @@ async def list_tasks(
     )
 
     rows = (await db.execute(stmt)).scalars().all()
-    return TaskListResponse(
-        items=[TaskOut.model_validate(t) for t in rows],
-        total=total,
-        limit=limit,
-        offset=offset,
-    )
+
+    # Batch-load patient names so the queue can show who each task is for.
+    patient_ids = {t.patient_id for t in rows}
+    patients: dict[UUID, Patient] = {}
+    if patient_ids:
+        patients = {
+            p.id: p
+            for p in (await db.execute(select(Patient).where(Patient.id.in_(patient_ids))))
+            .scalars()
+            .all()
+        }
+
+    items: list[TaskOut] = []
+    for t in rows:
+        out = TaskOut.model_validate(t)
+        patient = patients.get(t.patient_id)
+        if patient is not None:
+            out.patient_first_name = patient.first_name
+            out.patient_last_name = patient.last_name
+        items.append(out)
+
+    return TaskListResponse(items=items, total=total, limit=limit, offset=offset)
 
 
 @router.get("/{task_id}", response_model=TaskOut)
@@ -102,7 +119,12 @@ async def get_task(
             resource_id=task.id,
         )
     )
-    return TaskOut.model_validate(task)
+    out = TaskOut.model_validate(task)
+    patient = await db.get(Patient, task.patient_id)
+    if patient is not None:
+        out.patient_first_name = patient.first_name
+        out.patient_last_name = patient.last_name
+    return out
 
 
 @router.patch("/{task_id}", response_model=TaskOut)

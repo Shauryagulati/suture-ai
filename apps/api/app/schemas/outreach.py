@@ -52,3 +52,24 @@ class OutreachAttemptListResponse(BaseModel):
 class TriggerOutreachResponse(BaseModel):
     attempt_ids: list[UUID]
     attempt_number: int
+
+
+class OutreachDashboardRow(BaseModel):
+    """One outreach attempt enriched for the staff dashboard: patient name
+    joined, related entity, and the rendered message a patient would receive."""
+
+    id: UUID
+    channel: OutreachChannel
+    status: OutreachStatus
+    scheduled_at: datetime
+    sent_at: datetime | None
+    attempt_number: int
+    patient_first_name: str
+    patient_last_name: str
+    related_type: str | None  # "referral" | "discharge" | None
+    message_subject: str | None
+    message_body: str
+
+
+class OutreachDashboardResponse(BaseModel):
+    items: list[OutreachDashboardRow]

@@ -13,13 +13,22 @@ from pathlib import Path
 from uuid import UUID
 
 import structlog
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
 from fastapi.responses import FileResponse
 from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.database import get_db
+from app.database import async_session_maker, get_db
 from app.dependencies import CurrentUser, get_current_user
 from app.models.document import (
     Document,
@@ -39,6 +48,7 @@ from app.services.document_storage import save_pdf
 from app.services.extraction import extract_document
 from app.services.ocr import extract_text
 from app.utils.audit import track_view
+from app.utils.context import current_clinic_id, current_user_id
 
 logger = structlog.get_logger(__name__)
 
@@ -59,12 +69,72 @@ async def _track_document_view(db: AsyncSession, document_id: UUID) -> None:
     await db.run_sync(_emit)
 
 
+async def _process_document(document_id: UUID, clinic_id: UUID, user_id: UUID) -> None:
+    """Background pipeline: OCR → classify → (extract for referral/discharge).
+
+    Runs *after* the upload response so the UI never blocks ~25s on the local
+    model (ADR 008 amendment). It executes outside the request scope, so it owns
+    its own session and re-establishes the tenant ContextVars the guard + audit
+    listener depend on. Failures are recorded on the document's status, never
+    raised — there is no client left to receive them.
+    """
+    cid = current_clinic_id.set(clinic_id)
+    uid = current_user_id.set(user_id)
+    try:
+        async with async_session_maker() as db:
+            doc = await db.get(Document, document_id)
+            if doc is None:
+                return
+            try:
+                doc.status = DocumentStatus.classifying
+                await db.commit()
+                text, engine = await extract_text(Path(doc.file_path))
+                doc.extracted_text = text
+                doc.ocr_engine = engine
+                result = await classify_document(text=text, document_id=doc.id, db=db)
+                doc.classification = result.classification
+                doc.classification_confidence = result.confidence
+                doc.status = DocumentStatus.classified
+                await db.commit()
+            except Exception as exc:
+                logger.exception(
+                    "documents.processing_failed",
+                    document_id=str(document_id),
+                    error=str(exc),
+                )
+                doc.status = DocumentStatus.error
+                await db.commit()
+                return
+
+            if doc.classification in (
+                DocumentClassification.referral,
+                DocumentClassification.discharge_summary,
+            ):
+                doc.status = DocumentStatus.extracting
+                await db.commit()
+                try:
+                    await extract_document(document_id=doc.id, db=db)
+                    doc.status = DocumentStatus.extracted
+                except Exception as exc:
+                    logger.exception(
+                        "documents.extraction_failed",
+                        document_id=str(document_id),
+                        error=str(exc),
+                    )
+                    doc.status = DocumentStatus.classified
+                await db.commit()
+    finally:
+        current_clinic_id.reset(cid)
+        current_user_id.reset(uid)
+
+
 @router.post(
     "/upload",
     response_model=DocumentUploadResponse,
     status_code=status.HTTP_201_CREATED,
 )
 async def upload_document(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     user: CurrentUser = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -99,54 +169,17 @@ async def upload_document(
         file_name=file.filename or "upload.pdf",
         file_size=size,
         mime_type=file.content_type or "application/pdf",
-        status=DocumentStatus.classifying,
+        status=DocumentStatus.uploaded,
         uploaded_by=user.user_id,
     )
     db.add(doc)
-    await db.flush()
-
-    try:
-        text, engine = await extract_text(path)
-        doc.extracted_text = text
-        doc.ocr_engine = engine
-        result = await classify_document(text=text, document_id=doc.id, db=db)
-        doc.classification = result.classification
-        doc.classification_confidence = result.confidence
-        doc.status = DocumentStatus.classified
-    except Exception as exc:
-        logger.exception(
-            "documents.upload_post_processing_failed",
-            document_id=str(doc.id),
-            error=str(exc),
-        )
-        doc.status = DocumentStatus.error
-        await db.commit()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="document post-processing failed",
-        ) from exc
-
-    # Auto-extract for referrals and discharge summaries. Failure here is
-    # non-fatal: the document stays at `classified` so a future job can
-    # re-run extraction. The upload still returns 201.
-    if doc.classification in (
-        DocumentClassification.referral,
-        DocumentClassification.discharge_summary,
-    ):
-        doc.status = DocumentStatus.extracting
-        try:
-            await extract_document(document_id=doc.id, db=db)
-            doc.status = DocumentStatus.extracted
-        except Exception as exc:
-            logger.exception(
-                "documents.extraction_failed",
-                document_id=str(doc.id),
-                error=str(exc),
-            )
-            doc.status = DocumentStatus.classified
-
     await db.commit()
     await db.refresh(doc)
+
+    # Hand OCR/classify/extract to a background task so the request returns
+    # instantly; the inbox shows the document as processing and updates as the
+    # pipeline advances it through classifying → classified → extracted.
+    background_tasks.add_task(_process_document, doc.id, user.active_clinic_id, user.user_id)
     return DocumentUploadResponse.model_validate(doc)
 
 

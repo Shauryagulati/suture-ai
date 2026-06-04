@@ -29,6 +29,10 @@ class TaskOut(BaseModel):
     sla_hours: int | None
     created_at: datetime
     updated_at: datetime
+    # Joined for display; populated by the list/detail routes (None if the
+    # patient row is unavailable).
+    patient_first_name: str | None = None
+    patient_last_name: str | None = None
 
 
 class TaskListResponse(BaseModel):

@@ -6,6 +6,7 @@ import {
   Inbox,
   ListChecks,
   PhoneCall,
+  Send,
   Settings,
   Users,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { href: "/inbox", label: "Inbox", icon: Inbox },
   { href: "/patients", label: "Patients", icon: Users },
   { href: "/tasks", label: "Tasks", icon: ListChecks },
+  { href: "/outreach", label: "Outreach", icon: Send },
   { href: "/prior-auth", label: "Prior Auth", icon: FileSearch },
   { href: "/voice", label: "Voice", icon: PhoneCall },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },

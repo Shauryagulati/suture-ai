@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -37,6 +38,28 @@ export function TaskTable() {
   const columns = useMemo<ColumnDef<Task>[]>(
     () => [
       { accessorKey: "title", header: "Title" },
+      {
+        id: "patient",
+        header: "Patient",
+        cell: ({ row }) => {
+          const { patient_first_name, patient_last_name } = row.original;
+          const name = [patient_first_name, patient_last_name].filter(Boolean).join(" ");
+          return name ? <span className="text-sm">{name}</span> : <span>—</span>;
+        },
+      },
+      {
+        id: "related",
+        header: "Related to",
+        cell: ({ row }) => {
+          if (row.original.referral_id) {
+            return <Badge variant="outline">Referral</Badge>;
+          }
+          if (row.original.discharge_summary_id) {
+            return <Badge variant="outline">Discharge</Badge>;
+          }
+          return <span>—</span>;
+        },
+      },
       { accessorKey: "priority", header: "Priority" },
       {
         accessorKey: "status",

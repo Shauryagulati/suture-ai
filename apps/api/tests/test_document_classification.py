@@ -7,9 +7,11 @@ from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.document import DocumentClassification, DocumentStatus
+from app.models.document import Document, DocumentClassification, DocumentStatus
+from app.utils.context import current_clinic_id
 from tests._doc_helpers import (
     auth_headers,
     make_user_and_login,
@@ -19,6 +21,20 @@ from tests._doc_helpers import (
 )
 
 pytestmark = pytest.mark.asyncio
+
+
+async def _latest_doc(db: AsyncSession, clinic_id: UUID) -> Document:
+    """Re-fetch the most recent document. Classification/extraction run in a
+    background task, so assertions read the persisted row, not the upload
+    response."""
+    tok = current_clinic_id.set(clinic_id)
+    try:
+        db.expire_all()
+        rows = (await db.execute(select(Document))).scalars().all()
+    finally:
+        current_clinic_id.reset(tok)
+    return rows[-1]
+
 
 _FAKE_PDF = b"%PDF-1.4\n"
 
@@ -60,9 +76,10 @@ async def test_classification_referral_with_high_confidence(
         files={"file": ("ref.pdf", _FAKE_PDF, "application/pdf")},
     )
     assert resp.status_code == 201, resp.text
-    body = resp.json()
-    assert body["classification"] == DocumentClassification.referral.value
-    assert body["classification_confidence"] > 0.5
+    doc = await _latest_doc(db_session, clinic_a)
+    assert doc.classification == DocumentClassification.referral
+    assert doc.classification_confidence is not None
+    assert doc.classification_confidence > 0.5
 
 
 async def test_classification_falls_back_to_unclassified_on_bad_json(
@@ -94,9 +111,9 @@ async def test_classification_falls_back_to_unclassified_on_bad_json(
         files={"file": ("ambiguous.pdf", _FAKE_PDF, "application/pdf")},
     )
     assert resp.status_code == 201, resp.text
-    body = resp.json()
-    assert body["classification"] == DocumentClassification.unclassified.value
-    assert body["classification_confidence"] == 0.0
+    doc = await _latest_doc(db_session, clinic_a)
+    assert doc.classification == DocumentClassification.unclassified
+    assert doc.classification_confidence == 0.0
     # Status should still be `classified` — the document was processed, the
     # LLM just couldn't pick a category.
-    assert body["status"] == DocumentStatus.classified.value
+    assert doc.status == DocumentStatus.classified

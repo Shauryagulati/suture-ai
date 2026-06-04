@@ -17,6 +17,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 from app import __version__
 from app.config import get_settings
+from app.middleware import AuthRateLimitMiddleware, SecurityHeadersMiddleware
 from app.routers import (
     analytics,
     appointments,
@@ -94,6 +95,10 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url=None,
 )
+
+# Security headers on every response; brute-force protection on auth endpoints.
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AuthRateLimitMiddleware)
 
 # Prometheus /metrics — safe to install at app construction time.
 Instrumentator().instrument(app).expose(app, include_in_schema=False)

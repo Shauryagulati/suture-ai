@@ -33,6 +33,10 @@ os.environ.setdefault(
 )
 os.environ.setdefault("JWT_SECRET", "test_jwt_secret_abc")
 os.environ.setdefault("OTEL_DISABLED", "1")
+# Hundreds of tests log in from the same testclient IP; a per-IP auth limiter
+# would trip mid-suite. Disable it globally — the limiter is exercised in
+# isolation in test_security_middleware.py.
+os.environ.setdefault("RATE_LIMIT_ENABLED", "false")
 
 # Late imports — env vars above must be set BEFORE app/* loads settings.
 import pytest  # noqa: E402

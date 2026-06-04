@@ -3,7 +3,9 @@
 The framework hands us a `JobContext` per dispatched room. We:
 
 1. Decode `clinic_id`, `call_id`, `patient_id`, `script_context` from
-   `ctx.room.metadata` (set by LiveKitOutreachProvider).
+   `ctx.job.metadata` (the dispatch metadata set in livekit_client.start_call).
+   Room metadata isn't synced until after ctx.connect(), so we read the job
+   metadata, which is available immediately.
 2. Set the tenant ContextVars so DB writes are clinic-scoped — failure
    here would mean our DB writes get rejected by the tenant guard,
    which is the correct fail-closed behaviour.
@@ -220,9 +222,7 @@ async def persist_call_end(
         # Persist transcript: encrypted full text + redacted structured turns.
         transcript_text = "\n".join(f"{t['role']}: {t['text']}" for t in outcome.turns)
         structured = {
-            "turns": [
-                {"role": t["role"], "char_count": len(t["text"])} for t in outcome.turns
-            ],
+            "turns": [{"role": t["role"], "char_count": len(t["text"])} for t in outcome.turns],
             "outcome": {
                 "booked_slot": outcome.booked_slot,
                 "needs_human": outcome.needs_human,
@@ -242,9 +242,7 @@ async def persist_call_end(
         if call.outreach_attempt_id is not None and outcome.booked_slot is not None:
             attempt = (
                 await session.execute(
-                    select(OutreachAttempt).where(
-                        OutreachAttempt.id == call.outreach_attempt_id
-                    )
+                    select(OutreachAttempt).where(OutreachAttempt.id == call.outreach_attempt_id)
                 )
             ).scalar_one_or_none()
             if attempt is not None:
@@ -273,7 +271,11 @@ async def entrypoint(ctx: Any) -> None:
     installed (e.g. the API test venv)."""
     from livekit import rtc  # local import — keeps `livekit-agents` out of the API venv
 
-    metadata = _decode_room_metadata(ctx.room.metadata)
+    # Read the dispatch metadata (set via create_dispatch in livekit_client),
+    # not ctx.room.metadata: room metadata isn't synced until after ctx.connect(),
+    # so reading it here (pre-connect) is empty. Job metadata is available
+    # immediately and carries the same payload.
+    metadata = _decode_call_metadata(ctx.job.metadata)
 
     # Tenant guard — every DB write below is clinic-scoped.
     current_clinic_id.set(metadata.clinic_id)
@@ -328,11 +330,11 @@ async def entrypoint(ctx: Any) -> None:
     await publisher.aclose()
 
 
-def _decode_room_metadata(raw: str | None) -> CallMetadata:
+def _decode_call_metadata(raw: str | None) -> CallMetadata:
     import json
 
     if not raw:
-        raise ValueError("ember worker requires room.metadata; nothing was attached")
+        raise ValueError("ember worker requires dispatch metadata; nothing was attached")
     data = json.loads(raw)
     return CallMetadata(
         call_id=UUID(str(data["call_id"])),
@@ -354,15 +356,22 @@ class _LiveKitAudioOutput:
     async def speak(self, pcm16: bytes, *, sample_rate: int) -> None:
         from livekit import rtc
 
-        # Wrap each chunk in an AudioFrame and capture. The LiveKit
-        # AudioSource handles buffering + pacing internally.
-        frame = rtc.AudioFrame(
-            data=pcm16,
-            sample_rate=sample_rate,
-            num_channels=1,
-            samples_per_channel=len(pcm16) // 2,
-        )
-        await self._source.capture_frame(frame)
+        # LiveKit's AudioSource.capture_frame expects small frames and paces
+        # them to real time; pushing a whole multi-second utterance as one
+        # frame raises "InvalidState - failed to capture frame". Slice the PCM
+        # into 10 ms frames and capture each in order.
+        bytes_per_frame = (sample_rate // 100) * 2  # 10 ms, int16 mono
+        for offset in range(0, len(pcm16), bytes_per_frame):
+            chunk = pcm16[offset : offset + bytes_per_frame]
+            if not chunk:
+                continue
+            frame = rtc.AudioFrame(
+                data=chunk,
+                sample_rate=sample_rate,
+                num_channels=1,
+                samples_per_channel=len(chunk) // 2,
+            )
+            await self._source.capture_frame(frame)
 
 
 class _LiveKitAudioInput:

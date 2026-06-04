@@ -60,15 +60,13 @@ async def test_upload_happy_path_creates_row_and_file(
     body = resp.json()
     assert body["file_name"] == "scan.pdf"
     assert body["mime_type"] == "application/pdf"
-    # Referral classification now auto-triggers extraction, so the final
-    # status moves on past `classified` to `extracted` (or `classified`
-    # again if extraction raises — see auto-extract block in the router).
-    assert body["status"] == DocumentStatus.extracted.value
-    assert body["classification"] == DocumentClassification.referral.value
-    assert body["classification_confidence"] == pytest.approx(0.92)
-    assert body["ocr_engine"] == "pypdf"
+    # Upload returns instantly; OCR/classify/extract run in a background task,
+    # so the response reflects the just-saved (unprocessed) document.
+    assert body["status"] == DocumentStatus.uploaded.value
+    # Not yet processed → still the default classification.
+    assert body["classification"] == DocumentClassification.unclassified.value
 
-    # Row in DB, scoped to clinic A.
+    # Row in DB, scoped to clinic A — the background pipeline has run by now.
     token_a = current_clinic_id.set(clinic_a)
     try:
         rows = (await db_session.execute(select(Document))).scalars().all()
@@ -77,7 +75,11 @@ async def test_upload_happy_path_creates_row_and_file(
     assert len(rows) == 1
     doc = rows[0]
     assert doc.clinic_id == clinic_a
+    # Referral auto-extracts, so the final status is `extracted`.
+    assert doc.status == DocumentStatus.extracted
     assert doc.classification == DocumentClassification.referral
+    assert doc.classification_confidence == pytest.approx(0.92)
+    assert doc.ocr_engine == "pypdf"
     assert Path(doc.file_path).exists()
     assert Path(doc.file_path).read_bytes() == _FAKE_PDF
 

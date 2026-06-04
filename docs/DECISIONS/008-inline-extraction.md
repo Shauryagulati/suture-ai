@@ -1,7 +1,31 @@
 # ADR 008 — Inline (synchronous) post-classification extraction
 
-**Status:** Accepted (2026-05-21)
+**Status:** Superseded by the 2026-06-03 amendment below (was: Accepted 2026-05-21)
 **Author:** Shaurya
+
+> ## Amendment (2026-06-03): moved to a FastAPI BackgroundTask
+>
+> The original decision ran OCR → classify → extract **inline** in the upload
+> request. On the local default model that blocked the upload ~25s with no
+> feedback — a real throughput problem for a coordinator processing a fax stack.
+>
+> **New decision:** the upload route now persists the document at
+> `status=uploaded`, returns `201` immediately, and hands OCR/classify/extract to
+> a `BackgroundTask` (`_process_document` in `app/routers/documents.py`). The task
+> owns its own session and re-establishes the tenant/user ContextVars (it runs
+> outside the request scope). The inbox shows the document advancing through
+> `classifying → classified → extracting → extracted` and auto-refreshes while
+> anything is in flight.
+>
+> **Why BackgroundTask, not Celery (yet):** no extra worker process to run for a
+> local/demo deployment. The original "drop into Celery" rollback plan below
+> still holds for multi-worker production — the only change is that the task body
+> already exists as `_process_document` and would move into a `@shared_task`.
+>
+> **Trade-off accepted:** the upload *response* no longer carries the
+> classification/extraction result (it reflects the just-saved document); callers
+> read the processed state from the document detail / list once the pipeline
+> completes.
 
 ## Context
 

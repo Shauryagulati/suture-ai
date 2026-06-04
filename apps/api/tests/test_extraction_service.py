@@ -380,12 +380,13 @@ async def test_upload_auto_triggers_extraction_for_referral(
         files={"file": ("ref.pdf", _FAKE_PDF, "application/pdf")},
     )
     assert resp.status_code == 201, resp.text
-    body = resp.json()
-    assert body["status"] == DocumentStatus.extracted.value
-    doc_id = UUID(body["id"])
+    doc_id = UUID(resp.json()["id"])
 
+    # Extraction runs in a background task; read the persisted state.
     tok = current_clinic_id.set(clinic_a)
     try:
+        db_session.expire_all()
+        doc = await db_session.get(Document, doc_id)
         rows = (
             (
                 await db_session.execute(
@@ -398,6 +399,7 @@ async def test_upload_auto_triggers_extraction_for_referral(
     finally:
         current_clinic_id.reset(tok)
 
+    assert doc is not None and doc.status == DocumentStatus.extracted
     assert len(rows) == 1
     extraction = rows[0]
     assert extraction.extraction_data["patient"]["mrn"] == "MRN-654235"
@@ -441,13 +443,12 @@ async def test_upload_extraction_failure_keeps_doc_at_classified(
         files={"file": ("ref.pdf", _FAKE_PDF, "application/pdf")},
     )
     assert resp.status_code == 201, resp.text
-    body = resp.json()
-    # Falls back to `classified`, NOT `error`.
-    assert body["status"] == DocumentStatus.classified.value
-    doc_id = UUID(body["id"])
+    doc_id = UUID(resp.json()["id"])
 
     tok = current_clinic_id.set(clinic_a)
     try:
+        db_session.expire_all()
+        doc = await db_session.get(Document, doc_id)
         extractions = (
             (
                 await db_session.execute(
@@ -459,6 +460,8 @@ async def test_upload_extraction_failure_keeps_doc_at_classified(
         )
     finally:
         current_clinic_id.reset(tok)
+    # Extraction raised in the background; doc falls back to `classified`, NOT `error`.
+    assert doc is not None and doc.status == DocumentStatus.classified
     assert extractions == []  # nothing was persisted
 
 

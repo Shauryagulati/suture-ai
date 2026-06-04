@@ -1,4 +1,5 @@
 import { ExtractionsTable } from "@/components/extraction/ExtractionsTable";
+import { InboxAutoRefresh } from "@/components/inbox/auto-refresh";
 import { DocumentTable } from "@/components/inbox/document-table";
 import { InboxToolbar } from "@/components/inbox/inbox-toolbar";
 import { buttonVariants } from "@/components/ui/button";
@@ -49,14 +50,19 @@ export default async function InboxPage({ searchParams }: PageProps): Promise<Re
   if (sp.urgency) filters.urgency = sp.urgency as UrgencyLevel;
 
   const result = await listDocuments(filters);
+  const processing = result.items.some((d) =>
+    (["uploaded", "classifying", "extracting"] as DocumentStatus[]).includes(d.status),
+  );
 
   return (
     <div className="px-8 py-6">
+      <InboxAutoRefresh active={processing} />
       <header className="pb-4">
         <h1 className="font-semibold text-2xl tracking-tight">Inbox</h1>
         <p className="text-sm text-muted-foreground">
           {result.total} {result.total === 1 ? "document" : "documents"}
           {Object.keys(filters).length > 0 ? " matching filters" : ""}
+          {processing ? " · processing…" : ""}
         </p>
       </header>
       <ViewTabs current="all" />

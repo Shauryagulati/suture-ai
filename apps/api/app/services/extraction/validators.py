@@ -141,6 +141,43 @@ def is_valid_date(s: str) -> bool:
         return False
 
 
+# Tokens an LLM emits when it can't find a name — these must not score green.
+_NAME_PLACEHOLDERS = {
+    "n/a",
+    "na",
+    "none",
+    "null",
+    "unknown",
+    "tbd",
+    "test",
+    "patient",
+    "redacted",
+}
+_NAME_ALLOWED_PUNCT = frozenset(" -'.,")
+
+
+def is_plausible_name(name: str) -> bool:
+    """A real person/practice name: letters plus limited punctuation, no digits.
+
+    This catches *garbage* (empty, "N/A", "J0hn", "12345", "Unknown") so it no
+    longer scores in the green band. It cannot catch a plausible-but-wrong name
+    (right format, wrong person) — that semantic class is what human review and
+    the eval set exist for (ADR 009).
+    """
+    if not isinstance(name, str):
+        return False
+    s = name.strip()
+    if not (2 <= len(s) <= 80):
+        return False
+    if s.lower() in _NAME_PLACEHOLDERS:
+        return False
+    if any(ch.isdigit() for ch in s):
+        return False
+    if not any(ch.isalpha() for ch in s):
+        return False
+    return all(ch.isalpha() or ch in _NAME_ALLOWED_PUNCT for ch in s)
+
+
 def is_valid_state(s: str) -> bool:
     """Accept a real USPS two-letter code ("PA") or a full state name
     ("Pennsylvania"), case-insensitively. Rejects bogus two-letter strings

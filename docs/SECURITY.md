@@ -51,6 +51,10 @@ Suture handles PHI (Protected Health Information) under HIPAA. Primary threats:
 - Mapped via `clinic_memberships`.
 - Foundation only checks role at the auth boundary. Per-route enforcement begins in Module 1.
 
+### 7. HTTP hardening
+- **Security headers** on every response (`app/middleware.py`): `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Permissions-Policy`, and a restrictive `Content-Security-Policy` (`default-src 'none'`) for JSON responses (the interactive docs are exempt so Swagger UI loads).
+- **Rate limiting** on auth endpoints (`/api/auth/login`, `/api/auth/register`): fixed-window per-IP, `auth_rate_limit_per_minute` (default 20), returns 429 + `Retry-After`. In-process for the single-worker local v1; a multi-worker deployment swaps in a Redis-backed limiter. Implemented as pure ASGI middleware to preserve the tenant-guard ContextVar across streaming responses.
+
 ## Controls NOT implemented in foundation (deferred, documented)
 
 | Control | Foundation | Plan |
@@ -58,8 +62,6 @@ Suture handles PHI (Protected Health Information) under HIPAA. Primary threats:
 | TLS in transit | Documented; mkcert for local dev pending | Add in Module 1 polish |
 | Disk-level encryption | Documented; assumed at deployment time | Production deployment posture |
 | Soft delete + retention | Schema includes `is_active` flags; retention policy hooks are stubs | Module 3a (workflow) |
-| Rate limiting | None | Module 1 (FastAPI middleware) |
-| CSP / security headers | None | Module 1 polish |
 | Dependency scanning | None | Add `pip-audit` and `pnpm audit` to CI in polish |
 | SOC 2 controls | None — local dev only | v2+ |
 

@@ -9,6 +9,7 @@ import pytest
 
 from app.services.extraction.confidence import compute_field_confidences
 from app.services.extraction.validators import (
+    is_plausible_name,
     is_valid_cpt,
     is_valid_date,
     is_valid_icd10,
@@ -254,7 +255,7 @@ def test_confidence_missing_field_overrides_inline_value() -> None:
     extraction = {"patient": {"first_name": "Amy", "mrn": "MRN-1"}}
     confidences, _ = compute_field_confidences(extraction, ["patient.mrn"])
     assert confidences["patient.mrn"] == 0.0
-    assert confidences["patient.first_name"] == 0.85
+    assert confidences["patient.first_name"] == 0.95  # plausible name validates
 
 
 def test_confidence_arrays_of_objects_score_per_element() -> None:
@@ -280,9 +281,32 @@ def test_confidence_empty_array_scores_missing() -> None:
     assert needs_review is True
 
 
+@pytest.mark.parametrize(
+    "name", ["Amy", "O'Brien", "Mary-Jane", "José", "St. Claire", "van der Berg"]
+)
+def test_name_accepts_real_names(name: str) -> None:
+    assert is_plausible_name(name) is True
+
+
+@pytest.mark.parametrize(
+    "name", ["", "x", "J0hn", "12345", "N/A", "Unknown", "none", "patient", "###", None]
+)
+def test_name_rejects_garbage(name: object) -> None:
+    assert is_plausible_name(name) is False  # type: ignore[arg-type]
+
+
+def test_confidence_garbage_name_is_not_green() -> None:
+    # A junk name must drop to the FAIL band so review flags it (not 0.85/0.95).
+    extraction = {"patient": {"first_name": "J0hn", "last_name": "Smith"}}
+    confidences, needs_review = compute_field_confidences(extraction, [])
+    assert confidences["patient.first_name"] == 0.40
+    assert confidences["patient.last_name"] == 0.95
+    assert needs_review is True
+
+
 def test_confidence_missing_fields_key_not_self_scored() -> None:
     """The literal `missing_fields` key in the LLM payload is not a field to score."""
     extraction = {"missing_fields": ["patient.phone"], "patient": {"first_name": "Amy"}}
     confidences, _ = compute_field_confidences(extraction, ["patient.phone"])
     assert "missing_fields" not in confidences
-    assert confidences["patient.first_name"] == 0.85
+    assert confidences["patient.first_name"] == 0.95  # plausible name validates

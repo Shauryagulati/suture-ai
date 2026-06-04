@@ -65,6 +65,11 @@ class Settings(BaseSettings):
     # Logging
     log_level: str = "INFO"
 
+    # HTTP hardening. Rate limiting is in-process (single-worker local v1); a
+    # multi-worker deployment swaps in a Redis-backed limiter.
+    rate_limit_enabled: bool = True
+    auth_rate_limit_per_minute: int = 20
+
     # Document storage — uploaded PDFs land here as
     # {document_storage_path}/{clinic_id}/{uuid4}.pdf.
     document_storage_path: Path = Path("./data/documents")

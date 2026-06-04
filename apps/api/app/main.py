@@ -17,6 +17,7 @@ from prometheus_fastapi_instrumentator import Instrumentator
 
 from app import __version__
 from app.config import get_settings
+from app.middleware import AuthRateLimitMiddleware, SecurityHeadersMiddleware
 from app.routers import (
     analytics,
     appointments,
@@ -27,6 +28,7 @@ from app.routers import (
     extractions,
     health,
     outreach,
+    patients,
     prior_auth,
     referrals,
     scheduling,
@@ -95,6 +97,10 @@ app = FastAPI(
     redoc_url=None,
 )
 
+# Security headers on every response; brute-force protection on auth endpoints.
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AuthRateLimitMiddleware)
+
 # Prometheus /metrics — safe to install at app construction time.
 Instrumentator().instrument(app).expose(app, include_in_schema=False)
 
@@ -107,6 +113,7 @@ app.include_router(tasks.router)
 app.include_router(referrals.router)
 app.include_router(discharges.router)
 app.include_router(prior_auth.router)
+app.include_router(patients.router)
 app.include_router(analytics.router)
 app.include_router(scheduling.router)
 app.include_router(outreach.router)

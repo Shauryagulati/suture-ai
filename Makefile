@@ -98,7 +98,7 @@ voice-down:
 	docker compose -f infra/docker-compose.yml stop livekit
 
 voice-agent:
-	cd services/voice-agent && uv run python -m ember
+	cd services/voice-agent && uv run python -m ember dev
 
 # ─── Database ──────────────────────────────────────────────────────────
 

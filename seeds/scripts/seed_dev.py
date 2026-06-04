@@ -17,7 +17,7 @@ from __future__ import annotations
 import asyncio
 import random
 from datetime import UTC, datetime, timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from faker import Faker
 from sqlalchemy import delete, select
@@ -59,6 +59,12 @@ USERS_PER_CLINIC = [
 ]
 
 DEV_PASSWORD = "suture_dev_123"
+
+# Sentinel user the Ember voice agent attributes its audit rows to. MUST match
+# `AGENT_USER_ID` in services/voice-agent/ember/worker.py (UUID(int=0)). The
+# agent's audit_logs rows FK this user, so it has to exist whenever the agent
+# runs — provisioned here per the design (see test_call_lifecycle).
+EMBER_AGENT_USER_ID = UUID(int=0)
 
 PAYERS = ["Highmark", "UPMC Health Plan", "Aetna", "UHC", "Cigna", "Medicare"]
 
@@ -118,6 +124,19 @@ async def seed() -> None:
         # Re-fetch as objects to get UUIDs back as UUIDs.
         clinics = (await db.execute(select(Clinic))).scalars().all()
         by_slug = {c.slug: c for c in clinics}
+
+        # ── Sentinel Ember voice-agent user (audit attribution). Global, no
+        # clinic membership; idempotent so it survives re-seeds. ──
+        if await db.get(User, EMBER_AGENT_USER_ID) is None:
+            db.add(
+                User(
+                    id=EMBER_AGENT_USER_ID,
+                    email="ember-agent@suture.system",
+                    hashed_password="!disabled-no-login",
+                    full_name="Ember Voice Agent",
+                )
+            )
+            await db.commit()
 
         # ── Users + memberships ──
         users_created = 0

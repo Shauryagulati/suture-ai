@@ -22,6 +22,7 @@ from app.routers import (
     analytics,
     appointments,
     auth,
+    clinic,
     discharges,
     documents,
     evals,
@@ -114,6 +115,7 @@ app.include_router(referrals.router)
 app.include_router(discharges.router)
 app.include_router(prior_auth.router)
 app.include_router(patients.router)
+app.include_router(clinic.router)
 app.include_router(analytics.router)
 app.include_router(scheduling.router)
 app.include_router(outreach.router)

@@ -60,6 +60,15 @@ class StartCallResponse(BaseModel):
     redispatched: bool
 
 
+class TestCallResponse(BaseModel):
+    """Result of POST /api/voice/test-call — a one-click demo call."""
+
+    call_id: UUID
+    room_name: str
+    patient_name: str
+    test_caller_url: str
+
+
 class EndCallResponse(BaseModel):
     """Result of POST /api/voice/calls/{call_id}/end."""
 

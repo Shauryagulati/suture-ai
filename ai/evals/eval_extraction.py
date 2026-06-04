@@ -80,6 +80,18 @@ async def _ensure_eval_clinic(db: AsyncSession) -> None:
     await db.commit()
 
 
+_DEMO_CLINIC_SLUG = "steel-city-cardiology"
+
+
+async def _resolve_eval_run_clinic(db: AsyncSession) -> UUID:
+    """Owner clinic for the EvalRun summary row: the demo seed clinic if it
+    exists (so the demo login sees the metrics), else the synthetic eval clinic."""
+    demo = (
+        await db.execute(select(Clinic).where(Clinic.slug == _DEMO_CLINIC_SLUG))
+    ).scalar_one_or_none()
+    return demo.id if demo is not None else EVAL_CLINIC_ID
+
+
 def _find_pairs(seed_dir: Path, limit: int) -> list[tuple[Path, Path, DocumentClassification]]:
     """Walk seed_dir/{referrals,discharges} and pair each PDF with its ground-truth JSON."""
     pairs: list[tuple[Path, Path, DocumentClassification]] = []
@@ -201,13 +213,18 @@ async def main(limit: int, seed_dir: Path, out_dir: Path) -> None:
     out_path.write_text(json.dumps(metrics_payload, indent=2), encoding="utf-8")
     print(f"\nResults JSON: {out_path}")
 
-    # EvalRun row — using the existing ClinicScopedBase model + the eval clinic.
+    # EvalRun row. The eval *documents* stay in the synthetic eval clinic
+    # (so they never pollute a real inbox), but the run-summary row is written
+    # to the demo clinic when seeded — eval_runs is tenant-scoped, so this is
+    # what lets the demo login actually see the metrics. Falls back to the eval
+    # clinic when no demo seed exists (CI / standalone).
     async with async_session_maker() as db:
-        cid_token = current_clinic_id.set(EVAL_CLINIC_ID)
+        owner_clinic_id = await _resolve_eval_run_clinic(db)
+        cid_token = current_clinic_id.set(owner_clinic_id)
         try:
             await db.execute(
                 insert(EvalRun).values(
-                    clinic_id=EVAL_CLINIC_ID,
+                    clinic_id=owner_clinic_id,
                     eval_type=EvalType.extraction,
                     test_set_version=f"module2-{len(pairs)}",
                     metrics=metrics_payload,

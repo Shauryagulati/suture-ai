@@ -33,14 +33,12 @@ from app.models import (
     CallType,
     Clinic,
     ClinicMembership,
-    EvalRun,
     MembershipRole,
     Patient,
     Provider,
     ProviderType,
     User,
 )
-from app.models.eval_run import EvalType
 from app.utils.context import current_clinic_id
 from app.utils.security import hash_password
 from seeds.scripts._npi import generate_npi
@@ -213,7 +211,6 @@ async def seed() -> None:
         # ── Appointments / calls / eval runs (so demo pages aren't empty) ──
         appointments_created = 0
         calls_created = 0
-        eval_runs_created = 0
         now = datetime.now(UTC)
         for clinic in clinics:
             token = current_clinic_id.set(clinic.id)
@@ -262,23 +259,10 @@ async def seed() -> None:
                             )
                         )
                         calls_created += 1
-                # Two extraction eval runs so the Evals dashboard + compare view
-                # have history. Metrics mirror the synthetic-corpus baseline.
-                for ver, em, f1 in [("v1", 0.612, 0.701), ("v1", 0.648, 0.725)]:
-                    db.add(
-                        EvalRun(
-                            eval_type=EvalType.extraction,
-                            test_set_version=ver,
-                            metrics={"exact_match_rate": em, "f1_macro": f1, "num_fields": 25},
-                            num_samples=50,
-                            run_duration_seconds=500,
-                            prompt_version="extract_referral_v1",
-                            model="medgemma1.5",
-                            notes="Synthetic corpus baseline.",
-                            run_by="seed",
-                        )
-                    )
-                    eval_runs_created += 1
+                # NOTE: eval_runs are NOT seeded here. They must come from the
+                # real harness (`make eval-extraction`), which writes metrics in
+                # the `aggregate` shape the evals API reads. Hand-seeded rows
+                # showed 0% because their metrics were the wrong shape.
                 await db.commit()
             finally:
                 current_clinic_id.reset(token)
@@ -297,10 +281,8 @@ async def seed() -> None:
         print("│ Login: admin@<slug>.example.com / suture_dev_123   │")
         print(f"│   slugs: {', '.join(by_slug)}    │")
         print("└────────────────────────────────────────────────────┘")
-        print(
-            f"  + appointments: {appointments_created}, calls: {calls_created}, "
-            f"eval_runs: {eval_runs_created}"
-        )
+        print(f"  + appointments: {appointments_created}, calls: {calls_created}")
+        print("  (eval_runs come from `make eval-extraction`, not the seed)")
 
 
 async def _clear_seed(db: AsyncSession) -> None:

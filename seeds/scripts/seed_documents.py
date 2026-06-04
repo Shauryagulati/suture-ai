@@ -10,9 +10,13 @@ What it produces (against the default seed clinic, steel-city-cardiology):
 
   - 8 referrals + 4 discharges uploaded   -> Inbox
   - some extractions left unapproved       -> Review queue
-  - 5 referrals approved; 3 of them moved  -> Referral workflow
-      to ready_to_schedule                   (emits tasks + outreach)
-  - 3 discharges approved -> patient_contacted (closed loop: tasks + outreach)
+  - up to 5 referrals approved -> each auto-advances to ready_to_schedule
+      (emits tasks + outreach). Approvals whose extraction is missing a
+      required field (e.g. patient.phone) stay in the review queue.
+  - up to 3 discharges approved -> patient_contacted (closed loop: tasks + outreach)
+
+Upload is async (ADR 008 amendment): the script waits for the background
+OCR/classify/extract pipeline to finish before approving.
 
 Prerequisites:
   - The API must be running (`make api` or `make dev`) on API_URL.
@@ -47,8 +51,7 @@ DISCHARGE_FILES = [f"DIS-{n:03d}" for n in range(1, 5)]  # DIS-001..004
 
 # How far to drive each stream. The rest stay as raw documents / pending
 # extractions so the inbox + review queue are not empty.
-APPROVE_REFERRALS = 5  # approve the first N referral extractions
-READY_REFERRALS = 3  # of those approved, move N to ready_to_schedule
+APPROVE_REFERRALS = 5  # approve the first N referral extractions (auto → ready_to_schedule)
 APPROVE_DISCHARGES = 3  # approve the first N discharges (-> patient_contacted)
 
 # Upload + extract is slow (OCR + local LLM). Give each call generous headroom.
@@ -106,21 +109,6 @@ async def _approve(
     return None
 
 
-async def _transition_referral(
-    client: httpx.AsyncClient, headers: dict[str, str], referral_id: str, target: str
-) -> bool:
-    resp = await client.post(
-        f"/api/referrals/{referral_id}/transition",
-        headers=headers,
-        json={"target": target},
-    )
-    if resp.status_code == 200:
-        return True
-    print(f"  ! transition {referral_id[:8]} -> {target} failed: "
-          f"{resp.status_code} {resp.text[:140]}")
-    return False
-
-
 # ─── Pipeline ──────────────────────────────────────────────────────────
 
 
@@ -146,10 +134,38 @@ async def _upload_set(
         print(f"  ↑ uploading {name} ({label}) — OCR + classify + extract ...")
         doc = await _upload(client, headers, path)
         if doc is not None:
-            print(f"    → {doc['status']} / {doc['classification']} "
-                  f"(conf {doc['classification_confidence']})")
+            print(
+                f"    → {doc['status']} / {doc['classification']} "
+                f"(conf {doc['classification_confidence']})"
+            )
             docs.append(doc)
     return docs
+
+
+async def _wait_for_processing(
+    client: httpx.AsyncClient,
+    headers: dict[str, str],
+    docs: list[dict[str, Any]],
+    *,
+    max_wait_s: int = 600,
+) -> set[str]:
+    """Upload now returns instantly and OCR/classify/extract run in a background
+    task (ADR 008 amendment). Poll until every uploaded doc leaves the
+    processing states so the extraction map is populated before we approve.
+    Returns the set of doc ids still processing at timeout (empty on success)."""
+    processing_states = {"uploaded", "classifying", "extracting"}
+    pending = {d["id"] for d in docs}
+    waited = 0
+    while pending and waited < max_wait_s:
+        await asyncio.sleep(3)
+        waited += 3
+        resp = await client.get("/api/documents?limit=200", headers=headers)
+        resp.raise_for_status()
+        by_id = {d["id"]: d for d in resp.json()["items"]}
+        pending = {
+            doc_id for doc_id in pending if by_id.get(doc_id, {}).get("status") in processing_states
+        }
+    return pending
 
 
 async def seed_documents() -> None:
@@ -162,21 +178,35 @@ async def seed_documents() -> None:
 
         print("── Uploading referrals ──")
         referral_docs = await _upload_set(
-            client, headers, label="referral", subdir="referrals",
-            stems=REFERRAL_FILES, already=already,
+            client,
+            headers,
+            label="referral",
+            subdir="referrals",
+            stems=REFERRAL_FILES,
+            already=already,
         )
         print("\n── Uploading discharges ──")
         discharge_docs = await _upload_set(
-            client, headers, label="discharge", subdir="discharges",
-            stems=DISCHARGE_FILES, already=already,
+            client,
+            headers,
+            label="discharge",
+            subdir="discharges",
+            stems=DISCHARGE_FILES,
+            already=already,
         )
+
+        # Wait for the background pipeline before mapping/approving — upload is
+        # now async (ADR 008 amendment), so extractions aren't ready on return.
+        print("\n── Waiting for background OCR/classify/extract ──")
+        still = await _wait_for_processing(client, headers, referral_docs + discharge_docs)
+        if still:
+            print(f"  ! {len(still)} document(s) still processing after wait; proceeding anyway")
 
         # Map documents -> extractions (covers this run's uploads).
         ext_map = await _extraction_map(client, headers)
 
-        # ── Drive referrals: approve, then push a few to ready_to_schedule ──
+        # ── Drive referrals: approve (auto-advances to ready_to_schedule) ──
         print("\n── Approving referrals + advancing workflow ──")
-        ready_done = 0
         approved_refs = 0
         for doc in referral_docs[:APPROVE_REFERRALS]:
             ext = ext_map.get(doc["id"])
@@ -186,14 +216,13 @@ async def seed_documents() -> None:
             if result is None or not result.get("referral_id"):
                 continue
             approved_refs += 1
-            print(f"  ✓ approved {doc['file_name']} -> referral {result['referral_id'][:8]} "
-                  f"(needs_review)")
-            if ready_done < READY_REFERRALS:
-                if await _transition_referral(
-                    client, headers, result["referral_id"], "ready_to_schedule"
-                ):
-                    ready_done += 1
-                    print("    ⇒ ready_to_schedule (tasks + outreach emitted)")
+            # Approval now advances the referral straight to ready_to_schedule
+            # and emits tasks + outreach (no separate transition needed).
+            print(
+                f"  ✓ approved {doc['file_name']} -> referral {result['referral_id'][:8]} "
+                f"(ready_to_schedule; tasks + outreach emitted)"
+            )
+        ready_done = approved_refs
 
         # ── Drive discharges: approve -> patient_contacted (closed loop) ──
         print("\n── Approving discharges (closed loop) ──")
@@ -206,12 +235,15 @@ async def seed_documents() -> None:
             if result is None or not result.get("discharge_summary_id"):
                 continue
             approved_dis += 1
-            print(f"  ✓ approved {doc['file_name']} -> discharge "
-                  f"{result['discharge_summary_id'][:8]} (patient_contacted; "
-                  f"tasks + outreach emitted)")
+            print(
+                f"  ✓ approved {doc['file_name']} -> discharge "
+                f"{result['discharge_summary_id'][:8]} (patient_contacted; "
+                f"tasks + outreach emitted)"
+            )
 
         await _print_summary(
-            client, headers,
+            client,
+            headers,
             referrals_ready=ready_done,
             referrals_approved=approved_refs,
             discharges_approved=approved_dis,
@@ -244,9 +276,7 @@ async def _print_summary(
     if dash.status_code == 200:
         lk = dash.json().get("leakage") or {}
         scored = len(lk.get("rows") or [])
-        leakage_line = (
-            f"  leakage: {scored} scored / {lk.get('at_risk_count', '?')} at-risk"
-        )
+        leakage_line = f"  leakage: {scored} scored / {lk.get('at_risk_count', '?')} at-risk"
 
     print()
     print("┌────────────────────────────────────────────────────┐")

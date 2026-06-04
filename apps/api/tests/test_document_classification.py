@@ -35,6 +35,7 @@ async def _latest_doc(db: AsyncSession, clinic_id: UUID) -> Document:
         current_clinic_id.reset(tok)
     return rows[-1]
 
+
 _FAKE_PDF = b"%PDF-1.4\n"
 
 

@@ -21,7 +21,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi import status as http_status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -32,7 +32,9 @@ from app.dependencies import (
     get_current_user,
     get_current_user_ws,
 )
-from app.models.call import Call, CallStatus, CallTranscript
+from app.models.call import Call, CallStatus, CallTranscript, CallType
+from app.models.clinic import Clinic
+from app.models.document import UrgencyLevel
 from app.models.patient import Patient
 from app.schemas.voice import (
     CallListResponse,
@@ -40,8 +42,10 @@ from app.schemas.voice import (
     CallTokenResponse,
     EndCallResponse,
     StartCallResponse,
+    TestCallResponse,
     TranscriptResponse,
 )
+from app.services.outreach.templates import render_voice_script_context
 from app.services.voice.livekit_client import LiveKitClient, room_name_for_call
 from app.services.voice.transcript_bus import TranscriptBus
 from app.utils.audit import track_view
@@ -62,6 +66,64 @@ def _livekit_client() -> LiveKitClient:
         url=settings.livekit_url,
         api_key=settings.livekit_api_key,
         api_secret=settings.livekit_api_secret,
+    )
+
+
+@router.post("/test-call", response_model=TestCallResponse)
+async def create_test_call(
+    user: CurrentUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> TestCallResponse:
+    """One-click demo call: pick a random patient in the current clinic, create
+    an `initiated` Call, dispatch Ember to its LiveKit room, and return the
+    browser test-caller URL. Needs a running voice-agent worker to answer.
+    """
+    patient = (
+        await db.execute(select(Patient).order_by(func.random()).limit(1))
+    ).scalar_one_or_none()
+    if patient is None:
+        raise HTTPException(
+            status_code=http_status.HTTP_404_NOT_FOUND,
+            detail="no patients in this clinic to call",
+        )
+
+    settings = get_settings()
+    clinic = await db.get(Clinic, user.active_clinic_id)
+    clinic_name = clinic.name if clinic is not None else "your clinic"
+    script_context = render_voice_script_context(
+        patient_first_name=patient.first_name,
+        urgency=UrgencyLevel.routine,
+        clinic_name=clinic_name,
+    )
+
+    # clinic_id is set by the tenant before_insert listener from the ContextVar.
+    call = Call(
+        patient_id=patient.id,
+        call_type=CallType.outbound_scheduling,
+        status=CallStatus.initiated,
+        started_at=datetime.now(UTC),
+        outcome={"placeholder": True, "module": "test_call", "script_context": script_context},
+    )
+    db.add(call)
+    await db.commit()
+    await db.refresh(call)
+
+    client = _livekit_client()
+    try:
+        dispatched = await client.start_call(
+            call_id=call.id,
+            clinic_id=user.active_clinic_id,
+            patient_id=patient.id,
+            script_context=script_context,
+        )
+    finally:
+        await client.aclose()
+
+    return TestCallResponse(
+        call_id=call.id,
+        room_name=dispatched.room_name,
+        patient_name=f"{patient.first_name} {patient.last_name}",
+        test_caller_url=f"{settings.web_base_url}/voice/test-caller/{call.id}",
     )
 
 

@@ -390,3 +390,46 @@ async def test_end_call_404_for_other_clinic(
 
     resp = await client.post(f"/api/voice/calls/{call.id}/end", headers=headers_b)
     assert resp.status_code == 404
+
+
+# ── /test-call ───────────────────────────────────────────────────────
+
+
+async def test_create_test_call_picks_patient_and_dispatches(
+    authed_client_factory: Any,
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    set_clinic_context: Any,
+    _stub_livekit: _FakeLiveKitClient,
+) -> None:
+    client, headers_a, user_id_a = await authed_client_factory("a")
+    clinic_a, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a, user_id=user_id_a):
+        await _seed_patient(db_session, clinic_a)
+        await db_session.commit()
+
+    resp = await client.post("/api/voice/test-call", headers=headers_a)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["room_name"] == f"call-{body['call_id']}"
+    assert body["test_caller_url"].endswith(f"/voice/test-caller/{body['call_id']}")
+    assert body["patient_name"] == "Sarah Test"
+    assert len(_stub_livekit.dispatched) == 1
+
+    with set_clinic_context(clinic_id=clinic_a, user_id=user_id_a):
+        db_session.expire_all()
+        call = await db_session.get(Call, UUID(body["call_id"]))
+    assert call is not None and call.status == CallStatus.initiated
+
+
+async def test_create_test_call_404_when_clinic_has_no_patients(
+    authed_client_factory: Any,
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    _stub_livekit: _FakeLiveKitClient,
+) -> None:
+    # Clinic B has no patients seeded in this test.
+    client, headers_b, _ = await authed_client_factory("b")
+    resp = await client.post("/api/voice/test-call", headers=headers_b)
+    assert resp.status_code == 404
+    assert len(_stub_livekit.dispatched) == 0

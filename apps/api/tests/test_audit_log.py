@@ -38,9 +38,9 @@ async def test_patient_create_writes_audit_row(
         db_session.add(patient)
         await db_session.commit()
 
-    # Read audit_logs WITHOUT a clinic context (audit_logs is treated as
-    # global by the guard, but reading via ORM still requires context;
-    # use the same clinic for simplicity).
+    # Read audit_logs under the writer's clinic context — audit reads are
+    # clinic-scoped like any other ClinicScopedBase model (the guard requires
+    # a context and filters by clinic_id).
     with set_clinic_context(clinic_id=clinic_a):  # type: ignore[operator]
         rows = (
             (await db_session.execute(select(AuditLog).where(AuditLog.resource_type == "patients")))
@@ -95,3 +95,40 @@ async def test_audit_details_contains_no_phi(
         as_json = json.dumps(row.details)
         for phi in (sensitive_first, sensitive_phone, sensitive_dob):
             assert phi not in as_json, f"PHI '{phi}' leaked into audit_logs.details: {as_json}"
+
+
+async def test_null_clinic_audit_row_not_visible_under_clinic_context(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    set_clinic_context: object,
+) -> None:
+    """A NULL-clinic system audit row is written but NOT visible via the ORM
+    under a clinic context — audit reads are clinic-scoped (the guard's
+    `clinic_id == cid` excludes NULL). Locks in the corrected behavior; the
+    docstring previously (wrongly) claimed the guard treats NULL as visible."""
+    from app.database import async_session_maker
+
+    clinic_a, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a):  # type: ignore[operator]
+        db_session.add(
+            AuditLog(
+                clinic_id=None,
+                action=AuditAction.view,
+                resource_type="system_marker",
+                details={},
+            )
+        )
+        await db_session.commit()
+
+    async with async_session_maker() as read:
+        with set_clinic_context(clinic_id=clinic_a):  # type: ignore[operator]
+            rows = (
+                (
+                    await read.execute(
+                        select(AuditLog).where(AuditLog.resource_type == "system_marker")
+                    )
+                )
+                .scalars()
+                .all()
+            )
+    assert rows == []

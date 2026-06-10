@@ -18,7 +18,7 @@ The product targets independent cardiology practices, starting in Western Pennsy
 | Layer | Choice |
 |---|---|
 | Frontend | Next.js 15 (App Router) + TypeScript strict, pnpm |
-| UI | Tailwind CSS + shadcn/ui, TanStack Table, React Hook Form + Zod, react-pdf, TanStack Query, Zustand (only if needed) |
+| UI | Tailwind CSS + shadcn/ui, TanStack Table, react-pdf, TanStack Query. (Forms are currently hand-rolled `useState` + manual validation; the server re-validates. React Hook Form / Zod / Zustand were declared but unused and have been removed.) |
 | Auth | NextAuth Credentials → FastAPI JWT (HS256) |
 | Backend | FastAPI (Python 3.12) via `uv`, SQLAlchemy 2.0 async, asyncpg |
 | Database | Postgres 16 + pgvector + pgcrypto + uuid-ossp |
@@ -34,11 +34,11 @@ The product targets independent cardiology practices, starting in Western Pennsy
 ## Architecture patterns (load-bearing — do not deviate without an ADR)
 
 ### Multi-tenant isolation
-- A SQLAlchemy `before_execute` event listener on the async engine inspects every compiled `SELECT`/`UPDATE`/`DELETE`. For any table whose model inherits `ClinicScopedBase`, it injects `WHERE clinic_id = :current_clinic_id` if not already present.
+- A SQLAlchemy `do_orm_execute` event listener on `Session` inspects every ORM `SELECT`/`UPDATE`/`DELETE`. For any statement touching a `ClinicScopedBase` subclass, it injects a `with_loader_criteria(ClinicScopedBase, clinic_id == current_clinic_id)` clause. (It is **not** a `before_execute`/compiled-SQL interceptor — `with_loader_criteria` correctly scopes column-only selects, `session.get()`, and aggregate `count(Model.id)`. Known boundary: a bare `count(*)` over `select_from(Entity)` loads no entity columns and is NOT scoped — app code always uses `count(Model.id)`. See ADR 011.)
 - `current_clinic_id` lives in a `ContextVar` in `app/utils/context.py`, set by the auth dependency from the JWT.
 - `INSERT` is handled by a `before_insert` listener that sets `clinic_id` from the ContextVar if missing and rejects mismatches.
 - If `current_clinic_id` is unset when a clinic-scoped query runs, the listener raises `TenantContextMissingError`. **Failing closed is the correct behavior.**
-- Tables that legitimately span clinics (`clinics`, `users`, `clinic_memberships`) use a separate `GlobalBase` and skip the listener.
+- Tables that legitimately span clinics use a separate `GlobalBase` and skip the listener: `Clinic`, `User`, `ClinicMembership`, and `PayerRule` (non-PHI payer-policy reference data). Isolation is application-layer only — no Postgres RLS (ADR 011).
 
 ### Audit logging
 - SQLAlchemy `after_insert` / `after_update` / `after_delete` event listeners write to `audit_logs` for every PHI-bearing model.
@@ -98,7 +98,7 @@ Set by the auth dependency (`get_current_user`) and request middleware. Read by 
 - `tsc` strict on `apps/web`
 - `ruff` (lint + format) clean
 - `biome` (lint + format) clean
-- All 33 foundation tests passing in CI before any feature branch merges to `main`
+- All tests passing in CI before any feature branch merges to `main` (the suite has grown well past the original 33 foundation tests; don't hardcode a count)
 - Module 2 (extraction + review + eval) is shipped. The extraction service is wired inline in the upload route — runs synchronously after classification, with non-fatal error fallback to `status=classified`. ADR 008 describes the trade-off; the service interface is Celery-shaped if we need to move it to a worker. Per-field confidence is deterministic (validators + missing_fields, not LLM self-report) — see ADR 009.
 - Once Module 2 lands: every prompt-file change re-runs the eval harness; merges blocked if accuracy regresses
 

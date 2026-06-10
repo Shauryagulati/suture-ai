@@ -1,6 +1,12 @@
 # Suture — Security & Compliance Posture
 
-> v0.1 — foundation-era. Tracks what is actually built, what is deferred, and where the gaps are.
+> Tracks what is actually built, what is deferred, and where the gaps are.
+> The core controls below (tenant isolation, PHI encryption, audit logging,
+> auth) are as-built and current. Module-specific surfaces added after the
+> foundation (extraction, outreach, prior-auth, voice) are governed by their
+> own ADRs in `docs/DECISIONS/`; ADR 011 records the tenant-isolation
+> boundaries (as-built guard mechanism, the bare-`count(*)` limit, and the
+> app-layer-only / no-RLS posture).
 
 ## Threat model summary
 

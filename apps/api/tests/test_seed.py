@@ -39,7 +39,7 @@ async def test_seed_produces_expected_counts(db_session: AsyncSession) -> None:
     raw_providers = (await db_session.execute(text("SELECT COUNT(*) FROM providers"))).scalar_one()
 
     assert clinics == 2, f"expected 2 clinics, got {clinics}"
-    # 6 clinic users (3 roles × 2 clinics) + 1 sentinel Ember voice-agent user.
+    # 6 clinic users (3 roles x 2 clinics) + 1 sentinel Ember voice-agent user.
     assert users == 7, f"expected 7 users, got {users}"
     # Memberships stay 6 — the Ember agent user has no clinic membership.
     assert memberships == 6, f"expected 6 memberships, got {memberships}"

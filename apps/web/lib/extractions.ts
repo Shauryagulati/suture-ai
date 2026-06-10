@@ -7,6 +7,7 @@ import type {
 
 export interface ExtractionListFilters {
   needs_review?: boolean;
+  document_id?: string;
   limit?: number;
   offset?: number;
 }
@@ -57,9 +58,10 @@ export async function patchExtractionField(
 export async function findExtractionForDocument(
   documentId: string,
 ): Promise<ExtractionDetail | null> {
-  // Linear scan via the list endpoint. For v1 the per-doc set is small.
-  const list = await listExtractions({ limit: 200 });
-  const match = list.items.find((item) => item.document_id === documentId);
+  // Direct lookup by document_id — no list-and-scan ceiling (the old version
+  // listed 200 and scanned, so docs beyond the first 200 silently 404'd).
+  const list = await listExtractions({ document_id: documentId, limit: 1 });
+  const match = list.items[0];
   if (!match) return null;
   return getExtraction(match.id);
 }

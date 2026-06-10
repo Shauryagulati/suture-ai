@@ -1,5 +1,6 @@
 "use client";
 
+import { useActiveClinicId } from "@/components/providers/clinic-provider";
 import type { Task, TaskListResponse, TaskPriority, TaskStatus } from "@/lib/types/workflow";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -20,10 +21,11 @@ function filtersToParams(filters: TaskFilters): URLSearchParams {
 }
 
 export function useTasksQuery(filters: TaskFilters) {
+  const clinicId = useActiveClinicId();
   const params = filtersToParams(filters);
   const qs = params.toString();
   return useQuery<TaskListResponse>({
-    queryKey: ["tasks", filters],
+    queryKey: ["tasks", clinicId, filters],
     queryFn: async () => {
       const r = await fetch(`/api/v1/tasks${qs ? `?${qs}` : ""}`);
       if (!r.ok) throw new Error(`GET /tasks failed: ${r.status}`);

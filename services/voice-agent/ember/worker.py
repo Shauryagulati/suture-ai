@@ -298,6 +298,24 @@ async def entrypoint(ctx: Any) -> None:
     track = rtc.LocalAudioTrack.create_audio_track("ember-agent", audio_source)
     await ctx.room.local_participant.publish_track(track)
 
+    # Wait for the human caller to join before greeting. Without this the agent
+    # speaks its opening line to an empty room (it's dispatched the moment the
+    # call is created, seconds before the browser caller clicks "Connect"), so
+    # the caller hears nothing. Time out so a no-show doesn't hang the worker.
+    try:
+        await asyncio.wait_for(ctx.wait_for_participant(), timeout=120)
+        await asyncio.sleep(0.5)  # let the caller subscribe to our audio track
+    except TimeoutError:
+        log.warning("voice.call.no_caller_joined", call_id=str(metadata.call_id))
+        await persist_call_end(
+            metadata.call_id,
+            outcome=CallOutcome(needs_human=False),
+            started_at=started,
+            status=CallStatus.no_answer,
+        )
+        await publisher.aclose()
+        return
+
     audio_out = _LiveKitAudioOutput(audio_source)
     audio_in = _LiveKitAudioInput(ctx.room)
 

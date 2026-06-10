@@ -30,10 +30,13 @@ if str(_VOICE_AGENT_ROOT) not in sys.path:
 from ember.worker import (  # noqa: E402  — late import after sys.path setup
     CallMetadata,
     CallOutcome,
+    _LiveKitAudioInput,
+    default_available_slots,
     persist_call_end,
     run_call_pipeline,
 )
 
+from app.models.ai_invocation import AiInvocation, InvocationType  # noqa: E402
 from app.models.call import Call, CallStatus, CallTranscript, CallType  # noqa: E402
 from app.models.outreach_attempt import (  # noqa: E402
     OutreachAttempt,
@@ -237,6 +240,10 @@ async def test_pipeline_completed_call_publishes_state_and_booked_slot() -> None
     assert "scheduling" in state_events
     assert "confirmation" in state_events
     assert "farewell" in state_events
+    # Each LLM-backed turn records a stat for the voice ai_invocations rows.
+    assert len(agent.llm_calls) == 3
+    assert all(c["prompt_tokens"] > 0 for c in agent.llm_calls)
+    assert all(c["model"] == "stub" for c in agent.llm_calls)
 
 
 async def test_pipeline_emergency_keyword_escalates_without_llm_call() -> None:
@@ -348,6 +355,90 @@ async def test_persist_call_end_no_slot_leaves_attempt_as_sent(
         ).scalar_one()
         assert reloaded_attempt.status == OutreachStatus.sent
         assert "booked_slot" not in reloaded_attempt.outcome
+
+
+async def test_default_available_slots_is_nonempty() -> None:
+    """The worker offers real (mock) slots so the booking path can complete —
+    the old _no_slots() stub made scheduling unreachable in production."""
+    slots = default_available_slots()
+    assert len(slots) > 0
+    assert all(isinstance(s, datetime) for s in slots)
+
+
+async def test_audio_input_aclose_removes_handlers_and_cancels_reader() -> None:
+    """Teardown must cancel the reader task and unsubscribe room handlers so
+    each call doesn't leak a task + event listeners."""
+
+    class _FakeRoom:
+        def __init__(self) -> None:
+            self.handlers: dict[str, list[Any]] = {}
+
+        def on(self, event: str, handler: Any) -> None:
+            self.handlers.setdefault(event, []).append(handler)
+
+        def off(self, event: str, handler: Any) -> None:
+            self.handlers.get(event, []).remove(handler)
+
+    import asyncio
+
+    room = _FakeRoom()
+    audio_in = _LiveKitAudioInput(room)
+    assert len(room.handlers["track_subscribed"]) == 1
+    assert len(room.handlers["participant_disconnected"]) == 1
+
+    audio_in._reader_task = asyncio.create_task(asyncio.sleep(100))
+    await audio_in.aclose()
+
+    assert audio_in._stop is True
+    assert room.handlers["track_subscribed"] == []
+    assert room.handlers["participant_disconnected"] == []
+    assert audio_in._reader_task.cancelled()
+
+
+async def test_persist_call_end_writes_voice_dialogue_invocations(
+    db_session: AsyncSession, two_clinics: tuple[UUID, UUID], test_user: UUID
+) -> None:
+    """Per-turn LLM calls must be logged to ai_invocations (voice_dialogue)."""
+    clinic_a, _ = two_clinics
+    current_clinic_id.set(clinic_a)
+    current_user_id.set(test_user)
+    _patient, _attempt, call = await _seed_call_with_attempt(db_session, clinic_a)
+
+    llm_calls = [
+        {"model": "medgemma1.5", "prompt_tokens": 100, "completion_tokens": 20, "latency_ms": 50},
+        {"model": "medgemma1.5", "prompt_tokens": 120, "completion_tokens": 25, "latency_ms": 40},
+    ]
+    await persist_call_end(
+        call.id,
+        outcome=CallOutcome(turns=[{"role": "agent", "text": "hi"}]),
+        started_at=call.started_at,
+        status=CallStatus.completed,
+        llm_calls=llm_calls,
+    )
+
+    from app.database import async_session_maker
+
+    async with async_session_maker() as verify:
+        rows = (
+            (
+                await verify.execute(
+                    select(AiInvocation).where(
+                        AiInvocation.invocation_type == InvocationType.voice_dialogue
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+    assert len(rows) == 2
+    for row in rows:
+        assert row.clinic_id == clinic_a
+        assert row.patient_id == call.patient_id
+        assert row.model == "medgemma1.5"
+        assert row.total_tokens == row.prompt_tokens + row.completion_tokens
+        assert row.total_tokens > 0
+        assert row.estimated_cost_usd == 0.0  # local model
+        assert row.confidence_scores.get("tokens_estimated") is True
 
 
 async def test_persist_call_end_writes_under_correct_clinic(

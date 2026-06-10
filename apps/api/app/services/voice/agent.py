@@ -11,13 +11,15 @@ Tested standalone with a stub LLMProvider.
 from __future__ import annotations
 
 import enum
+import json
+import time
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from app.services.llm.base import JSONExtractionError, LLMProvider
+from app.services.llm.base import JSONExtractionError, LLMProvider, estimate_tokens
 from app.services.voice.guardrails import GuardrailKind, Guardrails, GuardrailVerdict
 
 # agent.py → voice → services → app → api → apps → repo_root
@@ -78,6 +80,9 @@ class EmberAgent:
     state: ConversationState = ConversationState.GREETING
     pending_slot: datetime | None = None
     _system_prompt: str = field(default="", init=False)
+    # Per-turn LLM-call stats (model, estimated tokens, latency). The worker
+    # writes these to ai_invocations; the agent stays DB-free.
+    llm_calls: list[dict[str, Any]] = field(default_factory=list, init=False)
 
     def __post_init__(self) -> None:
         self._system_prompt = load_scheduling_prompt()
@@ -129,15 +134,28 @@ class EmberAgent:
             f'PATIENT_UTTERANCE: "{turn_input.patient_utterance}"\n\n'
             f"Respond with the JSON object described in the system prompt."
         )
+        started = time.perf_counter()
         try:
-            return await self.llm.extract_json(
+            parsed = await self.llm.extract_json(
                 system=self._system_prompt,
                 prompt=user_prompt,
                 max_tokens=400,
             )
         except JSONExtractionError:
             # Treat parse failure as off-topic — escalate gracefully.
-            return {"intent": "off_topic", "reply": self._fallback_reply()}
+            parsed = {"intent": "off_topic", "reply": self._fallback_reply()}
+        latency_ms = int((time.perf_counter() - started) * 1000)
+        # Record the call so the worker can log an ai_invocations row. Tokens
+        # are estimated (~4 chars/token) — the provider returns only text.
+        self.llm_calls.append(
+            {
+                "model": self.llm.model,
+                "prompt_tokens": estimate_tokens(f"{self._system_prompt}\n{user_prompt}"),
+                "completion_tokens": estimate_tokens(json.dumps(parsed)),
+                "latency_ms": latency_ms,
+            }
+        )
+        return parsed
 
     # ── State transitions ────────────────────────────────────────
 

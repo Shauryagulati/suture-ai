@@ -5,6 +5,7 @@ import type {
   CallTokenResponse,
   EndCallResponse,
   StartCallResponse,
+  StreamTokenResponse,
   TranscriptResponse,
 } from "@/lib/voice-types";
 
@@ -33,6 +34,17 @@ export async function getCallToken(callId: string): Promise<CallTokenResponse> {
     throw new Error(`getCallToken failed: ${res.status} ${await res.text()}`);
   }
   return (await res.json()) as CallTokenResponse;
+}
+
+export async function getStreamToken(callId: string): Promise<StreamTokenResponse> {
+  // Server-side mint of a short-lived, call-scoped token for the transcript
+  // WS. The FastAPI bearer stays on the server (it's the apiFetch auth); only
+  // this scoped token reaches the client.
+  const res = await apiFetch(`/api/voice/calls/${callId}/stream-token`);
+  if (!res.ok) {
+    throw new Error(`getStreamToken failed: ${res.status} ${await res.text()}`);
+  }
+  return (await res.json()) as StreamTokenResponse;
 }
 
 export async function startCall(callId: string): Promise<StartCallResponse> {

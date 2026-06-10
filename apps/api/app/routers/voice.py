@@ -28,9 +28,7 @@ from app.config import get_settings
 from app.database import async_session_maker, get_db
 from app.dependencies import (
     CurrentUser,
-    WebSocketAuthError,
     get_current_user,
-    get_current_user_ws,
 )
 from app.models.call import Call, CallStatus, CallTranscript, CallType
 from app.models.clinic import Clinic
@@ -42,6 +40,7 @@ from app.schemas.voice import (
     CallTokenResponse,
     EndCallResponse,
     StartCallResponse,
+    StreamTokenResponse,
     TestCallResponse,
     TranscriptResponse,
 )
@@ -49,6 +48,8 @@ from app.services.outreach.templates import render_voice_script_context
 from app.services.voice.livekit_client import LiveKitClient, room_name_for_call
 from app.services.voice.transcript_bus import TranscriptBus
 from app.utils.audit import track_view
+from app.utils.context import current_clinic_id
+from app.utils.security import JwtError, decode_stream_token, encode_stream_token
 
 router = APIRouter(prefix="/api/voice", tags=["voice"])
 
@@ -223,6 +224,27 @@ async def get_patient_token(
     )
 
 
+@router.get("/calls/{call_id}/stream-token", response_model=StreamTokenResponse)
+async def get_stream_token(
+    call_id: UUID,
+    user: CurrentUser = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> StreamTokenResponse:
+    """Mint a short-lived, call-scoped token for the transcript WebSocket.
+
+    The WS can't read auth headers before the upgrade, so callers previously
+    passed the full access bearer in the URL. Instead we hand the browser a
+    5-minute token scoped to this single call; the bearer stays server-side.
+    The tenant guard scopes the lookup, so a foreign-clinic call 404s here
+    (and no token is ever minted for it).
+    """
+    call = await db.get(Call, call_id)
+    if call is None:
+        raise HTTPException(status_code=http_status.HTTP_404_NOT_FOUND, detail="call not found")
+    token, _expires = encode_stream_token(call_id=call_id, clinic_id=user.active_clinic_id)
+    return StreamTokenResponse(token=token)
+
+
 @router.post("/calls/{call_id}/start", response_model=StartCallResponse)
 async def start_call(
     call_id: UUID,
@@ -306,24 +328,36 @@ async def stream_transcript(
 ) -> None:
     """Live transcript stream for an active call.
 
-    Auth: bearer JWT passed as `?token=…` query param. Tenant-scoped:
-    the call must belong to the same clinic as the authenticated user.
+    Auth: a short-lived, call-scoped stream token passed as `?token=…`
+    (minted by GET /calls/{id}/stream-token). The full access bearer is
+    NOT accepted here — it must never reach the browser/WS URL. The token
+    embeds the clinic_id; the lookup is tenant-scoped as defense-in-depth.
     """
     await websocket.accept()
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=4401, reason="missing token")
+        return
     try:
-        user = await get_current_user_ws(
-            websocket=websocket, token=websocket.query_params.get("token")
-        )
-    except WebSocketAuthError as e:
-        await websocket.close(code=e.code, reason=e.reason)
+        claims = decode_stream_token(token)
+        token_call_id = UUID(claims["call_id"])
+        clinic_id = UUID(claims["clinic_id"])
+    except (JwtError, KeyError, ValueError, TypeError) as e:
+        await websocket.close(code=4401, reason=f"invalid stream token: {e}")
         return
 
-    # Verify the call belongs to this user's clinic. Tenant guard makes
-    # the SELECT auto-filter; `None` means foreign-clinic or nonexistent
-    # — same 4404 close either way (don't leak existence).
+    # The token authorizes exactly one call. A token for another call must
+    # not stream this one.
+    if token_call_id != call_id:
+        await websocket.close(code=4404, reason="call not found")
+        return
+
+    # Scope DB access to the token's clinic, then confirm the call exists in
+    # it. `None` means nonexistent — same 4404 (don't leak existence).
+    current_clinic_id.set(clinic_id)
     async with async_session_maker() as session:
         call = await session.get(Call, call_id)
-        if call is None or call.clinic_id != user.active_clinic_id:
+        if call is None:
             await websocket.close(code=4404, reason="call not found")
             return
 

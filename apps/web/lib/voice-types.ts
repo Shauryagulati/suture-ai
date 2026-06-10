@@ -34,6 +34,11 @@ export interface CallTokenResponse {
   identity: string;
 }
 
+export interface StreamTokenResponse {
+  // Short-lived, call-scoped token for the transcript WebSocket.
+  token: string;
+}
+
 export interface TranscriptResponse {
   call_id: string;
   full_transcript: string;

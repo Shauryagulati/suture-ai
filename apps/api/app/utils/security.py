@@ -152,3 +152,35 @@ def decode_scheduling_token(token: str) -> dict[str, Any]:
     if decoded.get("type") != "scheduling":
         raise JwtError("token type is not 'scheduling'")
     return decoded
+
+
+# ─── Transcript stream tokens ──────────────────────────────────────────
+
+
+def encode_stream_token(*, call_id: UUID, clinic_id: UUID) -> tuple[str, datetime]:
+    """Sign a short-lived token scoped to a single call's transcript stream.
+
+    Minted by an authenticated, clinic-scoped endpoint and handed to the
+    browser so the full access bearer never reaches the client or the WS
+    URL. Type-tagged so it can't be confused with an access token.
+    """
+    settings = get_settings()
+    expires = _now() + timedelta(seconds=settings.stream_token_ttl_seconds)
+    payload: dict[str, Any] = {
+        "call_id": str(call_id),
+        "clinic_id": str(clinic_id),
+        "type": "stream",
+        "iat": int(_now().timestamp()),
+        "exp": int(expires.timestamp()),
+    }
+    token = jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+    return token, expires
+
+
+def decode_stream_token(token: str) -> dict[str, Any]:
+    """Decode + verify a stream token. Raises JwtError if invalid, expired,
+    or not type=stream (an access bearer is rejected here)."""
+    decoded = decode_token(token)
+    if decoded.get("type") != "stream":
+        raise JwtError("token type is not 'stream'")
+    return decoded

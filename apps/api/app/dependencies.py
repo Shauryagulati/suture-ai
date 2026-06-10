@@ -12,7 +12,7 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, Request, WebSocket, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -118,66 +118,3 @@ def require_admin(user: CurrentUser = Depends(get_current_user)) -> CurrentUser:
     if user.role != "admin":
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="admin role required")
     return user
-
-
-class WebSocketAuthError(Exception):
-    """Raised when WebSocket bearer-token auth fails. The caller closes
-    the connection with an appropriate 4xxx code."""
-
-    def __init__(self, code: int, reason: str) -> None:
-        super().__init__(reason)
-        self.code = code
-        self.reason = reason
-
-
-async def get_current_user_ws(
-    websocket: WebSocket,
-    token: str | None = Query(default=None),
-) -> CurrentUser:
-    """WebSocket auth — bearer JWT passed as `?token=...` (HTTP headers
-    aren't available before the upgrade handshake). Mirrors get_current_user:
-    decodes the JWT, validates the user + active membership, sets the
-    ContextVars. On failure raises WebSocketAuthError; the route handler
-    is responsible for `await websocket.close(code=...)`."""
-    if not token:
-        raise WebSocketAuthError(4401, "missing token")
-    try:
-        payload = decode_token(token)
-    except JwtError as e:
-        raise WebSocketAuthError(4401, f"invalid token: {e}") from e
-    if payload.get("type") != "access":
-        raise WebSocketAuthError(4401, "not an access token")
-    try:
-        user_id = UUID(payload["sub"])
-        clinic_id = UUID(payload["clinic_id"])
-    except (KeyError, ValueError, TypeError) as e:
-        raise WebSocketAuthError(4401, "malformed claims") from e
-
-    async with async_session_maker() as session:
-        user = await session.get(User, user_id)
-        if user is None or not user.is_active:
-            raise WebSocketAuthError(4401, "user not found or inactive")
-        membership = (
-            await session.execute(
-                select(ClinicMembership).where(
-                    ClinicMembership.user_id == user_id,
-                    ClinicMembership.clinic_id == clinic_id,
-                )
-            )
-        ).scalar_one_or_none()
-        if membership is None:
-            raise WebSocketAuthError(4403, "user has no membership for this clinic")
-        result = CurrentUser(
-            user_id=user.id,
-            email=user.email,
-            full_name=user.full_name,
-            active_clinic_id=clinic_id,
-            role=membership.role.value,
-        )
-
-    current_user_id.set(user.id)
-    current_clinic_id.set(clinic_id)
-    if websocket.client is not None:
-        current_ip_address.set(websocket.client.host)
-
-    return result

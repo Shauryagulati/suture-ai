@@ -51,6 +51,11 @@ class Settings(BaseSettings):
     scheduling_token_ttl_seconds: int = 7 * 24 * 3600
     web_base_url: str = "http://localhost:3000"
 
+    # Transcript WS — short-lived, single-call token so the full access
+    # bearer never travels to the browser / WS URL. 5 minutes is plenty to
+    # open the socket; the socket stays up after the token would expire.
+    stream_token_ttl_seconds: int = 300
+
     # PHI encryption — empty by default; Gate B1 enforces presence in tests
     phi_encryption_key: str = ""
 

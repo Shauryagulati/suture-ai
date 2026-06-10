@@ -17,12 +17,32 @@ from app.models.outreach_attempt import (
     OutreachStatus,
 )
 from app.models.patient import Patient
+from app.services.outreach.base import OutreachMessage, OutreachResult
 from app.services.outreach.factory import (
     get_outreach_provider,
     reset_outreach_provider_cache,
 )
 from app.services.outreach.stub import StubOutreachProvider
 from app.services.outreach.voice import initiate_voice_call
+
+
+class _TokenLeakingProvider:
+    """Stand-in for the LiveKit provider: returns room-join tokens in raw."""
+
+    async def send(self, message: OutreachMessage) -> OutreachResult:
+        return OutreachResult(
+            delivered=True,
+            provider_message_id="room-leak-test",
+            raw={
+                "room_name": "room-leak-test",
+                "agent_token": "AAA.agent.jwt",
+                "patient_token": "BBB.patient.jwt",
+            },
+        )
+
+    async def aclose(self) -> None:  # pragma: no cover - interface completeness
+        return None
+
 
 pytestmark = pytest.mark.asyncio
 
@@ -118,6 +138,38 @@ async def test_initiate_voice_uses_decrypted_phone(
     assert provider.sent[0].channel == OutreachChannel.voice
     assert "Steel City Cardiology" in provider.sent[0].body
     assert "Pat" in provider.sent[0].body
+
+
+async def test_initiate_voice_does_not_persist_livekit_tokens(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """LiveKit room-join tokens must never be persisted into the attempt
+    outcome — they're re-mintable via /api/voice/calls/{id}/token and any
+    authenticated user could otherwise lift them from GET /api/outreach."""
+    from app.services.outreach import voice as voice_mod
+
+    monkeypatch.setattr(voice_mod, "get_outreach_provider", lambda: _TokenLeakingProvider())
+
+    clinic_a_id, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
+        patient, attempt = await _seed_patient_and_pending_voice(db_session, clinic_a_id)
+        await initiate_voice_call(
+            db_session,
+            attempt=attempt,
+            patient=patient,
+            urgency=UrgencyLevel.urgent,
+            clinic_name="Steel City Cardiology",
+        )
+
+    raw = attempt.outcome.get("provider_raw", {})
+    assert "agent_token" not in raw
+    assert "patient_token" not in raw
+    # The non-secret room name is still useful and safe to keep.
+    assert raw.get("room_name") == "room-leak-test"
 
 
 async def test_initiate_voice_rejects_non_voice_attempt(

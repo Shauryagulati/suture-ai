@@ -29,8 +29,8 @@ Synthetic corpus, 50 documents (30 referrals + 20 discharges), local `medgemma1.
 
 | Metric | Value |
 |---|---|
-| Exact-match rate | 0.648 |
-| Macro-F1 | 0.725 |
+| Exact-match rate | 0.669 |
+| Macro-F1 | 0.736 |
 
 Per-field breakdowns are written per run; re-run `make eval-extraction` to reproduce. Results
 are model-dependent — BYOK Claude Sonnet scores materially higher than the local 4B model.

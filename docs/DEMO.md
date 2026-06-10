@@ -10,7 +10,12 @@ make infra-up
 make migrate
 make seed
 make seed-documents      # pre-loads the inbox + drives several docs through approval
+make eval-extraction     # real extraction metrics for the Evals dashboard
 make dev                 # api :8000, web :3000
+
+# Voice (optional), in separate terminals:
+make voice-up            # LiveKit server (Docker)
+make voice-agent         # Ember worker (Whisper/Piper download on first run)
 ```
 
 Sign in at <http://localhost:3000>:
@@ -50,9 +55,17 @@ cited. (The packet generator builds the submission PDF from the referral's insur
 (human-readable events), the clinical summary, and the confirmation-fax panel — the loop that
 faxes confirmation back to the discharging hospital.
 
-**7. Analytics (30s).** Finish on **Analytics**: **referral leakage** (at-risk follow-ups),
-**payer friction**, **referral quality**, and an **ROI** estimate (hours saved, projected
-revenue recovered).
+**7. Analytics (30s).** **Analytics**: **referral leakage** (at-risk follow-ups), **payer
+friction**, **referral quality**, and an **ROI** estimate (hours saved, projected revenue
+recovered).
+
+**8. Evals (20s).** **Analytics → Evals**: the extraction harness's real accuracy per run
+(exact-match, macro-F1), recorded in `eval_runs` — how prompt/model changes are tracked.
+
+**9. Voice — Ember (optional, ~60s).** On **Voice**, click **Start test call** → a new tab opens
+the browser caller → **Connect** (Ember waits for you, then greets) → unmute the mic and ask to
+schedule; the live transcript streams on the call's monitor page. Needs `make voice-up` +
+`make voice-agent`. The browser caller stands in for a phone — PSTN is deferred (ADR 010).
 
 ## Be transparent about v1 boundaries
 

@@ -13,6 +13,22 @@ judgement on a HIPAA-class workload.
 > (BYOK). Everything else — Postgres, Redis, OCR, embeddings, the LLM, and voice STT/TTS —
 > runs locally.
 
+## Engineering highlights
+
+- **Fail-closed multi-tenancy** enforced at the ORM layer (one SQLAlchemy event listener), not
+  per-query — a missing tenant context raises rather than leaks, and cross-tenant reads return 404.
+- **HIPAA-class data handling**: field-level Fernet encryption for PHI, an append-only audit trail
+  that records column names + IDs but never PHI values, security headers + auth rate limiting.
+- **Local-first AI with BYOK**: every LLM/embedding call goes through a provider interface
+  (local Ollama by default, Claude/OpenAI opt-in) — no hard vendor dependency.
+- **A real eval harness**: extraction accuracy is measured against a synthetic ground-truth corpus
+  (per-field precision/recall/F1, exact-match, macro-F1) and recorded per run, so prompt/model
+  changes are comparable over time.
+- **End-to-end clinical workflow**: fax/PDF → OCR → AI extraction → human review → state machine →
+  SLA tasks → multi-channel outreach → prior-auth RAG → confirmation fax-back → a LiveKit voice agent.
+- **10 ADRs** documenting the load-bearing decisions (tenant guard, PHI encryption, auth, BYOK,
+  inline vs. async extraction, deterministic confidence, voice/PSTN scope).
+
 ## What's built
 
 Suture is a multi-tenant system with strict clinic isolation, field-level PHI encryption,
@@ -27,7 +43,7 @@ and an append-only audit trail. The major capabilities are in place:
 | Outreach | Multi-channel cadence (SMS/email/voice), tokenized patient self-scheduling | ✅ |
 | Prior auth | Payer-rules RAG (hybrid structured + vector), auth-required check, packet + appeals | ✅ |
 | Analytics | Leakage, payer friction, referral quality, ROI dashboards | ✅ |
-| Voice | LiveKit voice agent (Ember): Whisper STT + Piper TTS + LLM, live transcript | ✅ |
+| Voice | Ember voice agent (LiveKit + Whisper STT + Piper TTS + LLM): one-click browser test caller, live transcript stream, encrypted call records | ✅ |
 
 External delivery channels (fax, SMS, email, PSTN voice) run behind **local stub providers**
 in v1 — the full pipeline executes and is auditable, but nothing leaves the machine. See
@@ -83,8 +99,14 @@ make infra-up                # Postgres + Redis (Docker)
 make migrate                 # alembic upgrade head
 make seed                    # 2 clinics, 6 users, patients, providers
 make seed-documents          # drive real PDFs through the upload→extract→approve pipeline
+make eval-extraction         # populate real extraction-accuracy metrics (Evals dashboard)
 
 make dev                     # api on :8000, web on :3000
+
+# Optional — voice agent (Ember), in separate terminals:
+make voice-up                # LiveKit server (Docker)
+make voice-agent             # Ember worker (Whisper/Piper models download on first run)
+# then: /voice → "Start test call" → Connect → talk to Ember in the browser
 ```
 
 Then sign in at <http://localhost:3000> with a seeded account:
@@ -106,9 +128,9 @@ the real pipeline over the synthetic ground-truth corpus:
 make eval-extraction         # → per-field accuracy, precision/recall, exact-match, macro-F1
 ```
 
-Latest extraction run (synthetic corpus, 50 documents): **0.648 exact-match, 0.725 macro-F1**
-on a local `medgemma1.5` model. See [`docs/EVAL.md`](./docs/EVAL.md) for methodology and how
-to add cases.
+Latest extraction run (synthetic corpus, 50 documents): **0.669 exact-match, 0.736 macro-F1**
+on a local `medgemma1.5` model — BYOK Claude Sonnet scores materially higher. See
+[`docs/EVAL.md`](./docs/EVAL.md) for methodology and how to add cases.
 
 ## Screenshots
 

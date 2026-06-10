@@ -20,8 +20,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.ai_invocation import AiInvocation, InvocationType
 from app.models.document import DocumentClassification
-from app.services.llm.base import JSONExtractionError
+from app.services.llm.base import JSONExtractionError, estimate_tokens
 from app.services.llm.factory import get_llm_provider
+from app.services.llm.pricing import estimate_cost_usd
 
 logger = structlog.get_logger(__name__)
 
@@ -94,19 +95,25 @@ async def classify_document(
         )
     latency_ms = int((time.perf_counter() - started) * 1000)
 
-    output_summary = json.dumps(raw)[:_OUTPUT_SUMMARY_CHARS] if raw is not None else None
+    output_text = json.dumps(raw) if raw is not None else ""
+    output_summary = output_text[:_OUTPUT_SUMMARY_CHARS] if raw is not None else None
 
+    # Token counts are estimated (~4 chars/token): the provider interface
+    # returns only text, not exact usage. Flagged tokens_estimated so cost
+    # reporting can tell estimates from exact provider usage.
+    prompt_tokens = estimate_tokens(f"{system}\n{user_prompt}")
+    completion_tokens = estimate_tokens(output_text)
     invocation = AiInvocation(
         invocation_type=InvocationType.classification,
         model=provider.model,
-        prompt_tokens=0,
-        completion_tokens=0,
-        total_tokens=0,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=prompt_tokens + completion_tokens,
         latency_ms=latency_ms,
-        estimated_cost_usd=0.0,
+        estimated_cost_usd=estimate_cost_usd(provider.model, prompt_tokens, completion_tokens),
         input_summary=user_prompt[:_INPUT_SUMMARY_CHARS],
         output_summary=output_summary,
-        confidence_scores={"classification": result.confidence},
+        confidence_scores={"classification": result.confidence, "tokens_estimated": True},
         document_id=document_id,
     )
     db.add(invocation)

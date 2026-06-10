@@ -79,6 +79,57 @@ async def test_classification_writes_ai_invocation_row(
     assert row.latency_ms >= 0
     # Confidence captured in the JSONB column.
     assert row.confidence_scores.get("classification") == pytest.approx(0.8)
+    # Token + cost accounting — was hardcoded to zero, now estimated.
+    assert row.prompt_tokens > 0
+    assert row.total_tokens == row.prompt_tokens + row.completion_tokens
+    assert row.total_tokens > 0
+    assert row.confidence_scores.get("tokens_estimated") is True
+    assert row.estimated_cost_usd == 0.0  # medgemma1.5 is local → free
+
+
+async def test_extraction_records_tokens_and_cost(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """The auto-extract invocation must record estimated tokens + cost too."""
+    clinic_a, _ = two_clinics
+    patch_storage_path(monkeypatch, tmp_path)
+    patch_ocr(monkeypatch, text="some referral text")
+    patch_llm_provider(
+        monkeypatch,
+        response_text='{"classification": "referral", "confidence": 0.9, "reasoning": "r"}',
+        model="medgemma1.5",
+    )
+    token = await make_user_and_login(
+        client=client,
+        db=db_session,
+        email="extract@a.example.com",
+        password="pw1234567",
+        clinic_id=clinic_a,
+    )
+    doc_id = await _upload(client, token)
+
+    tok = current_clinic_id.set(clinic_a)
+    try:
+        rows = (await db_session.execute(select(AiInvocation))).scalars().all()
+    finally:
+        current_clinic_id.reset(tok)
+
+    matching = [
+        r
+        for r in rows
+        if str(r.document_id) == doc_id and r.invocation_type == InvocationType.extraction
+    ]
+    assert len(matching) == 1
+    row = matching[0]
+    assert row.prompt_tokens > 0
+    assert row.total_tokens == row.prompt_tokens + row.completion_tokens
+    assert row.total_tokens > 0
+    assert row.confidence_scores.get("tokens_estimated") is True
+    assert row.estimated_cost_usd == 0.0  # local model
 
 
 async def test_ai_invocation_is_tenant_isolated(

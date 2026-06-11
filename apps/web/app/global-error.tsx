@@ -27,9 +27,16 @@ export default function GlobalError({
       >
         <div style={{ maxWidth: 420, padding: 32, textAlign: "center" }}>
           <h2 style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Something went wrong</h2>
-          <p style={{ fontSize: 14, color: "#555", marginBottom: 20 }}>
-            {error.message || "An unexpected error occurred."}
+          <p style={{ fontSize: 14, color: "#555", marginBottom: error.digest ? 8 : 20 }}>
+            An unexpected error occurred. Please try again.
           </p>
+          {/* Never render error.message — it can carry internal details or PHI.
+              digest is an opaque, non-sensitive reference for support. */}
+          {error.digest ? (
+            <p style={{ fontSize: 12, color: "#999", marginBottom: 20 }}>
+              Reference: {error.digest}
+            </p>
+          ) : null}
           <button
             type="button"
             onClick={() => reset()}

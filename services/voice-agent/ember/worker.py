@@ -36,9 +36,12 @@ if TYPE_CHECKING:
 
 from app.config import get_settings
 from app.database import async_session_maker
+from app.models.ai_invocation import AiInvocation, InvocationType
 from app.models.call import Call, CallStatus, CallTranscript
 from app.models.outreach_attempt import OutreachAttempt, OutreachStatus
 from app.services.llm.factory import get_llm_provider
+from app.services.llm.pricing import estimate_cost_usd
+from app.services.outreach.scheduling import mock_available_slots
 from app.services.voice.agent import (
     ConversationState,
     EmberAgent,
@@ -197,11 +200,12 @@ async def persist_call_end(
     outcome: CallOutcome,
     started_at: datetime,
     status: CallStatus,
+    llm_calls: list[dict[str, Any]] | None = None,
 ) -> None:
-    """Update the Call row, write the encrypted CallTranscript, and
-    flip the OutreachAttempt if a slot was booked. Runs inside a
-    fresh session with the tenant ContextVar already set by the
-    entrypoint."""
+    """Update the Call row, write the encrypted CallTranscript, log the
+    per-turn LLM calls to ai_invocations, and flip the OutreachAttempt if a
+    slot was booked. Runs inside a fresh session with the tenant ContextVar
+    already set by the entrypoint."""
     ended = datetime.now(UTC)
     async with async_session_maker() as session:
         call = await session.get(Call, call_id)
@@ -238,6 +242,29 @@ async def persist_call_end(
             )
         )
 
+        # Log each in-loop LLM call to ai_invocations (voice_dialogue). The
+        # agent accumulates the per-turn stats; we write them here where a
+        # session + tenant context exist. No PHI in the summaries.
+        for rec in llm_calls or []:
+            pt = int(rec.get("prompt_tokens", 0))
+            ct = int(rec.get("completion_tokens", 0))
+            model = str(rec.get("model", "unknown"))
+            session.add(
+                AiInvocation(
+                    clinic_id=call.clinic_id,
+                    invocation_type=InvocationType.voice_dialogue,
+                    model=model,
+                    prompt_tokens=pt,
+                    completion_tokens=ct,
+                    total_tokens=pt + ct,
+                    latency_ms=int(rec.get("latency_ms", 0)),
+                    estimated_cost_usd=estimate_cost_usd(model, pt, ct),
+                    input_summary="voice_dialogue turn",
+                    confidence_scores={"tokens_estimated": True},
+                    patient_id=call.patient_id,
+                )
+            )
+
         # Update the linked OutreachAttempt — `responded` iff a slot was booked.
         if call.outreach_attempt_id is not None and outcome.booked_slot is not None:
             attempt = (
@@ -258,9 +285,17 @@ async def persist_call_end(
 # ── LiveKit Agents entrypoint ────────────────────────────────────────
 
 
-def _no_slots() -> list[datetime]:
-    """Stub slot supplier. Module 7 wires up the real scheduling lookup."""
-    return []
+def default_available_slots() -> list[datetime]:
+    """Slot supplier for the live worker.
+
+    Uses the same deterministic mock availability the web self-scheduling
+    flow uses (app.services.outreach.scheduling.mock_available_slots), so
+    Ember can actually offer times and complete a booking. A real
+    provider-calendar integration replaces this without touching the
+    pipeline. (The old _no_slots() returned [], which made the scheduling
+    objective — the one thing Ember exists to do — unreachable.)
+    """
+    return mock_available_slots()
 
 
 async def entrypoint(ctx: Any) -> None:
@@ -329,14 +364,23 @@ async def entrypoint(ctx: Any) -> None:
             audio_in=audio_in,
             audio_out=audio_out,
             publisher=publisher,
-            available_slots_fn=_no_slots,
+            available_slots_fn=default_available_slots,
         )
     except Exception as e:
         log.exception("voice.call.pipeline_failed", call_id=str(metadata.call_id), error=str(e))
         outcome = CallOutcome(needs_human=True, escalation_reason="pipeline_error")
         status = CallStatus.failed
+    finally:
+        # Always tear down the audio reader task + room handlers.
+        await audio_in.aclose()
 
-    await persist_call_end(metadata.call_id, outcome=outcome, started_at=started, status=status)
+    await persist_call_end(
+        metadata.call_id,
+        outcome=outcome,
+        started_at=started,
+        status=status,
+        llm_calls=agent_obj.llm_calls,
+    )
     await publisher.publish_end(
         metadata.call_id,
         outcome={
@@ -415,8 +459,26 @@ class _LiveKitAudioInput:
         self._reader_task: asyncio.Task[None] | None = None
         self._stop = False
 
+        # Bound handlers (not lambdas) so aclose() can unsubscribe them.
         room.on("track_subscribed", self._on_track_subscribed)
-        room.on("participant_disconnected", lambda *_a: self._disconnect_event.set())
+        room.on("participant_disconnected", self._on_disconnect)
+
+    def _on_disconnect(self, *_a: Any) -> None:
+        self._disconnect_event.set()
+
+    async def aclose(self) -> None:
+        """Stop the reader loop, cancel its task, and unsubscribe room
+        handlers. Called in the entrypoint's finally so each call doesn't
+        leak a task + event listeners on a long-lived worker."""
+        self._stop = True
+        if self._reader_task is not None:
+            self._reader_task.cancel()
+            try:
+                await self._reader_task
+            except (asyncio.CancelledError, Exception):
+                pass
+        self._room.off("track_subscribed", self._on_track_subscribed)
+        self._room.off("participant_disconnected", self._on_disconnect)
 
     def __aiter__(self) -> _LiveKitAudioInput:
         return self
@@ -449,11 +511,17 @@ class _LiveKitAudioInput:
         import numpy as np
         from livekit import rtc
 
-        stream = rtc.AudioStream(track)
+        # Force 16 kHz mono — WhisperSTT.transcribe_pcm16 assumes 16 kHz, but
+        # browser WebRTC audio arrives at 48 kHz. Without this, LiveKit's
+        # default 48 kHz frames are fed to STT as if they were 16 kHz →
+        # 3x time-stretched, pitch-shifted garbage → empty/wrong transcripts.
+        stream = rtc.AudioStream(track, sample_rate=16000, num_channels=1)
         buf = bytearray()
         silent_ms = 0
         speaking_ms = 0
         async for evt in stream:
+            if self._stop:
+                break
             frame = evt.frame
             samples = np.frombuffer(frame.data, dtype=np.int16).astype(np.float32) / 32768.0
             rms = float(np.sqrt(np.mean(samples**2))) if samples.size else 0.0

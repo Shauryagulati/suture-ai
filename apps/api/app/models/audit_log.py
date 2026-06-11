@@ -2,7 +2,16 @@
 
 Inherits ClinicScopedBase but `clinic_id` is allowed to be NULL for global
 / system-level events (e.g. an admin viewing across clinics, or a system
-job). The tenant guard treats NULL clinic_id rows as visible.
+job). Writes bypass the INSERT guard (`_audit_exempt`), so a NULL clinic_id
+can be persisted.
+
+Reads, however, are clinic-scoped like any other ClinicScopedBase model: the
+`do_orm_execute` guard injects `clinic_id == current_clinic_id`, which in SQL
+EXCLUDES NULL. So NULL-clinic system rows are written but are NOT visible via
+the ORM under a clinic context (and a read with no context fails closed).
+A future admin/system audit-review feature must read them through an explicit
+guard-bypass path. (This is safe — it fails closed — but was previously
+mis-documented as "the guard treats NULL rows as visible".)
 """
 
 from __future__ import annotations

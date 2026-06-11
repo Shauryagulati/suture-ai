@@ -14,9 +14,10 @@ interface UseVoiceWsResult {
 
 /**
  * Subscribes to /api/voice/calls/{callId}/stream and accumulates the
- * decoded messages. `apiBaseUrl` and `accessToken` come from the
- * server-rendered parent — NextAuth session isn't accessible from
- * client-side fetch in this app.
+ * decoded messages. `apiBaseUrl` and `streamToken` come from the
+ * server-rendered parent. `streamToken` is a short-lived, call-scoped
+ * token minted server-side — the full FastAPI access bearer is never
+ * exposed to the client.
  *
  * The hook reconnects on transient disconnects for up to 5 attempts;
  * after that the consumer should refresh the page.
@@ -24,7 +25,7 @@ interface UseVoiceWsResult {
 export function useVoiceWs(params: {
   apiBaseUrl: string;
   callId: string;
-  accessToken: string;
+  streamToken: string;
 }): UseVoiceWsResult {
   const [status, setStatus] = useState<WsStatus>("connecting");
   const [messages, setMessages] = useState<TranscriptStreamMessage[]>([]);
@@ -39,7 +40,7 @@ export function useVoiceWs(params: {
       if (cancelled) return;
       const wsUrl = new URL(`/api/voice/calls/${params.callId}/stream`, params.apiBaseUrl);
       wsUrl.protocol = wsUrl.protocol === "https:" ? "wss:" : "ws:";
-      wsUrl.searchParams.set("token", params.accessToken);
+      wsUrl.searchParams.set("token", params.streamToken);
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
@@ -94,7 +95,7 @@ export function useVoiceWs(params: {
         wsRef.current = null;
       }
     };
-  }, [params.apiBaseUrl, params.callId, params.accessToken]);
+  }, [params.apiBaseUrl, params.callId, params.streamToken]);
 
   return { status, messages, closeCode };
 }

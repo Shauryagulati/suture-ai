@@ -94,9 +94,14 @@ async def initiate_voice_call(
         "error": result.error,
     }
     if result.raw:
-        # LiveKit returns {room_name, agent_token, patient_token}; the
-        # browser caller fetches the patient_token via the API later,
-        # but persisting it here lets the test-caller page open without
-        # an extra round-trip.
-        attempt.outcome["provider_raw"] = result.raw
+        # LiveKit returns {room_name, agent_token, patient_token}. NEVER
+        # persist the tokens: they are full room-join credentials (the agent
+        # token can publish into the patient's call) and OutreachAttempt.outcome
+        # is serialized verbatim to every authenticated clinic user via
+        # GET /api/outreach. The browser caller mints a fresh, scoped token
+        # on demand via /api/voice/calls/{id}/token, so only the non-secret
+        # room name is worth keeping.
+        attempt.outcome["provider_raw"] = {
+            k: v for k, v in result.raw.items() if not k.endswith("_token")
+        }
     return result

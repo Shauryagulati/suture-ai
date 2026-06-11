@@ -7,15 +7,15 @@ import { useVoiceWs } from "@/hooks/use-voice-ws";
 interface TranscriptStreamProps {
   apiBaseUrl: string;
   callId: string;
-  accessToken: string;
+  streamToken: string;
 }
 
 export function TranscriptStream({
   apiBaseUrl,
   callId,
-  accessToken,
+  streamToken,
 }: TranscriptStreamProps): React.ReactElement {
-  const { status, messages, closeCode } = useVoiceWs({ apiBaseUrl, callId, accessToken });
+  const { status, messages, closeCode } = useVoiceWs({ apiBaseUrl, callId, streamToken });
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // Auto-scroll on new messages. The hook depends on messages so React

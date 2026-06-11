@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { Sidebar } from "@/components/Sidebar";
-import { QueryProvider } from "@/components/providers/query-provider";
+import { ClinicProvider } from "@/components/providers/clinic-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { redirect } from "next/navigation";
 
@@ -14,13 +14,15 @@ export default async function AuthedLayout({
     redirect("/login");
   }
 
+  // The single QueryClient lives in the root <Providers>. Here we only
+  // partition the cache by active clinic for the authed subtree.
   return (
-    <QueryProvider>
+    <ClinicProvider clinicId={session.clinicId ?? null}>
       <div className="flex h-screen w-screen overflow-hidden bg-background">
         <Sidebar />
         <main className="flex-1 overflow-auto">{children}</main>
       </div>
       <Toaster />
-    </QueryProvider>
+    </ClinicProvider>
   );
 }

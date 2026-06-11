@@ -1,13 +1,15 @@
 """WebSocket /api/voice/calls/{call_id}/stream tests.
 
-Auth: bearer JWT passed as `?token=…` query param. The stream
+Auth: a short-lived, call-scoped *stream* token passed as `?token=…`
+(minted by GET /calls/{id}/stream-token). The full access bearer is NOT
+accepted here — that was the leak the stream token replaces. The stream
 subscribes to Redis pub/sub for the call's transcript channel; we stub
-`TranscriptBus.subscribe` with a scripted async generator so tests
-don't require a running Redis.
+`TranscriptBus.subscribe` with a scripted async generator so tests don't
+require a running Redis.
 
-These are HIPAA-class hard stops: missing token → 4401, foreign
-clinic → 4404, success path passes through every published chunk in
-order and closes on the terminal `end` message.
+These are HIPAA-class hard stops: missing/invalid token → 4401, access
+bearer rejected → 4401, wrong call/clinic → 4404, success path passes
+through every published chunk in order and closes on the terminal `end`.
 """
 
 from __future__ import annotations
@@ -26,6 +28,7 @@ from app.main import app
 from app.models.call import Call, CallStatus, CallType
 from app.models.patient import Patient
 from app.services.voice import transcript_bus as bus_module
+from app.utils.security import encode_stream_token
 
 pytestmark = pytest.mark.asyncio
 
@@ -110,50 +113,75 @@ async def test_ws_rejects_bogus_token() -> None:
         assert exc.value.code == 4401
 
 
-async def test_ws_rejects_call_from_other_clinic(
+async def test_ws_rejects_access_token(
     authed_client_factory: Any,
+) -> None:
+    """The full FastAPI access bearer must NOT be accepted by the WS — only
+    a call-scoped stream token. This is the leak the stream token closed."""
+    _client, headers_a, _user_id_a = await authed_client_factory("a")
+    access_token = headers_a["Authorization"].split(" ", 1)[1]
+    fake_call_id = uuid4()
+    with TestClient(app) as tc:
+        with pytest.raises(WebSocketDisconnect) as exc:
+            with tc.websocket_connect(
+                f"/api/voice/calls/{fake_call_id}/stream?token={access_token}"
+            ) as ws:
+                ws.receive_json()
+        assert exc.value.code == 4401
+
+
+async def test_ws_rejects_stream_token_for_other_call(
     db_session: AsyncSession,
     two_clinics: tuple[UUID, UUID],
     set_clinic_context: Any,
 ) -> None:
-    """Authenticated user A connecting to clinic B's call → 4404 close."""
-    client, _headers_a, user_id_a = await authed_client_factory("a")
-    _, _, user_id_b = await authed_client_factory("b")
-    _clinic_a, clinic_b = two_clinics
-
-    with set_clinic_context(clinic_id=clinic_b, user_id=user_id_b):
-        call_b = await _seed_call(db_session, clinic_b)
+    """A stream token authorizes exactly one call; using it on another → 4404."""
+    clinic_a, _ = two_clinics
+    with set_clinic_context(clinic_id=clinic_a):
+        call = await _seed_call(db_session, clinic_a)
         await db_session.commit()
 
-    # Log in as user A and steal their JWT.
-    login = await client.post(
-        "/api/auth/login",
-        json={
-            "email": (await _email_for_user(db_session, user_id_a)),
-            "password": "test-password-xyz",
-        },
-    )
-    token = login.json()["access_token"]
-
+    token, _ = encode_stream_token(call_id=call.id, clinic_id=clinic_a)
+    other_call_id = uuid4()
     with TestClient(app) as tc:
         with pytest.raises(WebSocketDisconnect) as exc:
-            with tc.websocket_connect(f"/api/voice/calls/{call_b.id}/stream?token={token}") as ws:
+            with tc.websocket_connect(
+                f"/api/voice/calls/{other_call_id}/stream?token={token}"
+            ) as ws:
+                ws.receive_json()
+        assert exc.value.code == 4404
+
+
+async def test_ws_rejects_stream_token_with_wrong_clinic(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    set_clinic_context: Any,
+) -> None:
+    """A (signed) stream token whose clinic_id doesn't own the call → 4404.
+    Defense-in-depth: the WS scopes the lookup to the token's clinic."""
+    clinic_a, clinic_b = two_clinics
+    with set_clinic_context(clinic_id=clinic_a):
+        call = await _seed_call(db_session, clinic_a)
+        await db_session.commit()
+
+    # Token claims clinic_b but the call is in clinic_a.
+    token, _ = encode_stream_token(call_id=call.id, clinic_id=clinic_b)
+    with TestClient(app) as tc:
+        with pytest.raises(WebSocketDisconnect) as exc:
+            with tc.websocket_connect(f"/api/voice/calls/{call.id}/stream?token={token}") as ws:
                 ws.receive_json()
         assert exc.value.code == 4404
 
 
 async def test_ws_streams_transcript_chunks_in_order(
-    authed_client_factory: Any,
     db_session: AsyncSession,
     two_clinics: tuple[UUID, UUID],
     set_clinic_context: Any,
 ) -> None:
     """Happy path — chunks emitted by the bus arrive at the client in order
     and the WS closes after the terminal `end` message."""
-    client, _headers_a, user_id_a = await authed_client_factory("a")
     clinic_a, _ = two_clinics
-
-    with set_clinic_context(clinic_id=clinic_a, user_id=user_id_a):
+    with set_clinic_context(clinic_id=clinic_a):
         call = await _seed_call(db_session, clinic_a)
         await db_session.commit()
 
@@ -164,15 +192,7 @@ async def test_ws_streams_transcript_chunks_in_order(
         {"type": "end", "outcome": {"booked_slot": "2026-05-26T15:00Z"}},
     ]
 
-    login = await client.post(
-        "/api/auth/login",
-        json={
-            "email": (await _email_for_user(db_session, user_id_a)),
-            "password": "test-password-xyz",
-        },
-    )
-    token = login.json()["access_token"]
-
+    token, _ = encode_stream_token(call_id=call.id, clinic_id=clinic_a)
     received: list[dict[str, Any]] = []
     with TestClient(app) as tc:
         with tc.websocket_connect(f"/api/voice/calls/{call.id}/stream?token={token}") as ws:
@@ -186,14 +206,3 @@ async def test_ws_streams_transcript_chunks_in_order(
     assert [m["type"] for m in received] == ["turn", "turn", "state", "end"]
     assert received[0]["text"] == "Hi Sarah"
     assert received[3]["outcome"]["booked_slot"] == "2026-05-26T15:00Z"
-
-
-# ── Internal ──────────────────────────────────────────────────────────
-
-
-async def _email_for_user(db: AsyncSession, user_id: UUID) -> str:
-    from app.models import User
-
-    u = await db.get(User, user_id)
-    assert u is not None
-    return u.email

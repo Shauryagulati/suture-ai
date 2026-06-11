@@ -63,6 +63,22 @@ jobs:
           psql -h localhost -U suture -d suture -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
           psql -h localhost -U suture -d suture -c "CREATE EXTENSION IF NOT EXISTS citext;"
 
+      # Tests build the schema via Base.metadata.create_all, so they never
+      # exercise the Alembic migrations. Run the up/down/up round-trip here so
+      # a broken or non-reversible migration (or model-vs-migration drift)
+      # fails CI instead of surfacing at deploy time.
+      - name: Migrations (alembic up/down/up round-trip)
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql+asyncpg://suture:suture_dev_password@localhost:5432/suture
+          JWT_SECRET: ci_jwt_secret_for_test_runs_only_abcdef0123
+          PHI_ENCRYPTION_KEY: VbDtA5sCxOf8b9pYwT-jXNVKfNF7HMu0_rDFZIO_eIM=
+          OTEL_DISABLED: "1"
+        run: |
+          uv run alembic upgrade head
+          uv run alembic downgrade base
+          uv run alembic upgrade head
+
       - name: Lint (ruff)
         working-directory: apps/api
         run: uv run ruff check app tests

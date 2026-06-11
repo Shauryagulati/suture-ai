@@ -38,6 +38,7 @@ from app.models import AiInvocation, InvocationType, PayerRule
 from app.services.embedding import get_embedding_provider
 from app.services.llm import get_llm_provider
 from app.services.llm.base import JSONExtractionError, estimate_tokens
+from app.services.llm.pricing import estimate_cost_usd
 
 _REPO_ROOT = Path(__file__).resolve().parents[5]
 _PROMPT_DIR = _REPO_ROOT / "ai" / "prompts" / "prior_auth"
@@ -238,6 +239,7 @@ async def check_prior_auth(db: AsyncSession, request: AuthCheckRequest) -> AuthD
             completion_tokens=completion_tokens,
             total_tokens=prompt_tokens + completion_tokens,
             latency_ms=latency_ms,
+            estimated_cost_usd=estimate_cost_usd(provider.model, prompt_tokens, completion_tokens),
             confidence_scores={
                 "auth_check": float(llm_out.get("confidence", 0.0)),
                 "tokens_estimated": True,

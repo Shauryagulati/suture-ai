@@ -1,10 +1,9 @@
 import Link from "next/link";
 
-import { auth } from "@/auth";
 import { Badge } from "@/components/ui/badge";
 import { EndCallButton } from "@/components/voice/end-call-button";
 import { TranscriptStream } from "@/components/voice/transcript-stream";
-import { getCallById, getCallTranscript } from "@/lib/voice";
+import { getCallById, getCallTranscript, getStreamToken } from "@/lib/voice";
 
 interface PageProps {
   params: Promise<{ callId: string }>;
@@ -12,13 +11,20 @@ interface PageProps {
 
 export default async function VoiceCallPage({ params }: PageProps): Promise<React.ReactElement> {
   const { callId } = await params;
-  const session = await auth();
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
   const [call, persisted] = await Promise.all([getCallById(callId), getCallTranscript(callId)]);
 
   const isActive =
     call !== null && !["completed", "failed", "no_answer", "voicemail"].includes(call.status);
+
+  // Mint a short-lived, call-scoped stream token server-side for active
+  // calls. The FastAPI bearer never reaches the client.
+  const streamToken = isActive
+    ? await getStreamToken(callId)
+        .then((r) => r.token)
+        .catch(() => null)
+    : null;
 
   return (
     <div className="flex h-full flex-col">
@@ -49,12 +55,8 @@ export default async function VoiceCallPage({ params }: PageProps): Promise<Reac
 
       <div className="grid flex-1 grid-cols-3 gap-6 px-8 py-6 overflow-hidden">
         <div className="col-span-2 min-h-0">
-          {isActive && session?.apiAccessToken ? (
-            <TranscriptStream
-              apiBaseUrl={apiBaseUrl}
-              callId={callId}
-              accessToken={session.apiAccessToken}
-            />
+          {isActive && streamToken ? (
+            <TranscriptStream apiBaseUrl={apiBaseUrl} callId={callId} streamToken={streamToken} />
           ) : persisted ? (
             <div className="rounded-md border bg-card p-6 space-y-3">
               <h2 className="font-medium">Persisted transcript</h2>

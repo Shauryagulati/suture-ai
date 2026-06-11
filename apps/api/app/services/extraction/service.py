@@ -21,8 +21,9 @@ from app.models.ai_invocation import AiInvocation, InvocationType
 from app.models.document import Document, DocumentClassification
 from app.models.document_extraction import DocumentExtraction
 from app.services.extraction.confidence import compute_field_confidences
-from app.services.llm.base import JSONExtractionError
+from app.services.llm.base import JSONExtractionError, estimate_tokens
 from app.services.llm.factory import get_llm_provider
+from app.services.llm.pricing import estimate_cost_usd
 
 logger = structlog.get_logger(__name__)
 
@@ -121,17 +122,27 @@ async def extract_document(
         field_confidences, needs_review = compute_field_confidences(extraction_data, missing_fields)
         output_summary = json.dumps(extraction_data)[:_OUTPUT_SUMMARY_CHARS]
 
+    # Token counts are estimated (~4 chars/token): the provider interface
+    # returns only text, not exact usage. Flagged tokens_estimated so cost
+    # reporting can tell estimates from exact provider usage.
+    output_text = json.dumps(extraction_data) if parsed is not None else ""
+    prompt_tokens = estimate_tokens(f"{system}\n{user_prompt}")
+    completion_tokens = estimate_tokens(output_text)
     invocation = AiInvocation(
         invocation_type=InvocationType.extraction,
         model=provider.model,
-        prompt_tokens=0,
-        completion_tokens=0,
-        total_tokens=0,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        total_tokens=prompt_tokens + completion_tokens,
         latency_ms=latency_ms,
-        estimated_cost_usd=0.0,
+        estimated_cost_usd=estimate_cost_usd(provider.model, prompt_tokens, completion_tokens),
         input_summary=user_prompt[:_INPUT_SUMMARY_CHARS],
         output_summary=output_summary,
-        confidence_scores={"prompt_version": prompt_version, "parse_failed": parsed is None},
+        confidence_scores={
+            "prompt_version": prompt_version,
+            "parse_failed": parsed is None,
+            "tokens_estimated": True,
+        },
         document_id=document_id,
     )
     db.add(invocation)

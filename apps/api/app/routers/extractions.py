@@ -87,6 +87,7 @@ async def _track_extraction_view(db: AsyncSession, extraction_id: UUID) -> None:
 @router.get("/", response_model=ExtractionListResponse)
 async def list_extractions(
     needs_review: bool | None = Query(default=None),
+    document_id: UUID | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
     user: CurrentUser = Depends(get_current_user),
@@ -97,6 +98,8 @@ async def list_extractions(
     )
     if needs_review is not None:
         stmt = stmt.where(DocumentExtraction.human_review_required.is_(needs_review))
+    if document_id is not None:
+        stmt = stmt.where(DocumentExtraction.document_id == document_id)
 
     stmt = (
         stmt.order_by(
@@ -111,6 +114,8 @@ async def list_extractions(
     count_stmt = select(func.count(DocumentExtraction.id))
     if needs_review is not None:
         count_stmt = count_stmt.where(DocumentExtraction.human_review_required.is_(needs_review))
+    if document_id is not None:
+        count_stmt = count_stmt.where(DocumentExtraction.document_id == document_id)
     total = (await db.execute(count_stmt)).scalar_one()
 
     items = [

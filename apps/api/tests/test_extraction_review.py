@@ -236,6 +236,48 @@ async def test_list_filters_by_needs_review(
     assert body["items"][0]["missing_fields_count"] == 1
 
 
+async def test_list_filters_by_document_id(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+) -> None:
+    """A direct document_id lookup avoids the list-and-scan ceiling (the
+    review page used to list 200 and scan client-side)."""
+    clinic_a, _ = two_clinics
+    headers, user_id = await _login_clinic_user(client, db_session, clinic_a)
+
+    await _seed_extraction(
+        db_session,
+        clinic_id=clinic_a,
+        user_id=user_id,
+        classification=DocumentClassification.referral,
+        payload=_ref_payload(),
+        missing_fields=[],
+        human_review_required=False,
+        file_name="a.pdf",
+    )
+    await _seed_extraction(
+        db_session,
+        clinic_id=clinic_a,
+        user_id=user_id,
+        classification=DocumentClassification.referral,
+        payload=_ref_payload(mrn="MRN-other"),
+        missing_fields=[],
+        human_review_required=False,
+        file_name="b.pdf",
+    )
+
+    all_items = (await client.get("/api/extractions/", headers=headers)).json()["items"]
+    assert len(all_items) == 2
+    target_doc = all_items[0]["document_id"]
+
+    resp = await client.get(f"/api/extractions/?document_id={target_doc}", headers=headers)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["items"][0]["document_id"] == target_doc
+
+
 # ---------------------------- detail ----------------------------
 
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useActiveClinicId } from "@/components/providers/clinic-provider";
 import { useQuery } from "@tanstack/react-query";
 
 export type OutreachChannel = "sms" | "email" | "voice";
@@ -35,12 +36,13 @@ export function useOutreachList(opts?: {
   channel?: OutreachChannel;
   status?: OutreachStatus;
 }) {
+  const clinicId = useActiveClinicId();
   const params = new URLSearchParams();
   if (opts?.channel) params.set("channel", opts.channel);
   if (opts?.status) params.set("status", opts.status);
   const qs = params.toString();
   return useQuery<OutreachAttemptListResponse>({
-    queryKey: ["outreach", "list", opts ?? {}],
+    queryKey: ["outreach", "list", clinicId, opts ?? {}],
     queryFn: async () => {
       const r = await fetch(`/api/v1/outreach${qs ? `?${qs}` : ""}`);
       if (!r.ok) throw new Error(`outreach list failed: ${r.status}`);
@@ -50,8 +52,9 @@ export function useOutreachList(opts?: {
 }
 
 export function usePatientOutreachHistory(patientId: string) {
+  const clinicId = useActiveClinicId();
   return useQuery<OutreachAttemptListResponse>({
-    queryKey: ["outreach", "patient", patientId],
+    queryKey: ["outreach", "patient", clinicId, patientId],
     queryFn: async () => {
       const r = await fetch(`/api/v1/outreach/patient/${patientId}`);
       if (!r.ok) throw new Error(`patient outreach failed: ${r.status}`);

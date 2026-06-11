@@ -11,6 +11,20 @@ from pydantic import BaseModel
 from app.models.outreach_attempt import OutreachAttempt, OutreachChannel, OutreachStatus
 
 
+def _strip_tokens(outcome: dict[str, Any]) -> dict[str, Any]:
+    """Drop any ``*_token`` key from the outcome (incl. nested provider_raw).
+
+    Defense-in-depth: room-join tokens must never reach a client even if some
+    upstream path persisted them. The service layer already avoids persisting
+    them; this is the second line.
+    """
+    cleaned = {k: v for k, v in outcome.items() if not k.endswith("_token")}
+    raw = cleaned.get("provider_raw")
+    if isinstance(raw, dict):
+        cleaned["provider_raw"] = {k: v for k, v in raw.items() if not k.endswith("_token")}
+    return cleaned
+
+
 class OutreachAttemptResponse(BaseModel):
     id: UUID
     patient_id: UUID
@@ -37,7 +51,7 @@ class OutreachAttemptResponse(BaseModel):
             status=m.status,
             scheduled_at=m.scheduled_at,
             sent_at=m.sent_at,
-            outcome=m.outcome or {},
+            outcome=_strip_tokens(m.outcome or {}),
             attempt_number=m.attempt_number,
             scheduling_link_url=m.scheduling_link_url,
             created_at=m.created_at,

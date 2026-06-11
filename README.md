@@ -134,7 +134,10 @@ on a local `medgemma1.5` model — BYOK Claude Sonnet scores materially higher. 
 
 ## Screenshots
 
-> _TODO: add inbox, review, workflow, prior-auth, and analytics screenshots._
+Static screenshots are pending a capture pass against the running app. Until
+then, [`docs/DEMO.md`](./docs/DEMO.md) walks the full loop (inbox → review →
+workflow → outreach → prior-auth → analytics) screen by screen, and
+`make dev` brings the app up locally to click through it.
 
 ## Documentation
 

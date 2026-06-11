@@ -1,5 +1,6 @@
 "use client";
 
+import { useActiveClinicId } from "@/components/providers/clinic-provider";
 import { useQuery } from "@tanstack/react-query";
 
 export interface TimelineEvent {
@@ -22,8 +23,9 @@ export interface TimelineResponse {
 }
 
 export function useReferralTimeline(referralId: string) {
+  const clinicId = useActiveClinicId();
   return useQuery<TimelineResponse>({
-    queryKey: ["timeline", "referral", referralId],
+    queryKey: ["timeline", "referral", clinicId, referralId],
     queryFn: async () => {
       const r = await fetch(`/api/v1/referrals/${referralId}/timeline`);
       if (!r.ok) {

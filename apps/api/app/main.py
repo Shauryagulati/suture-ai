@@ -37,6 +37,7 @@ from app.routers import (
     voice,
 )
 from app.utils.logging import configure_logging, get_logger
+from app.utils.security import ensure_jwt_secret_configured
 
 
 def _configure_otel(app: FastAPI) -> None:
@@ -78,6 +79,11 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     configure_logging(level=settings.log_level)
     log = get_logger(__name__)
+    # Fail closed if the JWT secret is missing — an empty HS256 key makes
+    # every token forgeable (same fail-fast posture as the PHI key).
+    ensure_jwt_secret_configured(settings.jwt_secret)
+    if len(settings.jwt_secret) < 32:
+        log.warning("api.jwt_secret_short", length=len(settings.jwt_secret), recommended_min=32)
     if not settings.otel_disabled:
         _configure_otel(application)
     log.info(

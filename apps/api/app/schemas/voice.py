@@ -44,6 +44,12 @@ class CallTokenResponse(BaseModel):
     identity: str
 
 
+class StreamTokenResponse(BaseModel):
+    """Short-lived, call-scoped token for the transcript WebSocket."""
+
+    token: str
+
+
 class TranscriptResponse(BaseModel):
     """Persisted (decrypted) transcript for a completed call."""
 

@@ -70,8 +70,9 @@ sa.Column('ssn', sa.String, nullable=True)  # encrypted at app layer
 # An enum. Always name it.
 sa.Column('status', sa.Enum('new', 'reviewed', 'archived', name='document_status'), nullable=False)
 
-# pgvector embedding (384-dim for all-MiniLM-L6-v2)
-sa.Column('embedding', pg.Vector(384), nullable=True)
+# pgvector embedding. 1024-dim for the default bge-m3 provider (ADR 007).
+# Match the column to get_embedding_provider().dimension — don't hardcode blindly.
+sa.Column('embedding', pg.Vector(1024), nullable=True)
 ```
 
 #### Required index pattern

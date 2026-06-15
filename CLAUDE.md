@@ -27,7 +27,7 @@ The product targets independent cardiology practices, starting in Western Pennsy
 | File storage | Local filesystem behind an S3-compatible interface |
 | AI — LLM | Claude API: Sonnet for extraction, Opus for harder reasoning, Haiku for evals + voice |
 | AI — OCR | Docling (IBM, open source), Tesseract fallback |
-| AI — Embeddings | sentence-transformers `all-MiniLM-L6-v2` (local, 384-dim) |
+| AI — Embeddings | Default: local Ollama `bge-m3` (1024-dim); BYOK via `EMBEDDING_PROVIDER`. See ADR 007. |
 | Voice | LiveKit Agents + Whisper.cpp (STT) + Piper (TTS) + Claude Haiku |
 | Observability | structlog, OpenTelemetry → Jaeger, Prometheus + Grafana |
 

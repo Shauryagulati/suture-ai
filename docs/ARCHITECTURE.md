@@ -68,9 +68,9 @@
 
 ```
 Inbound fax/PDF arrives
-    ↓ upload + OCR (Docling → Tesseract fallback)
+    ↓ upload + OCR (Docling → pypdf fallback)
 Documents (status=uploaded → classified)
-    ↓ classify, then extract via get_llm_provider()  [inline, ADR 008]
+    ↓ classify, then extract via get_llm_provider()  [FastAPI BackgroundTask, ADR 008]
 DocumentExtractions (per-field, deterministic confidences — ADR 009)
     ↓ human review + approve
 Referrals / DischargeSummaries  (+ Patient, Provider, InsurancePolicy)

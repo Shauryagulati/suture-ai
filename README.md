@@ -36,7 +36,7 @@ and an append-only audit trail. The major capabilities are in place:
 
 | Area | Capability | Status |
 |---|---|---|
-| Inbox | Upload, OCR (Docling → Tesseract fallback), AI classification, filtering, PDF viewer | ✅ |
+| Inbox | Upload, OCR (Docling → pypdf fallback), AI classification, filtering, PDF viewer | ✅ |
 | Extraction | AI field extraction with deterministic per-field confidence + an eval harness | ✅ |
 | Review | Side-by-side PDF + fields, inline edit, approve → creates Patient/Referral/Discharge | ✅ |
 | Workflow | Referral & discharge state machines, SLA-tracked task generation | ✅ |
@@ -77,7 +77,7 @@ and the ADRs behind each decision.
 | Auth | NextAuth Credentials → FastAPI JWT (HS256) |
 | Queue | Celery + Redis |
 | AI — LLM | Local Ollama (`medgemma1.5`) by default; BYOK Claude (Sonnet/Opus/Haiku) or OpenAI |
-| AI — OCR | Docling (IBM), Tesseract fallback |
+| AI — OCR | Docling (IBM), pypdf fallback |
 | AI — Embeddings | Ollama `bge-m3` (1024-dim, local); pgvector RAG |
 | Voice | LiveKit Agents + Whisper.cpp (STT) + Piper (TTS) + local LLM |
 | Observability | structlog, OpenTelemetry → Jaeger, Prometheus + Grafana |
@@ -120,7 +120,7 @@ admin / reviewer / readonly users with the same dev password.)
 
 ## Evaluation
 
-Every Claude-touching feature ships with an eval harness; results are recorded in the
+Every LLM-touching feature ships with an eval harness; results are recorded in the
 `eval_runs` table so prompt/model changes are comparable over time. The extraction eval runs
 the real pipeline over the synthetic ground-truth corpus:
 

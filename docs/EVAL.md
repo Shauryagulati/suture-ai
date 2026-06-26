@@ -1,8 +1,10 @@
 # Suture — Evaluation Strategy
 
-Every Claude-touching feature in Suture ships with an evaluation harness. The audit trail
+Every LLM-touching feature in Suture ships with an evaluation harness. The audit trail
 (`eval_runs` table) lets us compare prompt versions, model versions, and refactors over time.
-If a prompt change drops accuracy on the eval set, CI blocks the merge.
+Per-field accuracy is recorded per run so prompt and model changes can be diffed for
+regressions. (Automating this as a CI merge-gate is a planned next step — the harness needs a
+local Ollama that CI does not yet provide.)
 
 ## Extraction eval (shipped)
 

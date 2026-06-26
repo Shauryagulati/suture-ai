@@ -25,10 +25,10 @@ The product targets independent cardiology practices, starting in Western Pennsy
 | Migrations | Alembic |
 | Background jobs | Celery + Redis |
 | File storage | Local filesystem behind an S3-compatible interface |
-| AI — LLM | Claude API: Sonnet for extraction, Opus for harder reasoning, Haiku for evals + voice |
-| AI — OCR | Docling (IBM, open source), Tesseract fallback |
+| AI — LLM | Default: local Ollama `medgemma1.5`; BYOK via `LLM_PROVIDER` (Anthropic Claude / OpenAI). See ADR 007. |
+| AI — OCR | Docling (IBM, open source), pypdf fallback |
 | AI — Embeddings | Default: local Ollama `bge-m3` (1024-dim); BYOK via `EMBEDDING_PROVIDER`. See ADR 007. |
-| Voice | LiveKit Agents + Whisper.cpp (STT) + Piper (TTS) + Claude Haiku |
+| Voice | LiveKit Agents + Whisper.cpp (STT) + Piper (TTS) + LLM via `get_llm_provider()` (local default; BYOK Claude Haiku) |
 | Observability | structlog, OpenTelemetry → Jaeger, Prometheus + Grafana |
 
 ## Architecture patterns (load-bearing — do not deviate without an ADR)
@@ -86,7 +86,7 @@ Set by the auth dependency (`get_current_user`) and request middleware. Read by 
 - ❌ **Direct `anthropic.Anthropic(...)` or `openai.OpenAI(...)` in application code.** Use `get_llm_provider()`. Direct SDK imports break BYOK, break the local-default Ollama path, and skip future eval routing.
 - ❌ **Hardcoding embedding dimensions.** Read `get_embedding_provider().dimension`. The 384→1024 migration burned us once already.
 - ❌ **`ANTHROPIC_API_KEY` in any committed `.env` file.** The seeds wrapper is fixture-backed; live calls require explicit `SUTURE_ALLOW_LIVE_LLM=1`.
-- ❌ **Claude API calls without inserting a row into `ai_invocations`.** Every call must be logged with model, tokens, latency, cost.
+- ❌ **LLM API calls (any provider) without inserting a row into `ai_invocations`.** Every call must be logged with model, tokens, latency, cost.
 - ❌ **Naive `DateTime` columns.** `TIMESTAMPTZ` everywhere.
 - ❌ **Frontend code that touches the FastAPI bearer token directly outside the NextAuth session callback path** (or the route-handler proxy if the Gate B2 fallback was engaged).
 - ❌ **Skipping commitlint** via `--no-verify`. If a commit fails, fix the message.
@@ -99,8 +99,8 @@ Set by the auth dependency (`get_current_user`) and request middleware. Read by 
 - `ruff` (lint + format) clean
 - `biome` (lint + format) clean
 - All tests passing in CI before any feature branch merges to `main` (the suite has grown well past the original 33 foundation tests; don't hardcode a count)
-- Module 2 (extraction + review + eval) is shipped. The extraction service is wired inline in the upload route — runs synchronously after classification, with non-fatal error fallback to `status=classified`. ADR 008 describes the trade-off; the service interface is Celery-shaped if we need to move it to a worker. Per-field confidence is deterministic (validators + missing_fields, not LLM self-report) — see ADR 009.
-- Once Module 2 lands: every prompt-file change re-runs the eval harness; merges blocked if accuracy regresses
+- Module 2 (extraction + review + eval) is shipped. The extraction service runs in a FastAPI `BackgroundTask` — the upload returns 201 immediately and processing happens out-of-request (re-establishing the tenant ContextVars), with non-fatal error fallback to `status=classified`. ADR 008 (superseded — it was originally inline/synchronous) describes the trade-off; the service interface is Celery-shaped if we need to move it to a durable worker. Per-field confidence is deterministic (validators + missing_fields, not LLM self-report) — see ADR 009.
+- Prompt-file changes should re-run the eval harness; per-field metrics are recorded per run (`eval_runs` + JSON artifact) for manual regression diffing. Auto-blocking merges in CI is a planned next step (CI does not yet run a local Ollama).
 
 ## Repo structure
 

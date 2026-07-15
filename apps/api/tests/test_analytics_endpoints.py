@@ -131,7 +131,7 @@ async def test_roi_counts_documents_in_terminal_success_states(
             DocumentStatus.classified,
             DocumentStatus.extracted,
             DocumentStatus.reviewed,
-            DocumentStatus.error,       # excluded: pipeline failed
+            DocumentStatus.error,  # excluded: pipeline failed
             DocumentStatus.classifying,  # excluded: in flight
         ):
             db_session.add(make_document(clinic_id=clinic_a, status=doc_status))

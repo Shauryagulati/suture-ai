@@ -39,8 +39,17 @@ async def test_documents_processed_and_hours_saved(
 ):
     clinic_a, _ = two_clinics
     with set_clinic_context(clinic_id=clinic_a, user_id=test_user):
-        for _ in range(5):
-            doc = make_document(clinic_id=clinic_a, status=DocumentStatus.processed)
+        # Terminal success states the pipeline actually writes. (This test
+        # used DocumentStatus.processed, mirroring the bug in roi.py: that
+        # status is never written, so the count was always 0 in real use.)
+        for doc_status in (
+            DocumentStatus.classified,
+            DocumentStatus.extracted,
+            DocumentStatus.reviewed,
+            DocumentStatus.extracted,
+            DocumentStatus.reviewed,
+        ):
+            doc = make_document(clinic_id=clinic_a, status=doc_status)
             db_session.add(doc)
         await db_session.commit()
         report = await compute_roi_report(

@@ -32,10 +32,20 @@ async def compute_roi_report(db: AsyncSession, *, from_date: date, to_date: date
     from_dt = datetime.combine(from_date, time.min, tzinfo=UTC)
     to_dt = datetime.combine(to_date, time.max, tzinfo=UTC)
 
+    # "Processed" = the pipeline completed on the document. Docs terminate at
+    # classified (non-extractable types / extraction fallback), extracted, or
+    # reviewed — never DocumentStatus.processed, which nothing writes. Error
+    # and in-flight states (uploaded/classifying/extracting) don't count.
     docs_processed = (
         await db.execute(
             select(func.count(Document.id)).where(
-                Document.status == DocumentStatus.processed,
+                Document.status.in_(
+                    (
+                        DocumentStatus.classified,
+                        DocumentStatus.extracted,
+                        DocumentStatus.reviewed,
+                    )
+                ),
                 Document.created_at >= from_dt,
                 Document.created_at <= to_dt,
             )

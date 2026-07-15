@@ -12,12 +12,14 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import (
+    DocumentStatus,
     OutreachStatus,
     PriorAuthStatus,
     ReferralStatus,
     UrgencyLevel,
 )
 from tests.analytics_helpers import (
+    make_document,
     make_outreach,
     make_patient,
     make_prior_auth,
@@ -107,6 +109,39 @@ async def test_roi_with_explicit_date_range(
     body = resp.json()
     assert body["from_date"] == "2026-01-01"
     assert body["to_date"] == "2026-12-31"
+
+
+async def test_roi_counts_documents_in_terminal_success_states(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context,
+    authed_client_factory,
+):
+    """documents_processed counts docs the pipeline completed.
+
+    Regression: the count filtered on DocumentStatus.processed, a status
+    nothing ever writes — the ROI card read zero forever. Docs terminate at
+    classified / extracted / reviewed (error and in-flight states excluded).
+    """
+    clinic_a, _ = two_clinics
+    client, headers, _ = await authed_client_factory("a")
+    with set_clinic_context(clinic_id=clinic_a, user_id=test_user):
+        for doc_status in (
+            DocumentStatus.classified,
+            DocumentStatus.extracted,
+            DocumentStatus.reviewed,
+            DocumentStatus.error,       # excluded: pipeline failed
+            DocumentStatus.classifying,  # excluded: in flight
+        ):
+            db_session.add(make_document(clinic_id=clinic_a, status=doc_status))
+        await db_session.commit()
+
+    resp = await client.get("/api/analytics/roi?from=2026-01-01&to=2026-12-31", headers=headers)
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["documents_processed"] == 3
+    assert body["hours_saved"] == 0.75  # 3 docs x 15 min
 
 
 async def test_unauthenticated_request_is_rejected(client: AsyncClient):

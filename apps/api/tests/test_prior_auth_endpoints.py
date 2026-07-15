@@ -181,6 +181,33 @@ async def test_check_returns_determination(
     assert len(body["relevant_policy_excerpts"]) >= 1
 
 
+async def test_check_returns_503_when_kb_empty(
+    client: AsyncClient,
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    stub_providers: FakeLLMProvider,
+    _clean: None,
+) -> None:
+    """Fail closed at the API edge: empty payer_rules -> 503, never an answer."""
+    clinic_a, _ = two_clinics
+    await _make_admin(db_session, email="a@x.example.com", clinic_id=clinic_a)
+
+    token = await _login(client, "a@x.example.com")
+    resp = await client.post(
+        "/api/prior-auth/check",
+        json={
+            "payer_name": "Highmark BCBS PA",
+            "procedure_codes": ["93458"],
+            "diagnosis_codes": ["I25.10"],
+        },
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 503, resp.text
+    assert "ingest-payer-rules" in resp.json()["detail"]
+    # The LLM was never consulted.
+    assert stub_providers.calls == []
+
+
 # ─── /packet ───────────────────────────────────────────────────────────
 
 

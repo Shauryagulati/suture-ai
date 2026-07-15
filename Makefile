@@ -110,6 +110,7 @@ migrate-down:
 
 seed:
 	PYTHONPATH=apps/api uv --project apps/api run python -m seeds.scripts.seed_dev
+	$(MAKE) ingest-payer-rules
 
 # Push synthetic PDFs through the real API pipeline (upload -> classify ->
 # extract -> approve -> workflow) so the inbox, review queue, tasks, outreach,

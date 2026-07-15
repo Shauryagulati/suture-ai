@@ -45,8 +45,21 @@ ADMIN_PASSWORD = "suture_dev_123"
 
 _DOCS_DIR = Path(__file__).resolve().parent.parent / "documents"
 
-# Which synthetic PDFs to push through the pipeline.
-REFERRAL_FILES = [f"REF-{n:03d}" for n in range(1, 9)]  # REF-001..008
+# Which synthetic PDFs to push through the pipeline. REF-024 is a cardiac
+# cath (CPT 93458, Highmark BCBS PA, I25.10) placed inside the approved
+# window so the demo has an auth-REQUIRED prior-auth path — the REF-00x
+# stress tests (93015) all come back "not needed".
+REFERRAL_FILES = [
+    "REF-001",
+    "REF-002",
+    "REF-003",
+    "REF-024",
+    "REF-005",
+    "REF-006",
+    "REF-007",
+    "REF-008",
+]
+CATH_REFERRAL = "REF-024"
 DISCHARGE_FILES = [f"DIS-{n:03d}" for n in range(1, 5)]  # DIS-001..004
 
 # How far to drive each stream. The rest stay as raw documents / pending
@@ -208,6 +221,7 @@ async def seed_documents() -> None:
         # ── Drive referrals: approve (auto-advances to ready_to_schedule) ──
         print("\n── Approving referrals + advancing workflow ──")
         approved_refs = 0
+        cath_referral_id: str | None = None
         for doc in referral_docs[:APPROVE_REFERRALS]:
             ext = ext_map.get(doc["id"])
             if ext is None:
@@ -216,6 +230,8 @@ async def seed_documents() -> None:
             if result is None or not result.get("referral_id"):
                 continue
             approved_refs += 1
+            if doc["file_name"].startswith(CATH_REFERRAL):
+                cath_referral_id = result["referral_id"]
             # Approval now advances the referral straight to ready_to_schedule
             # and emits tasks + outreach (no separate transition needed).
             print(
@@ -223,6 +239,27 @@ async def seed_documents() -> None:
                 f"(ready_to_schedule; tasks + outreach emitted)"
             )
         ready_done = approved_refs
+
+        # ── Prior-auth packet for the cath referral (auth-required path) ──
+        # Creates the prior_auths row the /prior-auth screen shows; needs
+        # payer rules ingested (`make ingest-payer-rules`, part of `make seed`).
+        if cath_referral_id is not None:
+            print("\n── Generating prior-auth packet (93458 cath, Highmark) ──")
+            resp = await client.post(
+                f"/api/prior-auth/packet/{cath_referral_id}",
+                headers=headers,
+                json={},
+            )
+            if resp.status_code == 201:
+                body = resp.json()
+                print(
+                    f"  ✓ packet: auth_required={body.get('auth_required')} "
+                    f"status={body.get('status')}"
+                )
+            else:
+                print(f"  ! packet generation failed: {resp.status_code} {resp.text[:140]}")
+        else:
+            print(f"  ! {CATH_REFERRAL} was not approved; skipping prior-auth packet")
 
         # ── Drive discharges: approve -> patient_contacted (closed loop) ──
         print("\n── Approving discharges (closed loop) ──")

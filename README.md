@@ -136,10 +136,31 @@ on a local `medgemma1.5` model — BYOK Claude Sonnet scores materially higher. 
 
 ## Screenshots
 
-Static screenshots are pending a capture pass against the running app. Until
-then, [`docs/DEMO.md`](./docs/DEMO.md) walks the full loop (inbox → review →
-workflow → outreach → prior-auth → analytics) screen by screen, and
-`make dev` brings the app up locally to click through it.
+All four are the real app against the seeded synthetic corpus — no mockups.
+[`docs/DEMO.md`](./docs/DEMO.md) walks the full loop screen by screen.
+
+### Inbox — every inbound fax/PDF, classified with confidence
+
+![Inbox](./docs/screenshots/inbox.png)
+
+### Review — PDF beside extracted fields, each with a deterministic confidence badge
+
+Badges are validator-derived, never the model's self-report (ADR 009): green = validator
+passed, red = missing or failed. The banner lists exactly what the model didn't extract.
+
+![Review](./docs/screenshots/review.png)
+
+### Prior auth — grounded determination with the payer policy it cited
+
+Hybrid RAG: structured `(payer, CPT)` rule → pgvector retrieval → LLM synthesis. The
+structured rule is authoritative for `auth_required`; the model only writes the reasoning.
+With an empty payer-rules KB the check refuses rather than guessing.
+
+![Prior authorization](./docs/screenshots/prior-auth.png)
+
+### Analytics — leakage, payer friction, referral quality, ROI
+
+![Analytics](./docs/screenshots/analytics.png)
 
 ## How this was built
 

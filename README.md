@@ -141,6 +141,33 @@ then, [`docs/DEMO.md`](./docs/DEMO.md) walks the full loop (inbox → review →
 workflow → outreach → prior-auth → analytics) screen by screen, and
 `make dev` brings the app up locally to click through it.
 
+## How this was built
+
+Solo, AI-assisted (Claude Code), under a deliberate process. Worth stating plainly because
+the process is the reason the codebase holds together:
+
+- **Plan → gate → verify → commit.** Every feature ships as a numbered gate with its own
+  verification target (`make verify-gate-*`). A failing gate is a hard stop — no piling
+  changes onto a red build. HIPAA-class failures (tenant attack-path, audit PHI-leak) are
+  never "fix it later."
+- **The eval harness came before the first design partner.** Extraction accuracy is a number
+  I can reproduce and diff across prompt/model versions, not a claim — which is why the
+  README quotes a mediocre 0.669 exact-match instead of a flattering one.
+- **Decisions are written down, including the wrong ones.** 11 ADRs record what was chosen and
+  what was rejected. ADR 011 exists because a security review found the as-built tenant guard
+  didn't match ADR 002's description; ADR 009 was later amended when the confidence scorer was
+  caught letting the model's `missing_fields` override a validator. Both corrections are in the
+  record rather than quietly patched.
+- **Guardrails are codified, not remembered.** `CLAUDE.md` carries the load-bearing rules and
+  anti-patterns; `ai/skills/` holds repeatable procedures for migrations, audit checks, and evals.
+- **The architecture and the trade-offs are mine.** AI wrote a lot of the lines; the decisions
+  in `docs/DECISIONS/` — and the responsibility for them — aren't delegated.
+
+Scope is honest by design: this is a **portfolio artifact and proof-of-thesis**, not a product
+in production. It runs local-only against synthetic data, with no BAA and therefore no real PHI.
+What's deliberately deferred — real inbound fax, live delivery channels, PSTN, hosted HIPAA
+infra — is the genuinely hard 20%, and it's listed rather than hidden.
+
 ## Documentation
 
 - [`CLAUDE.md`](./CLAUDE.md) — architectural rules + anti-patterns (loaded by every session)

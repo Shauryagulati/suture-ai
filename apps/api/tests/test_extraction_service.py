@@ -279,18 +279,20 @@ async def test_extract_invalid_json_writes_parse_failure_row(
         current_user_id.reset(uid_token)
 
 
-async def test_missing_fields_drive_zero_confidence_for_those_paths(
+async def test_missing_fields_claim_never_overrides_present_values(
     db_session: AsyncSession,
     two_clinics: tuple[UUID, UUID],
     test_user: UUID,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """ADR 009 (amended 2026-07-14): missing_fields is advisory. Present,
+    validator-passing values keep their validator scores even when the model
+    also lists them as missing; the claim still forces human review."""
     clinic_a, _ = two_clinics
     doc = await _seed_classified_document(db_session, clinic_a, test_user)
 
     payload = json.loads(_REFERRAL_EXTRACTION_JSON)
     payload["missing_fields"] = ["patient.phone", "referring_provider.npi"]
-    # Even though we still include values, missing_fields wins the score.
     _install_recording_extraction_mock(monkeypatch, response_text=json.dumps(payload))
 
     cid_token = current_clinic_id.set(clinic_a)
@@ -299,8 +301,10 @@ async def test_missing_fields_drive_zero_confidence_for_those_paths(
         extraction = await extract_document(document_id=doc.id, db=db_session)
         await db_session.commit()
         await db_session.refresh(extraction)
-        assert extraction.field_confidences["patient.phone"] == 0.0
-        assert extraction.field_confidences["referring_provider.npi"] == 0.0
+        # Both values are present and validator-valid → validator band wins.
+        assert extraction.field_confidences["patient.phone"] == 0.95
+        assert extraction.field_confidences["referring_provider.npi"] == 0.95
+        # The advisory claim is persisted verbatim and still forces review.
         assert extraction.missing_fields == ["patient.phone", "referring_provider.npi"]
         assert extraction.human_review_required is True
     finally:

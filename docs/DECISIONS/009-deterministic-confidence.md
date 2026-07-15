@@ -1,6 +1,6 @@
 # ADR 009 — Deterministic per-field confidence scoring
 
-**Status:** Accepted (2026-05-21)
+**Status:** Accepted (2026-05-21) — amended 2026-07-14 (missing_fields precedence)
 **Author:** Shaurya
 
 ## Context
@@ -36,7 +36,21 @@ via `compute_field_confidences()` (
 | Present + validator pass          | 0.95  |
 | Present + no validator configured | 0.85  |
 | Present + validator fail          | 0.40  |
-| Missing (null or in missing_fields)| 0.0  |
+| Value absent (null, or path not in payload) | 0.0 |
+
+**Amendment (2026-07-14).** The table originally scored 0.0 for any path in
+`missing_fields`, even when the payload carried a value at that path. That
+let the model zero out a validator-passing value — the model grading the
+work through a side channel, which is exactly what this ADR exists to
+prevent (observed in the field: REF-001 scored five correctly-extracted,
+ground-truth-matching fields at 0.0). The sharpened invariant:
+
+> A field's score is a function of its extracted value and its validator,
+> nothing else. `missing_fields` is advisory: it surfaces paths absent from
+> the payload in the confidence map (score 0.0 — validator-truth, since the
+> value is absent) and it forces `needs_review = True`. It never overrides
+> the score of a present value. The asymmetry is deliberate: the model may
+> demand MORE human review, never less.
 
 Validators (
 `apps/api/app/services/extraction/validators.py`):

@@ -285,7 +285,8 @@ async def patch_extraction(
     flag_modified(ext, "human_edits")
 
     # Rebuild missing_fields: a human-provided non-null value removes that
-    # path from the "missing" set so the score is no longer forced to 0.
+    # path from the advisory "missing" set so it stops surfacing as missing
+    # and stops forcing needs_review (scores come from validators alone).
     missing = list(ext.missing_fields or [])
     if body.new_value is not None and body.field_path in missing:
         missing.remove(body.field_path)

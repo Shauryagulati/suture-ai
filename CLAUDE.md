@@ -99,7 +99,7 @@ Set by the auth dependency (`get_current_user`) and request middleware. Read by 
 - `ruff` (lint + format) clean
 - `biome` (lint + format) clean
 - All tests passing in CI before any feature branch merges to `main` (the suite has grown well past the original 33 foundation tests; don't hardcode a count)
-- Module 2 (extraction + review + eval) is shipped. The extraction service runs in a FastAPI `BackgroundTask` — the upload returns 201 immediately and processing happens out-of-request (re-establishing the tenant ContextVars), with non-fatal error fallback to `status=classified`. ADR 008 (superseded — it was originally inline/synchronous) describes the trade-off; the service interface is Celery-shaped if we need to move it to a durable worker. Per-field confidence is deterministic (validators + missing_fields, not LLM self-report) — see ADR 009.
+- Module 2 (extraction + review + eval) is shipped. The extraction service runs in a FastAPI `BackgroundTask` — the upload returns 201 immediately and processing happens out-of-request (re-establishing the tenant ContextVars), with non-fatal error fallback to `status=classified`. ADR 008 (superseded — it was originally inline/synchronous) describes the trade-off; the service interface is Celery-shaped if we need to move it to a durable worker. Per-field confidence is deterministic — a field's score is a function of its extracted value and its validator, never the model's self-report. The model's `missing_fields` is advisory: it surfaces paths absent from the payload and forces `needs_review`, but never overrides a present value's score (ADR 009, amended 2026-07-14).
 - Prompt-file changes should re-run the eval harness; per-field metrics are recorded per run (`eval_runs` + JSON artifact) for manual regression diffing. Auto-blocking merges in CI is a planned next step (CI does not yet run a local Ollama).
 
 ## Repo structure
@@ -121,7 +121,7 @@ suture/
 │   └── skills/                  # Reusable Claude Code skills (migration, audit, eval)
 ├── seeds/
 │   ├── scripts/                 # Data generation scripts
-│   └── documents/               # Synthetic referral/discharge PDFs (gitignored)
+│   └── documents/               # Synthetic referral/discharge PDFs + ground truth (COMMITTED — eval fixtures)
 ├── infra/
 │   ├── docker-compose.yml       # Local stack: Postgres + Redis
 │   ├── docker-compose.obs.yml   # Observability: Jaeger + Prometheus + Grafana

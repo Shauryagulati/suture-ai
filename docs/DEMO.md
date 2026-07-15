@@ -38,8 +38,11 @@ extracted fields**, each with a deterministic **confidence badge**. Highlight a 
 or missing field (e.g. phone), click the pencil, correct it inline. Note the confidence is
 validator-derived, not the model's self-report.
 
-**3. Approve → workflow engages (45s).** Click **Approve extraction**. This creates the
-Patient, the referring Provider, the **Referral**, and persists the **insurance policy** —
+**3. Approve → workflow engages (45s).** Click **Approve extraction**. If a required
+field (patient name, DOB, or phone; provider name or NPI) is still missing, approval is
+blocked with a message naming the field — **edit it inline first (the PATCH), then
+approve**. On success this creates the Patient, the referring Provider, the **Referral**,
+and persists the **insurance policy** —
 then advances the referral to *ready_to_schedule*, which **generates SLA tasks and schedules
 the outreach cadence.** You land on **Tasks**.
 

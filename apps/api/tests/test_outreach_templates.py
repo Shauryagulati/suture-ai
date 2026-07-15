@@ -87,3 +87,55 @@ async def test_render_voice_script_context_carries_greeting() -> None:
     assert ctx["clinic_name"] == "Steel City Cardiology"
     assert "Pat" in ctx["greeting"]
     assert "Steel City Cardiology" in ctx["greeting"]
+
+
+async def test_templates_never_double_the_follow_up_label() -> None:
+    """Regression: the 'follow-up' urgency label composed as
+    'a follow-up cardiology follow-up' across SMS, email, and voice."""
+    ctx = render_voice_script_context(
+        patient_first_name="Amy",
+        urgency=UrgencyLevel.unclassified,  # label == "follow-up"
+        clinic_name="Steel City Cardiology",
+    )
+    assert "follow-up cardiology follow-up" not in ctx["greeting"]
+    assert "follow-up follow-up" not in ctx["greeting"]
+
+    email = render_email(
+        patient_first_name="Amy",
+        scheduling_link_url="https://app/schedule/abc",
+        urgency=UrgencyLevel.unclassified,
+        clinic_name="Steel City Cardiology",
+    )
+    assert "follow-up follow-up" not in (email.subject or "")
+    assert "follow-up cardiology follow-up" not in email.body
+
+    sms = render_sms(
+        patient_first_name="Amy",
+        scheduling_link_url="https://app/schedule/abc",
+        urgency=UrgencyLevel.unclassified,
+    )
+    assert "follow-up follow-up" not in sms.body
+
+
+async def test_voice_greeting_is_grammatical() -> None:
+    """Regression: greeting opened 'Hello, this is calling from X for Amy.'"""
+    ctx = render_voice_script_context(
+        patient_first_name="Amy",
+        urgency=UrgencyLevel.stat,  # label == "urgent"
+        clinic_name="Steel City Cardiology",
+    )
+    assert "this is calling from" not in ctx["greeting"]
+    assert "this is Steel City Cardiology calling" in ctx["greeting"]
+    assert "an urgent cardiology follow-up" in ctx["greeting"]
+
+
+async def test_soon_label_reads_naturally_in_email() -> None:
+    """'soon' is not an adjective — 'a soon cardiology follow-up' is broken."""
+    email = render_email(
+        patient_first_name="Amy",
+        scheduling_link_url="https://app/schedule/abc",
+        urgency=UrgencyLevel.urgent,  # label == "soon"
+        clinic_name="Steel City Cardiology",
+    )
+    assert "a soon " not in email.body
+    assert " soon follow-up" not in email.body

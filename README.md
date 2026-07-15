@@ -26,8 +26,9 @@ judgement on a HIPAA-class workload.
   changes are comparable over time.
 - **End-to-end clinical workflow**: fax/PDF → OCR → AI extraction → human review → state machine →
   SLA tasks → multi-channel outreach → prior-auth RAG → confirmation fax-back → a LiveKit voice agent.
-- **10 ADRs** documenting the load-bearing decisions (tenant guard, PHI encryption, auth, BYOK,
-  inline vs. async extraction, deterministic confidence, voice/PSTN scope).
+- **11 ADRs** documenting the load-bearing decisions (tenant guard, PHI encryption, auth, BYOK,
+  inline vs. async extraction, deterministic confidence, voice/PSTN scope, tenant-isolation
+  boundaries).
 
 ## What's built
 
@@ -51,10 +52,11 @@ in v1 — the full pipeline executes and is auditable, but nothing leaves the ma
 
 ## Architecture (load-bearing patterns)
 
-- **Multi-tenant isolation** — a SQLAlchemy `before_execute` listener injects
-  `WHERE clinic_id = :current_clinic_id` for every clinic-scoped query; the clinic id lives
-  in a `ContextVar` set from the JWT. Missing context **fails closed**. Cross-tenant reads
-  return 404, not 403.
+- **Multi-tenant isolation** — a SQLAlchemy `do_orm_execute` listener on `Session` injects a
+  `with_loader_criteria(ClinicScopedBase, clinic_id == current_clinic_id)` clause into every
+  statement touching a clinic-scoped model; the clinic id lives in a `ContextVar` set from the
+  JWT. Missing context **fails closed**. Cross-tenant reads return 404, not 403. ADR 011
+  records the as-built mechanism and its one known boundary.
 - **PHI encryption** — `EncryptedString` (Fernet `TypeDecorator`) on `patients.dob/phone/ssn`
   and `insurance_policies.member_id`. App-layer, not pgcrypto (ADR 003).
 - **Audit logging** — `after_insert/update/delete` listeners write to `audit_logs` for every

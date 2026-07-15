@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 
+import httpx
 import structlog
 
 from app.utils.logging import PHI_DENY_LIST, configure_logging
@@ -63,4 +64,37 @@ def test_phi_keys_dropped_from_log_event(
     assert "Jane" not in json.dumps(parsed)
 
     # Reset stdlib logging so other tests aren't polluted.
+    logging.getLogger().handlers.clear()
+
+
+def test_exception_rendering_never_serializes_frame_locals(capsys: object) -> None:
+    """Traceback locals must never reach log output (no-PHI-in-logs invariant).
+
+    Regression: an httpx.ReadTimeout during extraction was rendered by
+    dict_tracebacks with show_locals=True, dumping the frame-local OCR'd
+    document text and prompt into the app log.
+    """
+    configure_logging(level="DEBUG")
+    log = structlog.get_logger("test")
+    sentinel = "PHI_SENTINEL_DISCHARGE_SUMMARY_XYZZY"
+
+    def _extract(text: str) -> None:
+        # Mirrors extract_document's frame shape: PHI-bearing locals.
+        user_prompt = f"Extract the following document:\n\n{text}"
+        raise httpx.ReadTimeout(f"timed out ({len(user_prompt)} chars)")
+
+    try:
+        _extract(sentinel)
+    except httpx.ReadTimeout:
+        log.exception("documents.extraction_failed", document_id="doc-1")
+
+    captured = capsys.readouterr().out  # type: ignore[attr-defined]
+    lines = [line for line in captured.splitlines() if line.strip()]
+    assert lines, "expected a log line"
+    parsed = json.loads(lines[-1])
+    # The traceback must still render (we need the stack, just not the locals)...
+    assert parsed.get("exception"), f"exception traceback missing from event: {parsed}"
+    # ...but no frame-local value may appear anywhere in the raw output.
+    assert sentinel not in captured, "frame locals leaked into log output"
+
     logging.getLogger().handlers.clear()

@@ -79,7 +79,12 @@ def configure_logging(level: str = "INFO") -> None:
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso", utc=True),
             scrub_phi,
-            structlog.processors.dict_tracebacks,
+            # Render tracebacks WITHOUT frame locals: locals can carry PHI
+            # (OCR'd document text, prompts) that scrub_phi cannot reach —
+            # it runs earlier and scrubs by key name only.
+            structlog.processors.ExceptionRenderer(
+                structlog.tracebacks.ExceptionDictTransformer(show_locals=False)
+            ),
             structlog.processors.JSONRenderer(),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(log_level),

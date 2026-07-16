@@ -22,10 +22,25 @@ class ExtractionResolverError(ValueError):
     """A required field for resolution is missing or invalid."""
 
 
+# Human names for fields whose key isn't already readable prose.
+_FIELD_LABELS = {"dob": "date of birth", "npi": "NPI"}
+
+
+def _human_field(parent: str, key: str) -> str:
+    label = _FIELD_LABELS.get(key, key.replace("_", " "))
+    return f"{parent.replace('_', ' ')} {label}"
+
+
 def _required(extracted: dict[str, Any], key: str, *, parent: str) -> str:
     value = extracted.get(key)
     if value is None or (isinstance(value, str) and not value.strip()):
-        raise ExtractionResolverError(f"{parent}.{key} is required to create a row")
+        # Surfaced verbatim to the reviewer as the approve 422 detail —
+        # keep it actionable prose, with the dot-path for support.
+        raise ExtractionResolverError(
+            f"Cannot approve yet: the {_human_field(parent, key)} is missing "
+            f"from this extraction. Edit the field in the review panel, then "
+            f"approve again. (field: {parent}.{key})"
+        )
     if not isinstance(value, str):
         raise ExtractionResolverError(
             f"{parent}.{key} must be a string, got {type(value).__name__}"

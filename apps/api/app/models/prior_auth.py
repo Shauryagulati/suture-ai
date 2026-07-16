@@ -75,9 +75,17 @@ class PriorAuth(ClinicScopedBase):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     denied_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     auth_number: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    # Absolute on-disk path to the rendered packet PDF. Internal only — the API
+    # exposes `packet_available` (below), never this path, to avoid leaking the
+    # server filesystem layout into responses/UI.
     packet_file_path: Mapped[str | None] = mapped_column(String(1024), nullable=True)
     # Renamed from follow_up_date — instant. ADR 004.
     follow_up_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    @property
+    def packet_available(self) -> bool:
+        """Whether a packet PDF has been generated (API-safe; hides the path)."""
+        return self.packet_file_path is not None
 
 
 class PriorAuthEvent(ClinicScopedBase):

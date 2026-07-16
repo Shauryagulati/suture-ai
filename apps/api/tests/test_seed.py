@@ -6,6 +6,8 @@ ciphertext, ORM read returns plaintext).
 
 from __future__ import annotations
 
+from uuid import uuid4
+
 import pytest
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -69,3 +71,47 @@ async def test_seed_produces_expected_counts(db_session: AsyncSession) -> None:
         )
     finally:
         current_clinic_id.reset(token)
+
+
+async def test_seed_idempotent_when_foreign_clinic_present(db_session: AsyncSession) -> None:
+    """seed() must operate only on the clinics it owns.
+
+    Regression: seed fetched ALL clinics (`select(Clinic)`) and created an
+    admin@<slug> user for every one — including the `eval-harness` clinic left
+    behind by `make eval-extraction`. clear_seed only knows the two seed slugs,
+    so it couldn't remove that stray user, and the next `make seed` crashed on
+    a duplicate admin@eval-harness.example.com.
+    """
+    from seeds.scripts.seed_dev import seed
+
+    # Simulate the state left by `make eval-extraction`: a foreign clinic with
+    # its own admin user that the seed script does not manage.
+    db_session.add(Clinic(id=uuid4(), name="Eval Harness (synthetic)", slug="eval-harness"))
+    await db_session.flush()
+    db_session.add(
+        User(
+            id=uuid4(),
+            email="admin@eval-harness.example.com",
+            hashed_password="!disabled-no-login",
+            full_name="Admin Eval Harness (synthetic)",
+        )
+    )
+    await db_session.commit()
+
+    # Must not raise. The buggy version raised IntegrityError trying to insert a
+    # second admin@eval-harness user.
+    await seed()
+
+    slugs = set((await db_session.execute(select(Clinic.slug))).scalars().all())
+    # seed created the clinics it owns...
+    assert {"steel-city-cardiology", "allegheny-valley-heart"} <= slugs
+    # ...and left the foreign clinic + its single admin user untouched.
+    assert "eval-harness" in slugs
+    dupes = (
+        await db_session.execute(
+            select(func.count())
+            .select_from(User)
+            .where(User.email == "admin@eval-harness.example.com")
+        )
+    ).scalar_one()
+    assert dupes == 1, f"seed created a duplicate eval-harness admin: {dupes} rows"

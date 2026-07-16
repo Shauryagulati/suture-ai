@@ -22,7 +22,7 @@ Suture handles PHI (Protected Health Information) under HIPAA. Primary threats:
 ## Controls implemented in foundation
 
 ### 1. Multi-tenant isolation (Gate B1)
-- Every clinic-scoped query is rewritten by a SQLAlchemy `before_execute` event listener to add `WHERE clinic_id = :current_clinic_id`.
+- Every clinic-scoped query is scoped by a SQLAlchemy `do_orm_execute` event listener on `Session`, which injects a `with_loader_criteria(ClinicScopedBase, clinic_id == current_clinic_id)` clause. It is not a compiled-SQL rewrite; see ADR 011 for the as-built mechanism and its one known boundary (a bare `count(*)` over `select_from(Entity)` is not scoped — app code always uses `count(Model.id)`, which is).
 - `current_clinic_id` comes from a `ContextVar` set by the auth dependency from the JWT.
 - Queries with the context unset raise `TenantContextMissingError` — fail closed.
 - An "attack path" test (`test_select_by_id_in_other_clinic_returns_empty`) asserts that attempting to fetch a known clinic-B row ID from a clinic-A session returns empty.

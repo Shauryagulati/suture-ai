@@ -1,7 +1,15 @@
 # ADR 002 — Multi-tenant isolation via SQLAlchemy session-level guard
 
-**Status:** Accepted (2026-05-18)
+**Status:** Accepted (2026-05-18) — **amended by [ADR 011](./011-tenant-isolation-boundaries.md)**
 **Author:** Shaurya
+
+> **Read ADR 011 first.** The decision below (a session-level guard, fail-closed,
+> app-layer not RLS) still stands, but the mechanism described in this ADR's prose —
+> a `before_execute` listener injecting `WHERE clinic_id = ...` into compiled SQL —
+> is **not** what was built. The as-built guard is a `do_orm_execute` listener using
+> `with_loader_criteria`. This ADR is left unedited as the historical record of the
+> decision; ADR 011 records the as-built mechanism, its one known boundary, and the
+> accepted no-RLS posture.
 
 ## Context
 

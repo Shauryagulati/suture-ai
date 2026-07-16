@@ -25,7 +25,7 @@
         │                                                     │
         │   ┌─────────────────────────────────────────────┐  │
         │   │ ClinicScopedSession                         │  │
-        │   │   before_execute → WHERE clinic_id = :cid   │  │
+        │   │   do_orm_execute → with_loader_criteria(cid)│  │
         │   │   after_insert/update/delete → audit_logs   │  │
         │   └─────────────────────────────────────────────┘  │
         │                                                     │

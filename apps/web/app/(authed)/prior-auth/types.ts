@@ -46,7 +46,7 @@ export type PriorAuthRow = {
   denied_at: string | null;
   follow_up_at: string | null;
   auth_number: string | null;
-  packet_file_path: string | null;
+  packet_available: boolean;
   created_at: string;
   updated_at: string;
 };

@@ -208,7 +208,10 @@ async def test_packet_creates_prior_auth_row_and_event(
     assert body["referral_id"] == str(referral_id)
     assert body["status"] == "required"
     assert body["auth_required"] is True
-    assert body["packet_file_path"] is not None
+    # A packet was generated, but the absolute server path is never exposed.
+    assert body["packet_available"] is True
+    assert "packet_file_path" not in body
+    assert "/var/auth_packets/" not in resp.text
 
     # Confirm the PriorAuthEvent.created row was emitted.
     with set_clinic_context(clinic_id=clinic_a):  # type: ignore[operator]

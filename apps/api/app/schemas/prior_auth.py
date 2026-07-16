@@ -59,7 +59,8 @@ class PriorAuthRead(BaseModel):
     approved_at: datetime | None
     denied_at: datetime | None
     auth_number: str | None
-    packet_file_path: str | None
+    # Computed from PriorAuth.packet_available — never the absolute server path.
+    packet_available: bool
     follow_up_at: datetime | None
     created_at: datetime
     updated_at: datetime

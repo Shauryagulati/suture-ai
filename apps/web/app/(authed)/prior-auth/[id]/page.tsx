@@ -48,7 +48,7 @@ export default async function PriorAuthDetailPage({
             <p className="text-xs font-medium text-muted-foreground mb-1">Reasoning</p>
             <p className="text-sm">{pa.auth_required_reasoning ?? "—"}</p>
           </div>
-          {pa.packet_file_path && <Field label="Packet path" value={pa.packet_file_path} mono />}
+          {pa.packet_available && <Field label="Packet" value="Generated" />}
         </CardContent>
       </Card>
 

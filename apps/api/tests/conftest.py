@@ -7,17 +7,21 @@ that need rollback isolation can use `db_session_rollback`, tests that
 need to inspect committed state use `db_session`.
 
 PHI_ENCRYPTION_KEY and DATABASE_URL are set BEFORE the app modules are
-imported, so settings pick them up.
+imported, so settings pick them up. The PHI key and JWT secret are
+generated fresh per session — nothing committed, nothing to leak.
 """
 
 from __future__ import annotations
 
 import os
+import secrets
 import sys
 from collections.abc import AsyncIterator
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
+
+from cryptography.fernet import Fernet
 
 # Make `seeds.scripts.seed_dev` importable for test_seed.py.
 # Layout: <root>/apps/api/tests/conftest.py and <root>/seeds/
@@ -26,12 +30,18 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 # ── Test environment — set BEFORE any app imports ──
-os.environ.setdefault("PHI_ENCRYPTION_KEY", "VbDtA5sCxOf8b9pYwT-jXNVKfNF7HMu0_rDFZIO_eIM=")
+# The PHI key is generated per session rather than hardcoded: a literal Fernet
+# key in a public repo trips secret scanners and reads like a leak even when
+# it only ever encrypts synthetic data. Nothing needs it to be stable — the
+# test DB is dropped and recreated each session (see _create_test_database),
+# so no ciphertext outlives the key that wrote it, and no fixture ships
+# pre-encrypted data. setdefault: an explicit env var still wins.
+os.environ.setdefault("PHI_ENCRYPTION_KEY", Fernet.generate_key().decode())
 os.environ.setdefault(
     "DATABASE_URL",
     "postgresql+asyncpg://suture:suture_dev_password@localhost:5432/suture_test",
 )
-os.environ.setdefault("JWT_SECRET", "test_jwt_secret_abc")
+os.environ.setdefault("JWT_SECRET", secrets.token_hex(32))
 os.environ.setdefault("OTEL_DISABLED", "1")
 # Hundreds of tests log in from the same testclient IP; a per-IP auth limiter
 # would trip mid-suite. Disable it globally — the limiter is exercised in

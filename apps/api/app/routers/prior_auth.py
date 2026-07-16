@@ -45,7 +45,7 @@ from app.schemas.prior_auth import (
     PriorAuthStatusUpdate,
 )
 from app.services.prior_auth.appeal import generate_denial_appeal
-from app.services.prior_auth.determine import check_prior_auth
+from app.services.prior_auth.determine import PayerRulesEmptyError, check_prior_auth
 from app.services.prior_auth.packet import generate_auth_packet
 from app.utils.audit import track_view
 
@@ -71,7 +71,10 @@ async def check(
     db: AsyncSession = Depends(get_db),
 ) -> AuthDetermination:
     """Stateless RAG determination. No prior_auths row is created here."""
-    return await check_prior_auth(db, body)
+    try:
+        return await check_prior_auth(db, body)
+    except PayerRulesEmptyError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 # ─── POST /packet/{referral_id} ────────────────────────────────────────
@@ -108,15 +111,18 @@ async def generate_packet(
         raise HTTPException(status_code=409, detail="no primary insurance on file for this patient")
 
     summary = body.clinical_summary or referral.notes
-    determination = await check_prior_auth(
-        db,
-        AuthCheckRequest(
-            payer_name=primary.payer_name,
-            procedure_codes=list(referral.procedure_codes),
-            diagnosis_codes=list(referral.diagnosis_codes),
-            clinical_summary=summary,
-        ),
-    )
+    try:
+        determination = await check_prior_auth(
+            db,
+            AuthCheckRequest(
+                payer_name=primary.payer_name,
+                procedure_codes=list(referral.procedure_codes),
+                diagnosis_codes=list(referral.diagnosis_codes),
+                clinical_summary=summary,
+            ),
+        )
+    except PayerRulesEmptyError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
     initial_status = (
         PriorAuthStatus.required if determination.auth_required else PriorAuthStatus.not_needed

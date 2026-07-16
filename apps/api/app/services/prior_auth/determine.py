@@ -31,7 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import AiInvocation, InvocationType, PayerRule
@@ -51,6 +51,14 @@ class AuthCheckRequest(BaseModel):
     procedure_codes: list[str] = Field(min_length=1)
     diagnosis_codes: list[str] = Field(default_factory=list)
     clinical_summary: str | None = None
+
+
+class PayerRulesEmptyError(RuntimeError):
+    """The payer_rules KB has no rows — any determination would be ungrounded.
+
+    Raised before the pipeline runs. Callers must surface this as an
+    operational error (run `make ingest-payer-rules`), never as an answer.
+    """
 
 
 class PolicyExcerpt(BaseModel):
@@ -180,7 +188,19 @@ def _build_query_text(request: AuthCheckRequest) -> str:
 
 
 async def check_prior_auth(db: AsyncSession, request: AuthCheckRequest) -> AuthDetermination:
-    """Run the three-step pipeline and return the determination."""
+    """Run the three-step pipeline and return the determination.
+
+    Fails closed: raises PayerRulesEmptyError before any model call when the
+    KB has no rows — an empty KB means no structured match and no retrieval,
+    leaving the LLM to synthesize an ungrounded answer.
+    """
+    rule_count = (await db.execute(select(func.count(PayerRule.id)))).scalar_one()
+    if rule_count == 0:
+        raise PayerRulesEmptyError(
+            "payer-rules knowledge base is empty — no grounded determination "
+            "is possible. Run `make ingest-payer-rules`."
+        )
+
     matched, _missing = await _structured_lookup(db, request.payer_name, request.procedure_codes)
     structured = _aggregate_structured(matched)
 

@@ -232,3 +232,24 @@ async def test_provider_lookup_filtered_by_referring_type(
         rows = (await db_session.execute(select(Provider))).scalars().all()
         types = sorted(p.provider_type.value for p in rows)
         assert types == ["internal", "referring"]
+
+
+async def test_missing_field_error_is_clinician_legible(
+    db_session: AsyncSession,
+    two_clinics: tuple[UUID, UUID],
+    test_user: UUID,
+    set_clinic_context: Any,
+) -> None:
+    """The approve endpoint surfaces this message verbatim as the 422 detail —
+    it must tell the reviewer what to do, not developer-speak like
+    'patient.phone is required to create a row'."""
+    clinic_a_id, _ = two_clinics
+    payload = _patient_dict(mrn=None, phone=None)
+    with set_clinic_context(clinic_id=clinic_a_id, user_id=test_user):
+        with pytest.raises(ExtractionResolverError) as exc:
+            await resolve_or_create_patient(db_session, payload)
+    msg = str(exc.value)
+    assert "required to create a row" not in msg
+    assert "patient phone" in msg  # a human name, not a code path
+    assert "(field: patient.phone)" in msg  # the precise path, for support
+    assert "review" in msg  # tells the reviewer where to fix it

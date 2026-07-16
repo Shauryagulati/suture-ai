@@ -17,6 +17,7 @@ from app.database import async_session_maker
 from app.models import AiInvocation, InvocationType
 from app.services.prior_auth.determine import (
     AuthCheckRequest,
+    PayerRulesEmptyError,
     check_prior_auth,
 )
 from tests.prior_auth_helpers import (
@@ -217,3 +218,30 @@ async def test_check_falls_back_when_llm_returns_garbage(
     assert result.auth_required is True
     assert result.confidence == pytest.approx(0.5, abs=1e-3)  # matched-fallback path
     assert "Fallback" in result.reasoning
+
+
+async def test_check_raises_on_empty_payer_rules(
+    _clean: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Fail closed: zero payer rules -> refuse to answer, never guess.
+
+    Regression: an un-ingested KB produced auth_required=false at 0.9
+    confidence for a payer whose seeded policy requires auth.
+    """
+    fake_llm, _ = _patch_providers(
+        monkeypatch,
+        llm_response='{"reasoning": "x", "confidence": 0.9, "supports_structured_result": true}',
+        embedding_fn=None,
+    )
+    async with async_session_maker() as db:
+        with pytest.raises(PayerRulesEmptyError):
+            await check_prior_auth(
+                db,
+                AuthCheckRequest(
+                    payer_name="Highmark BCBS PA",
+                    procedure_codes=["93458"],
+                    diagnosis_codes=["I25.10"],
+                ),
+            )
+    # Refusal must happen BEFORE any model call — no ungrounded synthesis.
+    assert fake_llm.calls == []

@@ -27,6 +27,29 @@ def urgency_label(urgency: UrgencyTier | UrgencyLevel) -> str:
     return URGENCY_LABEL[urgency]
 
 
+# Adjective form of each urgency label for composing "<adj> cardiology
+# follow-up". Two labels are not usable as adjectives: "follow-up" IS the
+# noun (composing it doubled to "follow-up cardiology follow-up") and
+# "soon" is an adverb ("a soon follow-up" is broken English).
+_URGENCY_ADJECTIVE: dict[str, str] = {
+    "urgent": "urgent",
+    "soon": "time-sensitive",
+    "routine": "routine",
+    "follow-up": "",
+}
+
+
+def _follow_up_phrase(label: str, *, with_article: bool = False) -> str:
+    """Noun phrase for the follow-up, e.g. 'urgent cardiology follow-up'
+    or plain 'cardiology follow-up', optionally with a correct article."""
+    adjective = _URGENCY_ADJECTIVE.get(label, "")
+    phrase = f"{adjective} cardiology follow-up" if adjective else "cardiology follow-up"
+    if not with_article:
+        return phrase
+    article = "an" if phrase[0] in "aeiou" else "a"
+    return f"{article} {phrase}"
+
+
 @dataclass
 class RenderedMessage:
     body: str
@@ -43,7 +66,7 @@ def render_sms(
     return RenderedMessage(
         body=(
             f"Hi {patient_first_name}, this is your cardiology clinic. "
-            f"Please schedule your {label} follow-up here: {scheduling_link_url} "
+            f"Please schedule your {_follow_up_phrase(label)} here: {scheduling_link_url} "
             "Reply STOP to opt out."
         )
     )
@@ -58,10 +81,10 @@ def render_email(
 ) -> RenderedMessage:
     label = urgency_label(urgency)
     return RenderedMessage(
-        subject=f"Schedule your {label} follow-up with {clinic_name}",
+        subject=f"Schedule your {_follow_up_phrase(label)} with {clinic_name}",
         body=(
             f"Hi {patient_first_name},\n\n"
-            f"Your provider has requested a {label} cardiology follow-up.\n\n"
+            f"Your provider has requested {_follow_up_phrase(label, with_article=True)}.\n\n"
             f"Pick a time that works for you: {scheduling_link_url}\n\n"
             f"Thank you,\n{clinic_name}"
         ),
@@ -83,7 +106,7 @@ def render_voice_script_context(
         "urgency_label": label,
         "clinic_name": clinic_name,
         "greeting": (
-            f"Hello, this is calling from {clinic_name} for {patient_first_name}. "
-            f"We need to schedule a {label} cardiology follow-up."
+            f"Hello, this is {clinic_name} calling for {patient_first_name}. "
+            f"We need to schedule {_follow_up_phrase(label, with_article=True)}."
         ),
     }

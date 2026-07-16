@@ -63,6 +63,17 @@ jobs:
           psql -h localhost -U suture -d suture -c "CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
           psql -h localhost -U suture -d suture -c "CREATE EXTENSION IF NOT EXISTS citext;"
 
+      # Generated per run, never committed: the repo is public, and a
+      # hardcoded Fernet key here — even a throwaway one that only ever
+      # encrypts synthetic test data — trips secret scanners and reads like
+      # a leak. Nothing persists between runs (the test DB is dropped and
+      # recreated each session), so a fresh key per run is equivalent.
+      - name: Generate ephemeral CI secrets
+        working-directory: apps/api
+        run: |
+          echo "PHI_ENCRYPTION_KEY=$(uv run python -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')" >> "$GITHUB_ENV"
+          echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+
       # Tests build the schema via Base.metadata.create_all, so they never
       # exercise the Alembic migrations. Run the up/down/up round-trip here so
       # a broken or non-reversible migration (or model-vs-migration drift)
@@ -71,8 +82,6 @@ jobs:
         working-directory: apps/api
         env:
           DATABASE_URL: postgresql+asyncpg://suture:suture_dev_password@localhost:5432/suture
-          JWT_SECRET: ci_jwt_secret_for_test_runs_only_abcdef0123
-          PHI_ENCRYPTION_KEY: VbDtA5sCxOf8b9pYwT-jXNVKfNF7HMu0_rDFZIO_eIM=
           OTEL_DISABLED: "1"
         run: |
           uv run alembic upgrade head
@@ -96,8 +105,6 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://suture:suture_dev_password@localhost:5432/suture
           REDIS_URL: redis://localhost:6379/0
-          JWT_SECRET: ci_jwt_secret_for_test_runs_only_abcdef0123
-          PHI_ENCRYPTION_KEY: VbDtA5sCxOf8b9pYwT-jXNVKfNF7HMu0_rDFZIO_eIM=
           OTEL_DISABLED: "1"
         run: uv run pytest -v --cov=app --cov-report=term-missing
 
@@ -108,9 +115,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No version pin: the action reads it from package.json's
+      # `packageManager` field. Pinning here too raises
+      # ERR_PNPM_BAD_PM_VERSION ("Multiple versions of pnpm specified").
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: actions/setup-node@v4
         with:
@@ -144,9 +152,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      # No version pin: the action reads it from package.json's
+      # `packageManager` field. Pinning here too raises
+      # ERR_PNPM_BAD_PM_VERSION ("Multiple versions of pnpm specified").
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - uses: actions/setup-node@v4
         with:

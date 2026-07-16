@@ -147,10 +147,25 @@ verify-synthetic:
 
 # ─── Dev servers ───────────────────────────────────────────────────────
 
+# Fail fast if a dev port is already taken. Next.js otherwise *silently* falls
+# back to the next free port (3000 -> 3001), but NEXTAUTH_URL is pinned to
+# :3000, so login then redirects to the wrong app and looks broken. Better to
+# stop with the offending PID than to boot on the wrong port.
+define check_port
+	@lsof -nP -iTCP:$(1) -sTCP:LISTEN >/dev/null 2>&1 && { \
+	  echo "ERROR: port $(1) is already in use — Suture needs it:"; \
+	  lsof -nP -iTCP:$(1) -sTCP:LISTEN; \
+	  echo "Free it (e.g. 'kill <PID>'), then re-run."; \
+	  exit 1; \
+	} || true
+endef
+
 api:
+	$(call check_port,8000)
 	cd apps/api && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 web:
+	$(call check_port,3000)
 	pnpm --filter @suture/web dev
 
 dev:

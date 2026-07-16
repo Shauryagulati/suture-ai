@@ -4,7 +4,11 @@ Rules:
 - present + validator pass         → 0.95
 - present + no validator           → 0.85
 - present + validator fail         → 0.40
-- missing (null or in missing_fields) → 0.0
+- value absent (null, or path not in the payload) → 0.0
+
+`missing_fields` (model-reported) is ADVISORY: it surfaces absent paths in
+the confidence map and forces `needs_review`, but NEVER overrides the score
+of a present value (ADR 009, amended 2026-07-14).
 
 `needs_review` = True when any score < 0.85 OR missing_fields is non-empty.
 """
@@ -70,16 +74,13 @@ def _array_element_validator_for(path: str) -> Callable[[Any], bool] | None:
     return _ARRAY_ELEMENT_VALIDATORS.get(_tail(path))
 
 
-def _score_field(path: str, value: Any, missing_set: set[str], out: dict[str, float]) -> None:
-    if path in missing_set:
-        out[path] = _MISSING
-        return
+def _score_field(path: str, value: Any, out: dict[str, float]) -> None:
     if value is None:
         out[path] = _MISSING
         return
     if isinstance(value, dict):
         for key, sub in value.items():
-            _score_field(f"{path}.{key}", sub, missing_set, out)
+            _score_field(f"{path}.{key}", sub, out)
         return
     if isinstance(value, list):
         elem_validator = _array_element_validator_for(path)
@@ -89,7 +90,7 @@ def _score_field(path: str, value: Any, missing_set: set[str], out: dict[str, fl
         # Array of objects → score each element's fields, no top-level score.
         if isinstance(value[0], dict):
             for i, elem in enumerate(value):
-                _score_field(f"{path}[{i}]", elem, missing_set, out)
+                _score_field(f"{path}[{i}]", elem, out)
             return
         # Array of primitives.
         if elem_validator is None:
@@ -125,13 +126,14 @@ def compute_field_confidences(
     for key, value in extraction.items():
         if key in _RESERVED_KEYS:
             continue
-        _score_field(key, value, missing_set, confidences)
+        _score_field(key, value, confidences)
 
-    # Force-zero any explicitly-missing path that didn't surface in the tree
-    # (e.g., the LLM lists `insurance.primary.group_number` as missing but
-    # nests `null` so we already scored 0.0 — this is idempotent).
+    # Surface model-reported missing paths that don't appear in the payload
+    # at all (the walker only scores keys that are present). setdefault: a
+    # present value's validator score is never overridden — the model does
+    # the work, it does not grade the work (ADR 009).
     for path in missing_set:
-        confidences[path] = _MISSING
+        confidences.setdefault(path, _MISSING)
 
     needs_review = bool(missing_set) or any(
         score < _NEEDS_REVIEW_THRESHOLD for score in confidences.values()

@@ -250,12 +250,44 @@ def test_confidence_parse_failure_returns_empty_and_review() -> None:
     assert needs_review is True
 
 
-def test_confidence_missing_field_overrides_inline_value() -> None:
-    """If a field is in missing_fields, it must score 0.0 even if a value is present."""
-    extraction = {"patient": {"first_name": "Amy", "mrn": "MRN-1"}}
-    confidences, _ = compute_field_confidences(extraction, ["patient.mrn"])
-    assert confidences["patient.mrn"] == 0.0
-    assert confidences["patient.first_name"] == 0.95  # plausible name validates
+def test_confidence_present_value_never_zeroed_by_missing_fields() -> None:
+    """ADR 009 (amended): model-reported missing_fields must not override a present value.
+
+    REF-001 regression: correctly-extracted fields scored 0.0 and rendered red
+    because the model also listed them in missing_fields. Validators only.
+    """
+    extraction = {
+        "patient": {
+            "first_name": "Amy",
+            "phone": "+14125551234",
+            "zip_code": "15213",
+        }
+    }
+    confidences, needs_review = compute_field_confidences(
+        extraction,
+        ["patient.first_name", "patient.phone", "patient.zip_code"],
+    )
+    assert confidences["patient.first_name"] == 0.95
+    assert confidences["patient.phone"] == 0.95
+    assert confidences["patient.zip_code"] == 0.95
+    # The model's claim still forces a human pass — advisory, fail-safe direction.
+    assert needs_review is True
+
+
+def test_confidence_missing_fields_still_surfaces_absent_paths() -> None:
+    """A path listed in missing_fields with NO value in the payload scores 0.0 —
+    that is validator-truth (the value is absent), not model opinion."""
+    extraction = {"patient": {"first_name": "Amy"}}
+    confidences, needs_review = compute_field_confidences(extraction, ["patient.phone"])
+    assert confidences["patient.phone"] == 0.0
+    assert needs_review is True
+
+
+def test_confidence_invalid_value_scores_fail_band_despite_missing_claim() -> None:
+    """A present-but-invalid value keeps the validator-fail band (0.40), not 0.0."""
+    extraction = {"patient": {"phone": "not-a-phone"}}
+    confidences, _ = compute_field_confidences(extraction, ["patient.phone"])
+    assert confidences["patient.phone"] == 0.40
 
 
 def test_confidence_arrays_of_objects_score_per_element() -> None:

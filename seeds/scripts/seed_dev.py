@@ -121,8 +121,16 @@ async def seed() -> None:
             db.add(Clinic(id=cid, name=name, slug=slug))
         await db.commit()
 
-        # Re-fetch as objects to get UUIDs back as UUIDs.
-        clinics = (await db.execute(select(Clinic))).scalars().all()
+        # Re-fetch as objects to get UUIDs back as UUIDs. Scope to the slugs
+        # this script owns — a bare select(Clinic) also picks up foreign
+        # clinics (e.g. the `eval-harness` clinic from `make eval-extraction`),
+        # and the loops below would then seed users/patients into a clinic that
+        # clear_seed can't clean up, crashing the next re-run on a duplicate
+        # admin@<slug> user.
+        seed_slugs = [s for s, _ in CLINICS]
+        clinics = (
+            (await db.execute(select(Clinic).where(Clinic.slug.in_(seed_slugs)))).scalars().all()
+        )
         by_slug = {c.slug: c for c in clinics}
 
         # ── Sentinel Ember voice-agent user (audit attribution). Global, no

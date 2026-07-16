@@ -84,7 +84,16 @@ export function ExtractionReviewPanel({ initial }: ExtractionReviewPanelProps): 
     groups.set(label, arr);
   }
 
-  const missingSet = new Set(extraction.missing_fields);
+  // A field is "missing" iff the backend scored it absent (confidence 0) —
+  // NOT because the model listed it in `missing_fields`. Post-ADR-009 the
+  // model's list is advisory and can name a field that was actually extracted
+  // and validated (REF-001), so trusting it would flag a correct value red and
+  // hide it. Derive from the score instead, which is value + validator only.
+  const isAbsent = (p: string): boolean => (extraction.field_confidences[p] ?? 0) === 0;
+  // The banner lists genuinely-absent paths; the parse-fail sentinel (no scores
+  // exist in that case) is preserved so the "parse failed" message still shows.
+  const parseFailed = extraction.missing_fields.includes("__parse_failed__");
+  const bannerFields = parseFailed ? ["__parse_failed__"] : paths.filter(isAbsent);
 
   async function handleFieldSave(path: string, newValue: unknown): Promise<void> {
     const resp = await fetch(`/api/extractions/${extraction.id}`, {
@@ -113,7 +122,7 @@ export function ExtractionReviewPanel({ initial }: ExtractionReviewPanelProps): 
       </div>
 
       <div className="mt-3 flex-1 overflow-y-auto pr-1">
-        <MissingFieldsBanner missingFields={extraction.missing_fields} />
+        <MissingFieldsBanner missingFields={bannerFields} />
 
         {[...groups.entries()].map(([label, groupPaths]) => (
           <div key={label} className="mt-4">
@@ -127,7 +136,7 @@ export function ExtractionReviewPanel({ initial }: ExtractionReviewPanelProps): 
                   path={path}
                   value={getByPath(extraction.extraction_data, path)}
                   confidence={extraction.field_confidences[path] ?? 0}
-                  isMissing={missingSet.has(path)}
+                  isMissing={isAbsent(path)}
                   onSave={(newValue) => handleFieldSave(path, newValue)}
                 />
               ))}

@@ -596,12 +596,18 @@ footer a:hover{color:var(--accent); border-color:var(--accent)}
 </footer>
 
 <script>
-/* Reveal the demo section only once site/demo.mp4 actually exists. */
+/* Reveal the demo section only once site/demo.mp4 actually exists.
+   A 200 is NOT sufficient proof: Cloudflare Pages serves index.html with
+   status 200 for any unmatched path, so a missing demo.mp4 still "succeeds".
+   Require a real video content-type, otherwise the section stays hidden. */
 (function () {
   var section = document.getElementById('demo');
   if (!section) return;
   fetch('demo.mp4', { method: 'HEAD' })
-    .then(function (r) { if (r.ok) section.hidden = false; })
+    .then(function (r) {
+      var type = r.headers.get('content-type') || '';
+      if (r.ok && /^video\//i.test(type)) section.hidden = false;
+    })
     .catch(function () { /* no recording yet; section stays hidden */ });
 })();
 </script>

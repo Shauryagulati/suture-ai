@@ -9,7 +9,7 @@
 
 Built solo by Shaurya. Local-only in v1. The **only paid service is the Anthropic API**. Everything else (Postgres, Redis, observability, OCR, embeddings, voice STT/TTS) runs locally.
 
-The product targets independent cardiology practices, starting in Western Pennsylvania.
+The product targets independent specialty practices, starting in Western Pennsylvania.
 
 **Geographic footprint (v1):** Pittsburgh, Monroeville, Cranberry, Greensburg, Washington, Butler, Beaver — all Western PA / Pittsburgh metro. Patient addresses, clinic names, and referring-practice locations stay within this footprint. Highmark BCBS and UPMC Health Plan are the primary insurance footprints.
 

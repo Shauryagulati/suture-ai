@@ -1,13 +1,12 @@
 # Suture
 
-**AI command center for cardiology practices.** Suture closes the loop from an inbound
+**AI front office for independent specialty practices.** Suture closes the loop from an inbound
 referral or discharge fax all the way to a booked follow-up: **fax/PDF → OCR → AI
 classification → AI field extraction → human review → workflow + SLA tasks → multi-channel
 patient outreach → prior-auth packet → confirmation fax-back to the discharging hospital.**
 
-Built solo for independent cardiology practices in the Western Pennsylvania / Pittsburgh
-metro. The codebase is also a portfolio artifact demonstrating senior-level engineering
-judgement on a HIPAA-class workload.
+Built solo, starting with cardiology referral and discharge documents. Aimed at independent
+specialty practices — physical therapy, rehab, and small outpatient clinics.
 
 > ⚠️ **Local development only (v1).** The only paid dependency is the optional Claude API
 > (BYOK). Everything else — Postgres, Redis, OCR, embeddings, the LLM, and voice STT/TTS —
@@ -130,9 +129,9 @@ the real pipeline over the synthetic ground-truth corpus:
 make eval-extraction         # → per-field accuracy, precision/recall, exact-match, macro-F1
 ```
 
-Latest extraction run (synthetic corpus, 50 documents): **0.669 exact-match, 0.736 macro-F1**
-on a local `medgemma1.5` model — BYOK Claude Sonnet scores materially higher. See
-[`docs/EVAL.md`](./docs/EVAL.md) for methodology and how to add cases.
+Latest extraction run (synthetic corpus, 50 documents) on a local `medgemma1.5` model; BYOK
+Claude Sonnet scores materially higher. See [`docs/EVAL.md`](./docs/EVAL.md) for methodology
+and current numbers.
 
 ## Screenshots
 
@@ -171,9 +170,9 @@ the process is the reason the codebase holds together:
   verification target (`make verify-gate-*`). A failing gate is a hard stop — no piling
   changes onto a red build. HIPAA-class failures (tenant attack-path, audit PHI-leak) are
   never "fix it later."
-- **The eval harness came before the first design partner.** Extraction accuracy is a number
-  I can reproduce and diff across prompt/model versions, not a claim — which is why the
-  README quotes a mediocre 0.669 exact-match instead of a flattering one.
+- **The eval harness came before the first design partner**, and it runs against a ground-truth
+  corpus rather than a demo set, which is why extraction accuracy is a number I can diff across
+  model changes instead of a claim.
 - **Decisions are written down, including the wrong ones.** 11 ADRs record what was chosen and
   what was rejected. ADR 011 exists because a security review found the as-built tenant guard
   didn't match ADR 002's description; ADR 009 was later amended when the confidence scorer was
@@ -184,8 +183,9 @@ the process is the reason the codebase holds together:
 - **The architecture and the trade-offs are mine.** AI wrote a lot of the lines; the decisions
   in `docs/DECISIONS/` — and the responsibility for them — aren't delegated.
 
-Scope is honest by design: this is a **portfolio artifact and proof-of-thesis**, not a product
-in production. It runs local-only against synthetic data, with no BAA and therefore no real PHI.
+Scope is honest by design — this is **pre-launch**: the pipeline runs end to end, but nothing
+has touched a live patient. It runs local-only against synthetic data, with no BAA and therefore
+no real PHI.
 What's deliberately deferred — real inbound fax, live delivery channels, PSTN, hosted HIPAA
 infra — is the genuinely hard 20%, and it's listed rather than hidden.
 

@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Suture: referral operations for independent cardiology practices</title>
+<title>Suture: referral operations for independent practices</title>
 <meta name="description" content="Suture reads inbound referral and discharge faxes, extracts the fields, routes what a human needs to see, and chases the patient until the follow-up is on the calendar." />
-<meta property="og:title" content="Suture: referral operations for independent cardiology" />
+<meta property="og:title" content="Suture: referral operations for independent practices" />
 <meta property="og:description" content="Fax in. Booked appointment out. Built for independent specialty practices in Western Pennsylvania." />
 <meta property="og:type" content="website" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -159,6 +159,11 @@ section{padding-block:clamp(3.5rem,8vw,6.5rem)}
   margin-bottom:clamp(2rem,4vw,3.25rem);
 }
 .sec-num{white-space:nowrap}
+/* Section numbers are generated, not hardcoded. A display:none section (the demo
+   block before demo.mp4 exists) generates no box and so does not increment the
+   counter, which keeps the visible sequence gap-free in both states. */
+main{counter-reset:sec}
+.sec-num::before{counter-increment:sec; content:counter(sec,decimal-leading-zero) " / "}
 @media(max-width:760px){
   .sec-head{grid-template-columns:1fr; gap:.85rem}
 }
@@ -384,7 +389,7 @@ footer a:hover{color:var(--accent); border-color:var(--accent)}
 <header class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="mono eyebrow rise">For independent cardiology practices</span>
+      <span class="mono eyebrow rise">For independent specialty practices</span>
       <h1 class="rise">Every referral that goes unread is <em>a patient who never comes back.</em></h1>
       <p class="lede rise">Suture reads inbound referral and discharge faxes, pulls out the fields that matter, routes what a human actually needs to see, and chases the patient until the follow-up is on the calendar.</p>
     </div>
@@ -412,7 +417,7 @@ footer a:hover{color:var(--accent); border-color:var(--accent)}
 <section>
   <div class="wrap">
     <div class="sec-head">
-      <span class="mono sec-num">01 / Problem</span>
+      <span class="mono sec-num">Problem</span>
       <div>
         <h2>The fax machine is still the front door.</h2>
         <p class="sub">Independent practices lose referrals in the gap between a PDF landing in a queue and someone finding time to key it in. Suture closes that gap without asking anyone to change how they refer.</p>
@@ -450,7 +455,7 @@ footer a:hover{color:var(--accent); border-color:var(--accent)}
 <section>
   <div class="wrap">
     <div class="sec-head">
-      <span class="mono sec-num">02 / Product</span>
+      <span class="mono sec-num">Product</span>
       <div>
         <h2>Built, running, and honest about what it is.</h2>
         <p class="sub">Not mockups. These are screens from the working application, taken against a seeded Western PA dataset.</p>
@@ -499,7 +504,7 @@ footer a:hover{color:var(--accent); border-color:var(--accent)}
 <section id="demo" hidden>
   <div class="wrap">
     <div class="sec-head">
-      <span class="mono sec-num">03 / Demo</span>
+      <span class="mono sec-num">Demo</span>
       <div>
         <h2>Fax in, booked appointment out.</h2>
         <p class="sub">Three minutes, one referral, start to finish: upload through extraction, review, and outreach.</p>
@@ -519,7 +524,7 @@ footer a:hover{color:var(--accent); border-color:var(--accent)}
 <section class="deep">
   <div class="wrap">
     <div class="sec-head">
-      <span class="mono sec-num">04 / Engineering</span>
+      <span class="mono sec-num">Engineering</span>
       <div>
         <h2>Patient data is the whole product. It's built like it.</h2>
         <p class="sub">A HIPAA-class workload built solo, with the load-bearing decisions written down in eleven architecture decision records.</p>
@@ -550,7 +555,7 @@ footer a:hover{color:var(--accent); border-color:var(--accent)}
     </div>
 
     <div style="margin-top:clamp(3rem,7vw,5.5rem)" >
-      <span class="mono sec-num" style="display:block; margin-bottom:1.4rem">05 / Status</span>
+      <span class="mono sec-num" style="display:block; margin-bottom:1.4rem">Status</span>
       <table class="ledger">
         <caption>Pre-launch, and specific about it. The full pipeline executes end to end and every step is auditable, but outbound channels currently run against local stubs rather than real carriers. Nothing here has touched a live patient.</caption>
         <thead>

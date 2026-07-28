@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Suture: referral operations for independent cardiology practices</title>
+<meta name="description" content="Suture reads inbound referral and discharge faxes, extracts the fields, routes what a human needs to see, and chases the patient until the follow-up is on the calendar." />
+<meta property="og:title" content="Suture: referral operations for independent cardiology" />
+<meta property="og:description" content="Fax in. Booked appointment out. Built for independent specialty practices in Western Pennsylvania." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,300;1,6..72,400&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23F7F4EE'/%3E%3Cpath d='M3 17h5l3-8 4 15 4-11 2.5 4H29' fill='none' stroke='%23A8321E' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+
+<style>
+:root{
+  --paper:#F7F4EE;
+  --paper-2:#EFEAE0;
+  --ink:#14171C;
+  --ink-soft:#585F69;
+  --ink-faint:#8A9099;
+  --rule:#DCD5C8;
+  --rule-soft:#E7E1D6;
+  --accent:#A8321E;
+  --accent-soft:#C4573F;
+  --deep:#0F1419;
+  --deep-2:#171D24;
+  --deep-rule:#2A323C;
+  --deep-text:#C3CAD3;
+  --measure:66ch;
+  --pad:clamp(1.25rem, 5vw, 5.5rem);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%; overflow-x:hidden}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Archivo", ui-sans-serif, sans-serif;
+  font-size:clamp(1rem,.95rem + .2vw,1.0625rem);
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* paper grain */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:9999; pointer-events:none;
+  opacity:.5; mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
+}
+
+h1,h2,h3{
+  font-family:"Newsreader", ui-serif, Georgia, serif;
+  font-weight:400;
+  letter-spacing:-.015em;
+  line-height:1.08;
+  margin:0;
+  text-wrap:balance;
+}
+p{margin:0 0 1.1em; max-width:var(--measure)}
+a{color:inherit}
+
+.mono{
+  font-family:"IBM Plex Mono", ui-monospace, monospace;
+  font-size:.6875rem;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  font-weight:500;
+}
+
+.wrap{max-width:1240px; margin:0 auto; padding-inline:var(--pad)}
+.rule{height:1px; background:var(--rule); border:0; margin:0}
+
+/* ── nav ─────────────────────────────────────────── */
+nav{
+  position:sticky; top:0; z-index:60;
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter:saturate(180%) blur(12px);
+  border-bottom:1px solid var(--rule);
+}
+.nav-in{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:1.5rem; padding-block:.95rem;
+}
+.brand{display:flex; align-items:center; gap:.6rem; text-decoration:none}
+.brand svg{display:block; width:26px; height:26px}
+.brand b{
+  font-family:"Newsreader",serif; font-weight:500;
+  font-size:1.3rem; letter-spacing:-.02em;
+}
+.nav-meta{display:flex; align-items:center; gap:1.75rem}
+.nav-meta .mono{color:var(--ink-faint)}
+.nav-cta{
+  text-decoration:none; color:var(--accent);
+  border-bottom:1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  padding-bottom:1px; transition:border-color .2s, color .2s;
+}
+.nav-cta:hover{border-color:var(--accent); color:var(--ink)}
+@media(max-width:720px){ .nav-meta .hide-sm{display:none} }
+
+/* ── hero ────────────────────────────────────────── */
+.hero{padding-block:clamp(3.5rem,9vw,7.5rem) clamp(2.5rem,6vw,4.5rem); position:relative}
+.hero::after{
+  content:""; position:absolute; right:calc(var(--pad) * -.4); top:-8%;
+  width:min(46vw,540px); aspect-ratio:1; border-radius:50%;
+  background:radial-gradient(circle at 40% 35%, rgba(168,50,30,.055), transparent 62%);
+  pointer-events:none; z-index:-1;
+}
+.hero-grid{
+  display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
+  gap:clamp(2rem,5vw,4.5rem); align-items:start;
+}
+@media(max-width:900px){ .hero-grid{grid-template-columns:1fr} }
+
+.eyebrow{
+  color:var(--accent); display:flex; align-items:center; gap:.7rem;
+  margin-bottom:1.6rem;
+}
+.eyebrow::before{content:""; width:26px; height:1px; background:var(--accent); flex:none}
+
+h1{
+  font-size:clamp(2.35rem, 1.1rem + 4.4vw, 4.6rem);
+  letter-spacing:-.028em; line-height:1.02;
+}
+h1 em{
+  font-style:italic; color:var(--accent);
+  font-weight:300;
+}
+.lede{
+  font-size:clamp(1.075rem,1rem + .35vw,1.3rem);
+  color:var(--ink-soft); margin-top:1.65rem; max-width:52ch;
+  line-height:1.55;
+}
+
+/* pipeline rail: top rule sits level with the eyebrow above the headline */
+.rail{border-top:1px solid var(--ink); padding-top:1rem; margin-top:.5rem}
+@media(max-width:900px){ .rail{margin-top:2.5rem} }
+.rail-title{color:var(--ink-faint); margin-bottom:1.15rem; display:block}
+.rail ol{list-style:none; margin:0; padding:0; display:grid; gap:.1rem}
+.rail li{
+  display:grid; grid-template-columns:2.4rem 1fr; align-items:baseline;
+  padding:.42rem 0; border-bottom:1px solid var(--rule-soft);
+  font-family:"IBM Plex Mono",monospace; font-size:.775rem;
+  color:var(--ink-soft); letter-spacing:.01em;
+}
+.rail li span:first-child{color:var(--ink-faint); font-size:.6875rem}
+.rail li:nth-child(5){color:var(--accent); font-weight:500}
+.rail li:last-child{border-bottom:0}
+
+/* ── generic section ─────────────────────────────── */
+section{padding-block:clamp(3.5rem,8vw,6.5rem)}
+.sec-head{
+  display:grid; grid-template-columns:10.5rem minmax(0,1fr);
+  gap:clamp(1rem,3vw,3rem); align-items:start;
+  margin-bottom:clamp(2rem,4vw,3.25rem);
+}
+.sec-num{white-space:nowrap}
+@media(max-width:760px){
+  .sec-head{grid-template-columns:1fr; gap:.85rem}
+}
+.sec-num{color:var(--accent); padding-top:.55rem}
+.sec-head h2{font-size:clamp(1.75rem,1.2rem + 1.9vw,2.85rem)}
+.sec-head .sub{color:var(--ink-soft); margin-top:.95rem; max-width:56ch}
+
+/* ── problem cards ───────────────────────────────── */
+.cards{
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr));
+  border-top:1px solid var(--rule);
+}
+.card{
+  padding:2rem 1.7rem 2.25rem 1.7rem;
+  border-bottom:1px solid var(--rule);
+  border-right:1px solid var(--rule);
+}
+.card:first-child{padding-left:0}
+.card:last-child{border-right:0; padding-right:0}
+
+/* two up: dividers and flush edges follow the row, not the card order */
+@media(max-width:1040px){
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card,.card:first-child,.card:last-child{
+    padding-left:1.7rem; padding-right:1.7rem;
+    border-right:1px solid var(--rule);
+  }
+  .card:nth-child(2n+1){padding-left:0}
+  .card:nth-child(2n){border-right:0; padding-right:0}
+}
+@media(max-width:700px){
+  .cards{grid-template-columns:1fr}
+  .card,.card:first-child,.card:last-child,
+  .card:nth-child(2n),.card:nth-child(2n+1){
+    border-right:0; padding-left:0; padding-right:0;
+  }
+}
+.card h3{
+  font-size:1.32rem; margin-bottom:.7rem; letter-spacing:-.01em;
+}
+.card p{font-size:.9375rem; color:var(--ink-soft); margin:0; max-width:38ch}
+.card .tag{
+  display:block; color:var(--accent); margin-bottom:1.1rem;
+  font-family:"IBM Plex Mono",monospace; font-size:.65rem;
+  letter-spacing:.14em; text-transform:uppercase;
+}
+
+/* ── shots ───────────────────────────────────────── */
+.shots{display:grid; gap:clamp(1.5rem,3.5vw,2.75rem)}
+.shot figure{margin:0}
+.shot img{
+  display:block; width:100%; height:auto;
+  border:1px solid var(--rule);
+  border-radius:3px;
+  box-shadow:0 1px 2px rgba(20,23,28,.04), 0 18px 44px -22px rgba(20,23,28,.30);
+  background:#fff;
+}
+.shot figcaption{
+  display:flex; gap:.85rem; align-items:baseline;
+  margin-top:.95rem; color:var(--ink-soft); font-size:.9rem;
+}
+.shot figcaption b{
+  color:var(--ink); font-weight:500; flex:none;
+  font-family:"IBM Plex Mono",monospace; font-size:.7rem;
+  letter-spacing:.12em; text-transform:uppercase;
+}
+.shots-pair{display:grid; grid-template-columns:1fr 1fr; gap:clamp(1.5rem,3vw,2.75rem)}
+@media(max-width:860px){ .shots-pair{grid-template-columns:1fr} }
+.shot-note{
+  margin-top:2rem; padding-top:1.1rem; border-top:1px solid var(--rule);
+  color:var(--ink-faint); font-size:.875rem; font-style:italic;
+  font-family:"Newsreader",serif; max-width:60ch;
+}
+
+/* ── video ───────────────────────────────────────── */
+.video-frame{
+  position:relative; aspect-ratio:16/9;
+  border:1px solid var(--rule); border-radius:3px; overflow:hidden;
+  background:var(--deep);
+  box-shadow:0 18px 44px -24px rgba(20,23,28,.32);
+  display:grid; place-items:center;
+}
+/* the whole demo section stays hidden until site/demo.mp4 exists (see script) */
+#demo[hidden]{display:none}
+.video-frame video{
+  position:relative; z-index:1;
+  display:block; width:100%; height:100%; object-fit:cover;
+  background:transparent;
+}
+
+/* ── deep band ───────────────────────────────────── */
+.deep{
+  background:var(--deep); color:var(--deep-text);
+  border-block:1px solid var(--deep);
+  position:relative;
+}
+.deep h2,.deep h3{color:#F2EEE6}
+.deep .sec-num{color:var(--accent-soft)}
+.deep .sub{color:#8D96A2}
+.deep .rule{background:var(--deep-rule)}
+
+.specs{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:0; border-top:1px solid var(--deep-rule);
+}
+.spec{
+  padding:1.9rem 1.75rem 2rem 0; border-bottom:1px solid var(--deep-rule);
+  border-right:1px solid var(--deep-rule); padding-right:1.75rem;
+}
+.spec:nth-child(2n){border-right:0; padding-left:1.75rem}
+@media(max-width:780px){
+  .specs{grid-template-columns:1fr}
+  .spec,.spec:nth-child(2n){border-right:0; padding-left:0}
+}
+.spec h3{font-size:1.2rem; margin-bottom:.65rem}
+.spec p{color:#8D96A2; font-size:.9rem; margin:0; max-width:40ch}
+.spec code{
+  font-family:"IBM Plex Mono",monospace; font-size:.82em;
+  color:#B9A08F; background:rgba(196,87,63,.09);
+  padding:.1em .35em; border-radius:2px;
+}
+.spec .tag{
+  display:block; color:var(--accent-soft); margin-bottom:1rem;
+  font-family:"IBM Plex Mono",monospace; font-size:.65rem;
+  letter-spacing:.14em; text-transform:uppercase;
+}
+
+/* ── honesty ledger ──────────────────────────────── */
+.ledger{width:100%; border-collapse:collapse; margin-top:.5rem}
+.ledger caption{
+  text-align:left; color:#8D96A2; padding-bottom:1.4rem;
+  font-size:.9375rem; max-width:64ch; line-height:1.6;
+}
+.ledger th{
+  text-align:left; padding:.6rem 1rem .6rem 0;
+  border-bottom:1px solid var(--deep-rule);
+  color:#7E8794; font-family:"IBM Plex Mono",monospace;
+  font-size:.65rem; letter-spacing:.14em; text-transform:uppercase; font-weight:500;
+}
+.ledger td{
+  padding:.85rem 1rem .85rem 0; border-bottom:1px solid var(--deep-rule);
+  vertical-align:top; font-size:.9375rem; color:#A9B2BD;
+}
+.ledger td:first-child{color:#E8E3DA; width:34%}
+.ledger td:last-child{padding-right:0}
+.pill{
+  display:inline-block; font-family:"IBM Plex Mono",monospace;
+  font-size:.63rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:.22em .55em; border-radius:2px; white-space:nowrap;
+}
+.pill.live{color:#8FBF9F; background:rgba(143,191,159,.11); border:1px solid rgba(143,191,159,.24)}
+.pill.stub{color:#D08E6E; background:rgba(208,142,110,.10); border:1px solid rgba(208,142,110,.26)}
+@media(max-width:680px){
+  .ledger td:first-child{width:auto}
+  .ledger th:nth-child(3),.ledger td:nth-child(3){display:none}
+}
+
+/* ── CTA ─────────────────────────────────────────── */
+.cta{padding-block:clamp(4rem,10vw,8rem); text-align:left}
+.cta-inner{max-width:min(100%,880px)}
+.cta h2{
+  font-size:clamp(1.9rem,1.15rem + 3.1vw,3.5rem);
+  line-height:1.08; letter-spacing:-.022em; max-width:19ch;
+}
+.cta h2 em{font-style:italic; color:var(--accent); font-weight:300}
+.mailto{
+  display:inline-flex; align-items:center; gap:.85rem;
+  margin-top:2.4rem; text-decoration:none; color:var(--ink);
+  border-bottom:1px solid var(--ink); padding-bottom:.5rem;
+  font-family:"IBM Plex Mono",monospace; font-size:1rem; letter-spacing:.01em;
+  transition:color .22s, border-color .22s, gap .22s;
+}
+.mailto:hover{color:var(--accent); border-color:var(--accent); gap:1.2rem}
+.mailto svg{width:15px; height:15px; flex:none}
+.cta-fine{
+  margin-top:2rem; color:var(--ink-faint); font-size:.875rem; max-width:44ch;
+}
+
+/* ── footer ──────────────────────────────────────── */
+footer{border-top:1px solid var(--rule); padding-block:2.5rem 3.5rem}
+.foot-in{
+  display:flex; flex-wrap:wrap; gap:1.25rem 2.5rem;
+  align-items:baseline; justify-content:space-between;
+  color:var(--ink-faint);
+}
+.foot-in .mono{color:var(--ink-faint)}
+footer a{color:var(--ink-soft); text-decoration:none; border-bottom:1px solid var(--rule)}
+footer a:hover{color:var(--accent); border-color:var(--accent)}
+
+/* ── motion ──────────────────────────────────────── */
+/* Content below the fold is ALWAYS visible. It is never hidden pending JavaScript:
+   a scroll-reveal that fails leaves the page blank, which is worse than no animation.
+   Only the hero animates, and that is pure CSS with no script dependency. */
+.hero .rise{animation:rise .9s cubic-bezier(.22,.61,.36,1) forwards; opacity:0; transform:translateY(20px)}
+.hero .rise:nth-child(1){animation-delay:.05s}
+.hero .rise:nth-child(2){animation-delay:.14s}
+.hero .rise:nth-child(3){animation-delay:.23s}
+.hero-side{animation:rise .9s cubic-bezier(.22,.61,.36,1) .34s forwards; opacity:0; transform:translateY(20px)}
+@keyframes rise{to{opacity:1; transform:none}}
+@media(prefers-reduced-motion:reduce){
+  .hero .rise,.hero-side{opacity:1 !important; transform:none !important; animation:none !important; transition:none !important}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="Suture, home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M2 17h5.2l3-8.4 4.1 15.6 4-11.4 2.6 4.2H30" fill="none" stroke="#A8321E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <b>Suture</b>
+    </a>
+    <div class="nav-meta">
+      <span class="mono hide-sm">Western PA · Pre-launch</span>
+      <a class="nav-cta mono" href="mailto:i.shauryagulati@gmail.com?subject=Suture%20%E2%80%94%2020%20minutes">Get in touch</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+<!-- ══ HERO ══ -->
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="mono eyebrow rise">For independent cardiology practices</span>
+      <h1 class="rise">Every referral that goes unread is <em>a patient who never comes back.</em></h1>
+      <p class="lede rise">Suture reads inbound referral and discharge faxes, pulls out the fields that matter, routes what a human actually needs to see, and chases the patient until the follow-up is on the calendar.</p>
+    </div>
+
+    <aside class="rail hero-side" aria-label="Pipeline">
+      <span class="mono rail-title">The loop</span>
+      <ol>
+        <li><span>01</span><span>Fax / PDF arrives</span></li>
+        <li><span>02</span><span>OCR + classify</span></li>
+        <li><span>03</span><span>AI field extraction</span></li>
+        <li><span>04</span><span>Confidence scoring</span></li>
+        <li><span>05</span><span>Human review →</span></li>
+        <li><span>06</span><span>Workflow + SLA tasks</span></li>
+        <li><span>07</span><span>Patient outreach</span></li>
+        <li><span>08</span><span>Prior-auth packet</span></li>
+        <li><span>09</span><span>Fax back to sender</span></li>
+      </ol>
+    </aside>
+  </div>
+</header>
+
+<hr class="rule" />
+
+<!-- ══ 01 PROBLEM ══ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono sec-num">01 / Problem</span>
+      <div>
+        <h2>The fax machine is still the front door.</h2>
+        <p class="sub">Independent practices lose referrals in the gap between a PDF landing in a queue and someone finding time to key it in. Suture closes that gap without asking anyone to change how they refer.</p>
+      </div>
+    </div>
+
+    <div class="cards">
+      <article class="card">
+        <span class="tag">Leakage</span>
+        <h3>Referrals that quietly die</h3>
+        <p>A referral sits unopened, the patient goes elsewhere, and nobody finds out for a month. Suture tracks every inbound document to a booked appointment, or flags it as at risk.</p>
+      </article>
+      <article class="card">
+        <span class="tag">Keying</span>
+        <h3>Manual data entry</h3>
+        <p>Name, DOB, payer, member ID, diagnosis codes, referral reason. Extracted automatically, each field scored, and only the uncertain ones put in front of staff.</p>
+      </article>
+      <article class="card">
+        <span class="tag">Prior auth</span>
+        <h3>Payer rules nobody memorized</h3>
+        <p>Whether Highmark or UPMC requires auth for a given CPT code, what documentation the packet needs, and a draft appeal when it comes back denied.</p>
+      </article>
+      <article class="card">
+        <span class="tag">Follow-up</span>
+        <h3>The patient who won't pick up</h3>
+        <p>A cadence across text, email, and voice, with a self-scheduling link, then a confirmation fax back to the hospital that discharged them.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<hr class="rule" />
+
+<!-- ══ 02 PRODUCT ══ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono sec-num">02 / Product</span>
+      <div>
+        <h2>Built, running, and honest about what it is.</h2>
+        <p class="sub">Not mockups. These are screens from the working application, taken against a seeded Western PA dataset.</p>
+      </div>
+    </div>
+
+    <div class="shots">
+      <div class="shot">
+        <figure>
+          <img src="screenshots/review.webp" decoding="async" alt="Suture review screen: the referral PDF on the left, extracted fields with per-field confidence scores on the right, and eight fields flagged as not extracted." width="1800" height="1125" />
+          <figcaption><b>Review</b><span>Document on the left, extracted fields on the right. Every field carries a confidence score, and anything missing is flagged before a human signs off.</span></figcaption>
+        </figure>
+      </div>
+
+      <div class="shots-pair">
+        <div class="shot">
+          <figure>
+            <img src="screenshots/inbox.webp" alt="Suture inbox listing referral and discharge documents with status, classification, and confidence columns." loading="lazy" width="1800" height="1125" />
+            <figcaption><b>Inbox</b><span>Every inbound document, classified and triaged.</span></figcaption>
+          </figure>
+        </div>
+        <div class="shot">
+          <figure>
+            <img src="screenshots/prior-auth.webp" alt="Prior authorization detail for Highmark BCBS PA, CPT 93458, showing auth-required status and cited reasoning." loading="lazy" width="1800" height="1125" />
+            <figcaption><b>Prior auth</b><span>Payer rules retrieved and cited, with a generated packet.</span></figcaption>
+          </figure>
+        </div>
+      </div>
+
+      <div class="shot">
+        <figure>
+          <img src="screenshots/analytics.webp" alt="Analytics dashboard showing documents processed, patients at risk, hours saved, and a per-patient risk table." loading="lazy" width="1800" height="1125" />
+          <figcaption><b>Analytics</b><span>Leakage risk, payer friction, referral-source quality, and the hours the practice got back.</span></figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <p class="shot-note">Seeded cardiology data. Same pipeline, aimed at independent specialty practices.</p>
+  </div>
+</section>
+
+<hr class="rule" />
+
+<!-- ══ 03 DEMO ══ -->
+<!-- Hidden until you drop your recording in as site/demo.mp4; it then appears automatically. -->
+<section id="demo" hidden>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono sec-num">03 / Demo</span>
+      <div>
+        <h2>Fax in, booked appointment out.</h2>
+        <p class="sub">Three minutes, one referral, start to finish: upload through extraction, review, and outreach.</p>
+      </div>
+    </div>
+
+    <div class="video-frame">
+      <video controls preload="metadata" playsinline>
+        <source src="demo.mp4" type="video/mp4" />
+        Your browser doesn't support embedded video.
+      </video>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 04 UNDER THE HOOD ══ -->
+<section class="deep">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="mono sec-num">04 / Engineering</span>
+      <div>
+        <h2>Patient data is the whole product. It's built like it.</h2>
+        <p class="sub">A HIPAA-class workload built solo, with the load-bearing decisions written down in eleven architecture decision records.</p>
+      </div>
+    </div>
+
+    <div class="specs">
+      <article class="spec">
+        <span class="tag">Isolation</span>
+        <h3>Fails closed, not open</h3>
+        <p>Tenant scoping is enforced once at the ORM session layer, not repeated in every query. If the clinic context is missing, the query <em>raises</em>. It does not return unfiltered rows.</p>
+      </article>
+      <article class="spec">
+        <span class="tag">PHI</span>
+        <h3>Encrypted at the column</h3>
+        <p>Date of birth, phone, SSN, and insurance member IDs are Fernet-encrypted field by field. The append-only audit trail records who touched what and which columns changed, but <em>never the values</em>.</p>
+      </article>
+      <article class="spec">
+        <span class="tag">Models</span>
+        <h3>Local by default, no lock-in</h3>
+        <p>Every model call goes through a provider interface. The default runs entirely on-premise via <code>Ollama</code>; a practice that wants a hosted frontier model brings its own key. No patient record has to leave the building.</p>
+      </article>
+      <article class="spec">
+        <span class="tag">Accuracy</span>
+        <h3>Measured, not asserted</h3>
+        <p>Extraction accuracy is scored against a ground-truth corpus (per-field precision, recall, and F1, recorded per run), so a prompt or model change is a diff, not a vibe. Field confidence is computed from validators, never self-reported by the model.</p>
+      </article>
+    </div>
+
+    <div style="margin-top:clamp(3rem,7vw,5.5rem)" >
+      <span class="mono sec-num" style="display:block; margin-bottom:1.4rem">05 / Status</span>
+      <table class="ledger">
+        <caption>Pre-launch, and specific about it. The full pipeline executes end to end and every step is auditable, but outbound channels currently run against local stubs rather than real carriers. Nothing here has touched a live patient.</caption>
+        <thead>
+          <tr><th scope="col">Capability</th><th scope="col">State</th><th scope="col">Detail</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>OCR, classification, extraction</td><td><span class="pill live">Working</span></td><td>Docling with a pypdf fallback, then field extraction with per-field confidence.</td></tr>
+          <tr><td>Human review &amp; approval</td><td><span class="pill live">Working</span></td><td>Side-by-side document and fields; approval creates the patient and referral records.</td></tr>
+          <tr><td>Workflow, SLA tasks, analytics</td><td><span class="pill live">Working</span></td><td>State machines for referrals and discharges, with leakage and ROI reporting.</td></tr>
+          <tr><td>Prior-auth retrieval &amp; packet</td><td><span class="pill live">Working</span></td><td>Payer-rule retrieval with cited excerpts, generated packets and appeals.</td></tr>
+          <tr><td>Fax, SMS, email delivery</td><td><span class="pill stub">Stubbed</span></td><td>The pipeline runs and is fully audited; nothing leaves the machine yet.</td></tr>
+          <tr><td>Outbound phone calls</td><td><span class="pill stub">Stubbed</span></td><td>The voice agent works in-browser; telephony is deliberately deferred.</td></tr>
+          <tr><td>Design partners</td><td><span class="pill stub">Looking</span></td><td>Zero practices live. That's what this page is for.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section class="cta">
+  <div class="wrap">
+    <div class="cta-inner">
+      <span class="mono eyebrow">Get in touch</span>
+      <h2>If you run an independent practice and referrals are eating your week, <em>I'd like 20 minutes.</em></h2>
+      <a class="mailto" href="mailto:i.shauryagulati@gmail.com?subject=Suture%20%E2%80%94%2020%20minutes&body=Practice%3A%20%0APhone%3A%20%0AWhat%27s%20eating%20the%20most%20time%20right%20now%3A%20%0A">
+        i.shauryagulati@gmail.com
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 13L13 3M13 3H6M13 3v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <p class="cta-fine">No pitch deck, no demo gauntlet. Tell me where referrals get stuck in your office and I'll tell you honestly whether this helps yet.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <span class="mono">Suture · Built solo in Pittsburgh</span>
+    <span class="mono">Pre-launch · Not accepting patient data</span>
+    <a class="mono" href="mailto:i.shauryagulati@gmail.com">Email</a>
+  </div>
+</footer>
+
+<script>
+/* Reveal the demo section only once site/demo.mp4 actually exists. */
+(function () {
+  var section = document.getElementById('demo');
+  if (!section) return;
+  fetch('demo.mp4', { method: 'HEAD' })
+    .then(function (r) { if (r.ok) section.hidden = false; })
+    .catch(function () { /* no recording yet; section stays hidden */ });
+})();
+</script>
+
+</body>
+</html>
